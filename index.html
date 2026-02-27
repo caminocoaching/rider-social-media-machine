@@ -4,9 +4,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Driver Social Media Engine — Camino Coaching</title>
+  <title>Motorcycle Racer Social Media Machine — Camino Coaching</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
   <meta name="description"
-    content="Daily Facebook content generator for race car drivers. Camino Coaching by Craig Muirhead." />
+    content="Weekly Facebook & Instagram content engine for motorcycle racers. Generate 7 professional posts with AI-powered research. Camino Coaching by Craig Muirhead." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
@@ -22,9 +25,9 @@
   <nav class="nav" id="main-nav">
     <div class="nav-inner">
       <div class="nav-brand">
-        <span class="nav-logo">🏁</span>
+        <span class="nav-logo">🏍️</span>
         <div class="nav-brand-text">
-          <span class="nav-title">Driver Social Media Engine</span>
+          <span class="nav-title">Motorcycle Racer Social Media Machine</span>
           <span class="nav-subtitle">Camino Coaching</span>
         </div>
       </div>
@@ -56,11 +59,12 @@
       <div class="page-header">
         <div class="page-header-content">
           <h1>🧙‍♂️ Weekly Wizard</h1>
-          <p class="page-subtitle">Generate 7 days of Facebook posts in minutes. Find topics → Write posts → Export to
-            GHL.</p>
+          <p class="page-subtitle">Generate 7 days of Facebook & Instagram posts in minutes. Research articles → Write
+            posts →
+            Export CSV to GHL Social Planner.</p>
         </div>
         <div class="page-header-badges" id="wizard-badges">
-          <!-- Race week badge will be injected here -->
+          <!-- Season/context badges injected here -->
         </div>
       </div>
 
@@ -86,8 +90,12 @@
       <div class="wizard-content" id="wizard-step-1">
         <div class="step-header">
           <h2>Step 1: Find This Week's Topics</h2>
-          <p>AI will generate 7 topic angles — one for each content pillar — using the 3S + 2F framework.</p>
+          <p>AI searches the web for 7 current articles across mental performance pillars for motorcycle racers, then
+            generates
+            data-driven topic angles for Facebook &amp; Instagram.</p>
         </div>
+        <!-- Championship Calendar Context -->
+        <div id="calendar-context" class="calendar-context"></div>
         <div class="pillar-preview" id="pillar-preview">
           <!-- Pillar cards will be rendered here -->
         </div>
@@ -106,7 +114,8 @@
       <div class="wizard-content hidden" id="wizard-step-2">
         <div class="step-header">
           <h2>Step 2: Review Topics & Write Posts</h2>
-          <p>Review the 7 topics below. Edit any you'd like to change, then generate all posts in parallel.</p>
+          <p>Review the 7 article-inspired topics below. Edit any you'd like to change, then generate all posts in
+            parallel.</p>
         </div>
         <div class="topics-grid" id="topics-grid">
           <!-- Topic cards will be rendered here -->
@@ -127,7 +136,9 @@
       <div class="wizard-content hidden" id="wizard-step-3">
         <div class="step-header">
           <h2>Step 3: Review & Export</h2>
-          <p>Your 7 posts are ready. Review, edit, or regenerate any post, then export to GHL.</p>
+          <p>Your 7 Facebook & Instagram posts are ready. Review, edit, generate visuals, then export CSV for GHL Social
+            Planner.
+          </p>
         </div>
         <div class="posts-grid" id="posts-grid">
           <!-- Post cards will be rendered here -->
@@ -147,11 +158,16 @@
               <span class="btn-icon-left">📋</span>
               Copy CSV
             </button>
-            <a href="https://app.gohighlevel.com/v2/location/EwAyQ03cV2yxVYaxnY5S/marketing/social-planner/csv"
+            <a href="https://app.gohighlevel.com/v2/location/vdgR8teGuIgHPMPzbQkK/marketing/social-planner/csv"
               target="_blank" class="btn btn-secondary btn-lg" id="open-ghl-btn" style="text-decoration:none;">
               <span class="btn-icon-left">🚀</span>
               Open GHL Planner
             </a>
+            <button class="btn btn-secondary btn-lg" id="clear-session-btn" onclick="window.appActions.clearSession()"
+              style="color: var(--accent); border-color: rgba(255,68,68,0.3);">
+              <span class="btn-icon-left">🗑️</span>
+              Clear Session
+            </button>
           </div>
         </div>
       </div>
@@ -161,7 +177,9 @@
     <section class="page" id="single-page">
       <div class="page-header">
         <h1>🔍 Single Post Generator</h1>
-        <p class="page-subtitle">Generate an ad-hoc post with full control over pillar, framework, and CTA.</p>
+        <p class="page-subtitle">Generate an ad-hoc Facebook/Instagram post with full control over pillar, framework,
+          and CTA.
+        </p>
       </div>
 
       <div class="single-post-layout">
@@ -184,7 +202,7 @@
           <div class="control-card">
             <h3>CTA / Lead Magnet</h3>
             <select class="form-select" id="cta-selector">
-              <option value="auto">🎯 Auto (Seasonal Rotation)</option>
+              <option value="auto">🎯 Auto (CTA Rotation)</option>
               <!-- CTA options rendered by JS -->
             </select>
           </div>
