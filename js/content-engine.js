@@ -311,9 +311,7 @@ export const CTAS = [
     frequency: '1x/week',
     primary: false,
     triggerWord: 'FLOW',
-    deliveryMethod: 'Public link in post — riders click directly.',
-    url: '[URL NEEDED]',
-    urlStatus: 'PENDING',
+    deliveryMethod: 'ManyChat — rider comments FLOW, receives DM with link.',
     whenToUse: 'Flow state content, neuroscience posts (transient hypofrontality, dopamine), "ever had a lap where everything felt effortless" hooks, gap between good and great sessions, automatic execution vs conscious riding',
     whatRiderGets: '2-3 minute assessment measuring: Flow Recognition, Confidence Baseline, Fun & Enjoyment, Zone Access Frequency, Nerves & Anxiety Levels. Personalised Flow Profile showing flow strengths and blockers.',
     ctaTemplate: '\n\n·· PS - Ever wondered if you actually experience flow on track, or just think you do? Free Rider Flow Profile maps how often you access the zone, what triggers it, and what blocks it. 2 minutes. Might surprise you. Comment "FLOW" and I\'ll send you the link.'
@@ -326,9 +324,7 @@ export const CTAS = [
     frequency: '1x/week',
     primary: false,
     triggerWord: 'MINDSET',
-    deliveryMethod: 'Public link in post — riders click directly.',
-    url: '[URL NEEDED]',
-    urlStatus: 'PENDING',
+    deliveryMethod: 'ManyChat — rider comments MINDSET, receives DM with link.',
     whenToUse: 'Mental toughness posts, competitor comparison posts, reaction to setbacks (crashes, bad results), "how would you react if" engagement, gap between intention and execution under pressure',
     whatRiderGets: '3-minute quiz with 12-15 real racing scenarios. Scores: Below 40% = Mental Performance Gap, 40-60% = Podium Potential, 60-80% = Contender Mindset, 80%+ = Champion Mindset. Most riders score below 40%.',
     ctaTemplate: '\n\n·· Oh, by the way - I built a free Rider Mindset Quiz with 12 real racing scenarios. You miss the podium by 0.001s. Your mate beats you in identical conditions. You crash at your best corner. How you react reveals everything. Most riders score below 40%. Takes 3 minutes. Comment "MINDSET" for the link.'
@@ -341,9 +337,7 @@ export const CTAS = [
     frequency: '1-2x per month — sparingly, pattern interrupt effect',
     primary: false,
     triggerWord: 'SLEEP',
-    deliveryMethod: 'Public link in post — riders click directly.',
-    url: '[URL NEEDED]',
-    urlStatus: 'PENDING',
+    deliveryMethod: 'ManyChat — rider comments SLEEP, receives DM with link.',
     whenToUse: 'Sleep and recovery posts, race weekend preparation, HRV/biofeedback content, "the thing nobody talks about" pattern interrupts, why riders feel slower Sunday vs Saturday, off-season recovery, "what you do OFF the bike affects what happens ON the bike"',
     whatRiderGets: '60-second assessment (deliberately short). Checks: sleep duration race weekends vs normal, sleep quality/interruptions, caffeine timing, screen time before bed, wake-up routine/cognitive readiness, Saturday night recovery before Sunday. Data link: Riders with HRV above 6 are strongest single predictor of PB potential (1,800+ debriefs).',
     ctaTemplate: '\n\n·· Completely unrelated - I built a 60-second sleep test for motorcycle racers. Checks whether your sleep habits are helping or hurting your reaction times, concentration, and consistency. Most riders have no idea. Free. Instant results. Comment "SLEEP" and I\'ll send you the link.'
@@ -487,9 +481,9 @@ export const FUNNEL = {
   step1: 'Facebook/Instagram Post (value + unrelated "Oh, by the way" CTA)',
   step2a: 'CTA A → LM1: Rider Race Weekend Review (DM delivery) — improve-rider.scoreapp.com',
   step2b: 'CTA B → LM2: End of Season Review — riderseason.scoreapp.com',
-  step2c: 'CTA C → LM3: Rider Flow Profile — [URL NEEDED]',
-  step2d: 'CTA D → LM4: Rider Mindset Quiz — [URL NEEDED]',
-  step2e: 'CTA E → LM5: Rider Sleep Test — [URL NEEDED]',
+  step2c: 'CTA C → LM3: Rider Flow Profile — ManyChat trigger: FLOW',
+  step2d: 'CTA D → LM4: Rider Mindset Quiz — ManyChat trigger: MINDSET',
+  step2e: 'CTA E → LM5: Rider Sleep Test — ManyChat trigger: SLEEP',
   step3: 'ALL 5 LEAD MAGNETS FEED INTO: Podium Contenders Blueprint (3-day free training, 3x/year)',
   step3url: 'https://academy.caminocoaching.co.uk/podium-contenders-blueprint/order/',
   step3day1: 'Day 1: The 7 Biggest Mistakes Costing You Lap Times (WOW not HOW)',
@@ -633,9 +627,9 @@ export const CTA_ROTATION_SCHEDULE = {
 export const TRIGGER_WORDS = {
   'REVIEW': { cta: 'cta-a', delivers: 'Race Weekend Review link (DM delivery)', url: 'improve-rider.scoreapp.com' },
   'SEASON': { cta: 'cta-b', delivers: 'End of Season Review link (public)', url: 'riderseason.scoreapp.com' },
-  'FLOW': { cta: 'cta-c', delivers: 'Rider Flow Profile link (public)', url: '[URL NEEDED]' },
-  'MINDSET': { cta: 'cta-d', delivers: 'Rider Mindset Quiz link (public)', url: '[URL NEEDED]' },
-  'SLEEP': { cta: 'cta-e', delivers: 'Rider Sleep Test link (public)', url: '[URL NEEDED]' },
+  'FLOW': { cta: 'cta-c', delivers: 'Rider Flow Profile link via ManyChat DM' },
+  'MINDSET': { cta: 'cta-d', delivers: 'Rider Mindset Quiz link via ManyChat DM' },
+  'SLEEP': { cta: 'cta-e', delivers: 'Rider Sleep Test link via ManyChat DM' },
   'BLUEPRINT': { cta: 'cta-f', delivers: 'Podium Contenders Blueprint direct link', url: 'https://academy.caminocoaching.co.uk/podium-contenders-blueprint/order/' }
 };
 
