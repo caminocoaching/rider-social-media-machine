@@ -8,7 +8,7 @@
 import {
     PILLARS, FRAMEWORKS, CTAS, AUTHORITY_LINES, LEXICON, MECHANISMS,
     MOTORSPORT_BRIDGES, CASE_STUDIES, RIDER_INSIGHTS, HOOKS,
-    WINNING_FORMULA_PILLARS, FUNNEL, WEEKLY_SCHEDULE, CAMPAIGN_ARC,
+    WINNING_FORMULA_PILLARS, FUNNEL, WEEKLY_SCHEDULE, CAMPAIGN_ARC, VISUAL_FORMATS,
     getSeasonalContext
 } from './content-engine.js';
 
@@ -299,11 +299,13 @@ export async function generatePost({ topic, pillar, framework, cta, authorityLin
     }
 
     // Platform-specific format guidance from schedule
+    const vf = scheduleDay?.visualFormat ? VISUAL_FORMATS[scheduleDay.visualFormat] : null;
     const platformNote = scheduleDay
         ? `\nCONTENT TYPE: ${scheduleDay.contentType}
 FACEBOOK FORMAT: ${scheduleDay.fbFormat}
 INSTAGRAM FORMAT: ${scheduleDay.igFormat}
-CTA DELIVERY: ${scheduleDay.ctaType === 'direct-link' ? 'Direct link in CTA (Facebook). Comment keyword only (Instagram).' : 'Comment keyword CTA for both platforms (ManyChat delivery).'}`
+CTA DELIVERY: ${scheduleDay.ctaType === 'direct-link' ? 'Direct link in CTA (Facebook). Comment keyword only (Instagram).' : 'Comment keyword CTA for both platforms (ManyChat delivery).'}
+${vf ? `VISUAL FORMAT: ${vf.name} — ${vf.description}\nIMAGE NOTE: ${scheduleDay.visualNote}` : ''}`
         : '';
 
     const prompt = `Write a Facebook post AND an Instagram caption for Craig Muirhead / Camino Coaching using these parameters:
@@ -373,7 +375,10 @@ Format your response as:
 [Facebook post text here]
 
 === INSTAGRAM CAPTION ===
-[Instagram caption here]`;
+[Instagram caption here]
+
+=== IMAGE TEXT ===
+[Suggest 1-2 lines of text for the image (max 12 words). This is for a bold text or data card visual. Use the hook data point or most powerful stat from the post.]`;
 
     return await callOpenAI(prompt, apiKey, model, false);
 }

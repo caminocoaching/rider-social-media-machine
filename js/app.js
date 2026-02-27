@@ -5,7 +5,7 @@
 
 import {
     PILLARS, FRAMEWORKS, CTAS, AUTHORITY_LINES, CAMPAIGN_ARC,
-    WEEKLY_SCHEDULE, MOTORSPORT_BRIDGES,
+    WEEKLY_SCHEDULE, MOTORSPORT_BRIDGES, VISUAL_FORMATS,
     getActiveCTAs, getRotatingCTA, resetCTARotation,
     getRotatingAuthority, resetAuthorityRotation,
     getRotatingMotorsportBridge, resetMotorsportBridgeRotation,
@@ -415,15 +415,18 @@ function renderPosts() {
         const wordCount = (post.content || '').split(/\s+/).filter(w => w).length;
         const campaignDay = post.campaignDay || (i < CAMPAIGN_ARC.length ? CAMPAIGN_ARC[i] : null);
 
-        // Parse FB/IG content if present
+        // Parse FB/IG/Image text content if present
         const hasDualPlatform = (post.content || '').includes('=== FACEBOOK POST ===');
         let fbContent = post.content || '';
         let igContent = '';
+        let imageText = '';
         if (hasDualPlatform) {
             const fbMatch = post.content.match(/=== FACEBOOK POST ===([\s\S]*?)(?:=== INSTAGRAM CAPTION ===|$)/);
-            const igMatch = post.content.match(/=== INSTAGRAM CAPTION ===([\s\S]*?)$/);
+            const igMatch = post.content.match(/=== INSTAGRAM CAPTION ===([\s\S]*?)(?:=== IMAGE TEXT ===|$)/);
+            const imgMatch = post.content.match(/=== IMAGE TEXT ===([\s\S]*?)$/);
             fbContent = (fbMatch?.[1] || '').trim();
             igContent = (igMatch?.[1] || '').trim();
+            imageText = (imgMatch?.[1] || '').trim();
         }
         const schedule = WEEKLY_SCHEDULE[i];
 
@@ -461,6 +464,29 @@ function renderPosts() {
         ` : `
         <div class="post-content" id="post-content-${i}">${escapeHtml(post.content || '')}</div>
         `}
+
+        ${(() => {
+                const vf = schedule?.visualFormat ? VISUAL_FORMATS[schedule.visualFormat] : null;
+                const vfAlt = schedule?.visualAlt ? VISUAL_FORMATS[schedule.visualAlt] : null;
+                if (!vf) return '';
+                return `
+          <div class="visual-format-strip">
+            <div class="visual-format-main">
+              <span class="visual-format-icon">${vf.icon}</span>
+              <div class="visual-format-info">
+                <span class="visual-format-name">${vf.name}</span>
+                <span class="visual-format-note">${schedule.visualNote}</span>
+              </div>
+            </div>
+            ${vfAlt ? `<span class="visual-format-alt" title="${vfAlt.description}">or ${vfAlt.icon} ${vfAlt.name}</span>` : ''}
+          </div>
+          ${imageText ? `
+          <div class="image-text-strip">
+            <span class="image-text-label">📐 Image Text:</span>
+            <span class="image-text-content">${escapeHtml(imageText)}</span>
+            <button class="image-text-copy" onclick="navigator.clipboard.writeText('${imageText.replace(/'/g, "\\'")}');this.textContent='✓';setTimeout(()=>this.textContent='📋',1000)" title="Copy image text">📋</button>
+          </div>` : ''}`;
+            })()}
 
         <div class="post-card-footer">
           <div class="post-meta">

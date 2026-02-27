@@ -359,8 +359,76 @@ export const CTAS = [
   }
 ];
 
+// ─── Visual Format System (7 formats based on top-performing post data) ──────
+// The image is NOT the hero. The hook text is. The visual stops the scroll and feels real.
+export const VISUAL_FORMATS = {
+  'bold-text': {
+    id: 'bold-text',
+    name: 'Bold Text on Dark',
+    icon: '🖤',
+    description: 'White/gold text on black or dark textured background. The hook line as the image.',
+    specs: 'Canva 1080×1080. Font: Bebas Neue or Montserrat Bold. Max 12 words. Brand gold #DAA520 for key words.',
+    whenToUse: 'Research drops, neuroscience hooks, provocative statements. Your tested format that works.',
+    example: '"73% of riders brake 200ms late under pressure" — white text, black background, gold accent on the percentage.'
+  },
+  'paddock-photo': {
+    id: 'paddock-photo',
+    name: 'Real Paddock Photo',
+    icon: '📸',
+    description: 'Your own photos from MotoGP, WorldSBK, BSB paddocks. Your biggest visual advantage.',
+    specs: 'Phone camera is fine. Landscape or square crop. No filters needed, authenticity is the point.',
+    whenToUse: 'Race weekend tie-ins, MotoGP moments, authority-building posts. Content gold nobody else has.',
+    example: 'Your photo from the pit lane, a rider on the grid, the view from the timing stand. Caption is the post.'
+  },
+  'data-card': {
+    id: 'data-card',
+    name: 'Data Visualisation Card',
+    icon: '📊',
+    description: 'Clean graphic turning your debrief stats into visual format. Bar charts, comparison graphics.',
+    specs: 'Canva 1080×1080. Dark background. Gold/white data. Simple bar or comparison. One stat per card.',
+    whenToUse: 'Research drops, the 7 mistakes, any post referencing your debrief data. Makes numbers sticky.',
+    example: '"1,644 PBs analysed: riders with HRV above 6 are 3x more likely to PB" — clean bar chart, branded.'
+  },
+  'social-proof': {
+    id: 'social-proof',
+    name: 'Screenshot Social Proof',
+    icon: '⭐',
+    description: 'Trustpilot reviews, client DMs (with permission), In The Zone app screenshots.',
+    specs: 'Screenshot + light crop. Can add subtle brand border in Canva. Keep the raw, authentic look.',
+    whenToUse: 'Client story days, transformation posts. Real screenshots beat designed testimonial graphics.',
+    example: 'Screenshot of a Trustpilot 5-star review with the rider\'s words about their breakthrough. Raw, not designed.'
+  },
+  'whiteboard': {
+    id: 'whiteboard',
+    name: 'Whiteboard Diagram',
+    icon: '📝',
+    description: 'Hand-drawn or clean diagrams: brain mechanisms, corner analysis, the analyst positioning.',
+    specs: 'Canva or hand-drawn photo. Dark background with white/gold lines. Label key parts simply.',
+    whenToUse: 'Neuroscience teaches, flow state explainers, dual-task interference. The analyst positioning.',
+    example: 'Simple brain diagram: "Prefrontal cortex (thinking) vs Cerebellum (riding)" — arrows showing the conflict.'
+  },
+  'carousel': {
+    id: 'carousel',
+    name: 'Carousel Cards',
+    icon: '📱',
+    description: 'Multi-slide Instagram carousels. 3-5 slides with consistent brand look. 2.82% engagement from just 3 posts.',
+    specs: 'Canva 1080×1350. Dark background, gold accents. Slide 1 = hook. Last slide = CTA. Swipe indicator on slide 1.',
+    whenToUse: 'The 7 mistakes (one per slide), neuroscience teaches (step-by-step breakdown). IG-primary format.',
+    example: 'Slide 1: "The 7 mistakes costing you 2 seconds a lap" / Slides 2-6: one mistake each / Slide 7: CTA'
+  },
+  'talking-head': {
+    id: 'talking-head',
+    name: 'You On Camera',
+    icon: '🎬',
+    description: 'Talking head clips filmed in the paddock, garage, or at your desk. Face builds trust.',
+    specs: 'Phone camera, vertical 9:16 for Reels/Stories. 15-60 seconds. Subtitles added (CapCut or Canva).',
+    whenToUse: 'Race weekend content, Friday/Sunday posts. Especially powerful when filmed ON LOCATION at a race.',
+    example: 'You in the BSB paddock: "I just watched a rider lose 0.8s in sector 3 after leading all weekend. Here\'s what his brain did..."'
+  }
+};
+
 // ─── 7-Day Posting Schedule (Source: AI_Content_Engine_Rider_Audience.docx) ──
-// Content Type + Platform-Specific Format + CTA Rotation
+// Content Type + Platform-Specific Format + Visual Format + CTA Rotation
 export const WEEKLY_SCHEDULE = [
   {
     day: 'Monday',
@@ -371,6 +439,9 @@ export const WEEKLY_SCHEDULE = [
     ctaType: 'direct-link',
     fbFormat: 'Photo + long-form text (200-400 words)',
     igFormat: 'Reel (data visual, 15-60s)',
+    visualFormat: 'bold-text',
+    visualNote: 'Hook line as the image. White text on black. Gold accent on the key data point.',
+    visualAlt: 'data-card',
     searchFocus: 'eye tracking motorcycle research, neuroscience studies motor performance, sports science reaction time, peer-reviewed rider data'
   },
   {
@@ -382,6 +453,9 @@ export const WEEKLY_SCHEDULE = [
     ctaType: 'comment-keyword',
     fbFormat: 'Photo + long-form text (200-400 words)',
     igFormat: 'Reel (transformation story, 15-60s)',
+    visualFormat: 'social-proof',
+    visualNote: 'Trustpilot screenshot, client DM, or In The Zone app screenshot. Keep it raw and real.',
+    visualAlt: 'paddock-photo',
     searchFocus: 'motorcycle racer transformation stories, rider comeback stories, BSB WorldSBK rider interviews about mental performance'
   },
   {
@@ -393,6 +467,9 @@ export const WEEKLY_SCHEDULE = [
     ctaType: 'direct-link',
     fbFormat: 'Photo + long-form text (200-400 words)',
     igFormat: 'Carousel (3-5 slides with data visuals)',
+    visualFormat: 'whiteboard',
+    visualNote: 'Brain diagram or mechanism sketch. Prefrontal cortex vs cerebellum. Keep it simple.',
+    visualAlt: 'data-card',
     searchFocus: 'neuroscience flow state, amygdala cerebellum motor performance, choking under pressure research, dual-task interference studies'
   },
   {
@@ -404,6 +481,9 @@ export const WEEKLY_SCHEDULE = [
     ctaType: 'comment-keyword',
     fbFormat: 'Photo + long-form text (200-400 words)',
     igFormat: 'Reel (pattern interrupt, 15-60s)',
+    visualFormat: 'bold-text',
+    visualNote: 'Provocative statement as the image. Make it bold and slightly uncomfortable.',
+    visualAlt: 'data-card',
     searchFocus: 'motorcycle racing costs analysis, performance diminishing returns, hardware vs mental performance, paddock spending data'
   },
   {
@@ -415,6 +495,9 @@ export const WEEKLY_SCHEDULE = [
     ctaType: 'direct-link',
     fbFormat: 'Photo + long-form text (200-400 words)',
     igFormat: 'Reel (race reaction, 15-60s)',
+    visualFormat: 'paddock-photo',
+    visualNote: 'YOUR photo from the paddock, pit lane, or grid. This is your biggest visual edge.',
+    visualAlt: 'talking-head',
     searchFocus: 'MotoGP BSB WorldSBK race weekend news, rider interviews, championship updates, race results mental performance angles'
   },
   {
@@ -426,6 +509,9 @@ export const WEEKLY_SCHEDULE = [
     ctaType: 'comment-keyword',
     fbFormat: 'Photo + long-form text (200-400 words)',
     igFormat: 'Carousel (myth-bust format, 3-5 slides)',
+    visualFormat: 'carousel',
+    visualNote: 'One mistake per slide. Hook on slide 1, CTA on last slide. IG carousel + FB single image.',
+    visualAlt: 'bold-text',
     searchFocus: 'common mistakes motorcycle racers, performance errors club racing, mental performance gaps, rider self-assessment data'
   },
   {
@@ -437,6 +523,9 @@ export const WEEKLY_SCHEDULE = [
     ctaType: 'direct-link',
     fbFormat: 'Photo + long-form text (200-400 words)',
     igFormat: 'Reel (scenario/relatable, 15-60s)',
+    visualFormat: 'paddock-photo',
+    visualNote: 'Real photo from a race weekend. The holding area, the grid, the warm-up lane. Authentic over polished.',
+    visualAlt: 'talking-head',
     searchFocus: 'race day pressure anxiety, performance anxiety competition sport, home track pressure, post-race emotional processing'
   }
 ];
