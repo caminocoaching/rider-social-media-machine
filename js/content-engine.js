@@ -173,7 +173,7 @@ export const CTAS = [
     frequency: '3-4x per week (workhorse CTA)',
     when: 'Race weekend posts, post-race content, any performance topic',
     measures: 'Pre-session routine, sleep, food/hydration, visualisation, preparation, car/track connection, FP speed, relaxation, plateaus, overthinking, inner voice, championship pressure',
-    ctaTemplate: '··\nOh, by the way — after every race weekend, I send a free Race Weekend Review to drivers who want to know exactly where they left performance on the table. 3-minute assessment that scores your preparation, focus, and mental approach across every session. Drop me a DM with "REVIEW" after your next race weekend and I\'ll send you the link.'
+    ctaTemplate: '\n\nOh by the way, after every race weekend I send a free Race Weekend Review to drivers who want to know exactly where they left performance on the table. 3-minute assessment that scores your preparation, focus, and mental approach across every session. Drop me a DM with "REVIEW" after your next race weekend and I\'ll send you the link.'
   },
   {
     id: 'season',
@@ -186,7 +186,7 @@ export const CTAS = [
     frequency: '1x/week off-season, occasionally during season',
     when: 'Off-season (Oct-Feb), season reflection posts, goal-setting posts',
     measures: 'Overall, Season Goals, Mindset, FP, Qualifying, Race, Funding, Warm Up & Preparation',
-    ctaTemplate: '··\nCompletely unrelated — I\'ve built a free End of Season Review that scores your entire season across 8 performance pillars. Most drivers score below 60%. Takes 3 minutes. Instant report.\n→ driverseason.scoreapp.com'
+    ctaTemplate: '\n\nBefore I go, completely unrelated. I\'ve built a free End of Season Review that scores your entire season across 8 performance pillars. Most drivers score below 60%. Takes 3 minutes. Instant report.\n driverseason.scoreapp.com'
   },
   {
     id: 'flow',
@@ -199,7 +199,7 @@ export const CTAS = [
     frequency: '1x/week',
     when: 'Flow state content, "in the zone" posts, neuroscience posts',
     measures: 'Flow recognition, confidence, fun while driving, zone access, nerves/anxiety',
-    ctaTemplate: '··\nPS — Ever wondered if you actually experience flow on track, or just think you do? Free Driver Flow Profile maps how often you access the zone, what triggers it, and what blocks it. 2 minutes. Might surprise you.\n→ [FLOW PROFILE LINK]'
+    ctaTemplate: '\n\nI meant to say, ever wondered if you actually experience flow on track, or just think you do? Free Driver Flow Profile maps how often you access the zone, what triggers it, and what blocks it. 2 minutes. Might surprise you.\n [FLOW PROFILE LINK]'
   },
   {
     id: 'mindset',
@@ -212,7 +212,7 @@ export const CTAS = [
     frequency: '1x/week',
     when: 'Mental toughness posts, resilience content, competitor comparison posts',
     measures: '12 scenario-based reactions (missing podium by 0.001s, teammate beating you, crash, pushed wide Lap 1). Most score below 40%.',
-    ctaTemplate: '··\nOh, by the way — I built a free Driver Mindset Quiz with 12 real racing scenarios. You miss the podium by 0.001s. Your teammate beats you with your old setup. You\'re pushed wide at Turn 1. How do you respond? Most drivers score below 40%. Takes 2 minutes.\n→ [MINDSET QUIZ LINK]'
+    ctaTemplate: '\n\nOh by the way, I built a free Driver Mindset Quiz with 12 real racing scenarios. You miss the podium by 0.001s. Your teammate beats you with your old setup. You\'re pushed wide at Turn 1. How do you respond? Most drivers score below 40%. Takes 2 minutes.\n [MINDSET QUIZ LINK]'
   },
   {
     id: 'sleep',
@@ -225,17 +225,17 @@ export const CTAS = [
     frequency: '1-2x/month',
     when: 'Sleep/recovery posts, race weekend prep, HRV/biofeedback content',
     measures: 'Sleep quality, recovery markers, race weekend sleep patterns',
-    ctaTemplate: '··\nPS — I built a free Driver Sleep Test after finding that over 80% of the drivers I work with can\'t wake up without an alarm. Your reaction time is 30-50ms slower. You\'re missing visual cues. And you\'re taking that brain onto track. 2 minutes. Might change how you prepare for race weekends.\n→ [SLEEP TEST LINK]'
+    ctaTemplate: '\n\nBefore I go, I built a free Driver Sleep Test after finding that over 80% of the drivers I work with can\'t wake up without an alarm. Your reaction time is 30-50ms slower. You\'re missing visual cues. And you\'re taking that brain onto track. 2 minutes. Might change how you prepare for race weekends.\n [SLEEP TEST LINK]'
   }
 ];
 
 // ─── 5 Authority Lines (Craig Muirhead specific, rotating) ────
 export const AUTHORITY_LINES = [
   'Pattern recognition across 1,644+ PBs, 1,286+ podiums, and 1,063+ wins has shown me this pattern over and over again.',
-  'After 10 seasons embedded in elite motorsport paddocks — from F1 to F4, GT racing to touring cars — I see this in 90% of drivers I work with.',
-  'Data from 1,800+ session debriefs across 142 circuits tells me exactly what\'s happening here.',
-  'Working with drivers across F4, GB3, GT3, and Carrera Cup — the pattern is always the same.',
-  'The In The Zone app has tracked 1,800+ debriefs across 118+ drivers. The data on this is clear.'
+  'After 10 seasons embedded in elite motorsport paddocks, from F1 to F4, GT racing to touring cars, I see this in 90% of drivers I work with.',
+  'Working with 118+ drivers across 142 circuits, the data on this is very clear.',
+  'I have sat beside drivers across F4, GB3, GT3, and Carrera Cup. The pattern is always the same.',
+  '80+ five-star reviews on Trustpilot and 4.9 out of 5. Most of them mention this exact breakthrough.'
 ];
 
 // ─── Racing Legends (for reference in posts) ─────────────────
