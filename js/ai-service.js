@@ -247,7 +247,7 @@ export async function generateTopics(pillars, seasonalContext, apiKey) {
     const champContext = getChampionshipContext();
 
     const daySlots = [
-        'Monday: Outside the Paddock — a fascinating story from another sport, science, or tech. BUT it MUST bridge back to motorcycle racing mental performance. The rider should think "that is cool" first, then "that connects to my riding."',
+        'Monday: Outside the Paddock — a fascinating story from tennis, rugby, cycling, Olympic sport, combat sport, neuroscience, or tech. NOT car racing. It MUST bridge back to motorcycle racing mental performance. The rider should think "that is cool" first, then "that connects to my riding."',
         'Tuesday: Client Transformation — a motorcycle racer comeback or breakthrough story. Lead with the result, not the struggle.',
         'Wednesday: Neuroscience Teach — brain science (flow state, cortisol, dopamine, attention) applied specifically to riding a motorcycle on track. Reference corners, braking zones, lean angle, throttle control.',
         'Thursday: Provocative Hook — ONE uncomfortable truth about racing psychology that motorcycle racers avoid admitting. Pain-forward.',
@@ -278,8 +278,9 @@ ${daySlots.map((d, i) => `${i + 1}. ${d}`).join('\n')}
 RULES:
 - Every headline must connect to the MENTAL PERFORMANCE side of motorcycle racing
 - Use MOTORCYCLE language: rider, corner, apex, lean angle, braking zone, turn-in, body position, throttle control, the bike, leathers, lid, paddock, grid, qualifying
-- NEVER use car racing language
-- At least 2 stories should reference SPECIFIC real riders or real race results
+- NO CAR RACING — do NOT use F1, NASCAR, IndyCar, or any car racing stories. This is a motorcycle-only audience.
+- Related topics are welcome: neuroscience, peak performance, biometrics (HRV, EEG, wearables, sleep tracking), other sports (tennis, rugby, cycling, combat sports, Olympic athletes), technology, brain science
+- At least 2 stories should reference SPECIFIC real motorcycle riders or real race results
 - "Outside the paddock" stories must still bridge back to what a motorcycle racer experiences on track
 
 Return a JSON array with 7 objects:
