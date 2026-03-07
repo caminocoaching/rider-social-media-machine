@@ -30,7 +30,7 @@ function savePipelineJob(job) {
 // MANUS API — Slide Deck Generation
 // ═══════════════════════════════════════════════════════════════
 
-const MANUS_API_BASE = 'https://api.manus.im/v1';
+const MANUS_API_BASE = 'https://api.manus.ai/v1';
 
 /**
  * Send a slide deck brief to Manus AI to auto-generate the presentation.
@@ -79,7 +79,7 @@ REQUIREMENTS:
         body: JSON.stringify({
             prompt: prompt,
             taskMode: 'agent',
-            agentProfile: 'quality'
+            agentProfile: 'manus-1.6'
         })
     });
 
@@ -89,7 +89,7 @@ REQUIREMENTS:
     }
 
     const data = await response.json();
-    const taskId = data.taskId || data.data?.taskId || data.id;
+    const taskId = data.task_id || data.taskId || data.data?.taskId || data.id;
 
     // Save job for tracking
     const job = savePipelineJob({
@@ -357,7 +357,6 @@ export async function createHeyGenVideo({ script, avatarId, voiceId, slideImageU
 
     if (!apiKey) throw new Error('HeyGen API key not configured.');
     if (!avatarId) throw new Error('Please select an avatar from your HeyGen account.');
-    if (!voiceId) throw new Error('Please select a voice from your HeyGen account.');
 
     // Parse script into scene narration blocks
     const scriptMatch = script.match(/=== VIDEO SCRIPT ===([\s\S]*?)(?:=== SLIDE DECK|$)/);
@@ -367,6 +366,11 @@ export async function createHeyGenVideo({ script, avatarId, voiceId, slideImageU
     const sectionPattern = /(?:HOOK|SCENARIO|THE SCIENCE|THE COST|THE BRIDGE|CTA)[^:]*:\s*/gi;
     const parts = scriptText.split(sectionPattern).filter(p => p.trim());
 
+    // Build voice config — if no voiceId provided, use avatar's built-in voice clone
+    const voiceConfig = voiceId
+        ? { type: 'text', voice_id: voiceId, input_text: '' }
+        : { type: 'text', input_text: '' };
+
     // Build scenes — each scene pairs narration with a slide background
     const scenes = parts.map((narration, i) => {
         const scene = {
@@ -374,11 +378,7 @@ export async function createHeyGenVideo({ script, avatarId, voiceId, slideImageU
             character: {
                 type: 'avatar',
                 avatar_id: avatarId,
-                voice: {
-                    type: 'text',
-                    voice_id: voiceId,
-                    input_text: narration.trim()
-                }
+                voice: { ...voiceConfig, input_text: narration.trim() }
             }
         };
 
