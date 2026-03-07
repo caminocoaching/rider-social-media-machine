@@ -6,11 +6,18 @@
 const STORAGE_KEY = 'rider-social-media-machine-settings';
 
 const DEFAULT_SETTINGS = {
-  openaiApiKey: '',
+  geminiApiKey: '',
+  claudeApiKey: '',
+  heygenApiKey: '',
+  heygenAvatarId: '',
+  heygenVoiceId: '',
+  manusApiKey: '',
+  canvaApiToken: '',
+  canvaPostTemplateId: '',
   ghlToken: '',
   ghlLocationId: '',
+  ghlEmailFrom: '',
   publishMethod: 'csv',
-  aiModel: 'gpt-4o',
   facebookGroups: [
     { name: 'Motorcycle Racers & Track Day Riders', url: '', enabled: true },
     { name: 'BSB Fans & Club Racing Community', url: '', enabled: true },
@@ -83,25 +90,88 @@ export function renderSettingsPage() {
         </div>
         <div class="settings-card-body">
           <div class="form-group">
-            <label for="openai-key">OpenAI API Key</label>
+            <label for="gemini-key">🔍 Gemini API Key <span style="font-size:0.7rem;color:var(--neuro-teal);">(Research — Google Search Grounding)</span></label>
             <div class="input-with-toggle">
-              <input type="password" id="openai-key" class="form-input" 
-                     value="${settings.openaiApiKey}" 
-                     placeholder="sk-..." />
-              <button class="btn-icon toggle-visibility" data-target="openai-key" title="Show/Hide">
+              <input type="password" id="gemini-key" class="form-input" 
+                     value="${settings.geminiApiKey}" 
+                     placeholder="AIza..." />
+              <button class="btn-icon toggle-visibility" data-target="gemini-key" title="Show/Hide">
                 <span class="eye-icon">👁️</span>
               </button>
             </div>
-            <span class="form-hint">Required for content generation. Get yours at platform.openai.com</span>
+            <span class="form-hint">Searches live Google for fresh articles every week. Get yours at aistudio.google.com</span>
           </div>
 
           <div class="form-group">
-            <label for="ai-model">AI Model</label>
-            <select id="ai-model" class="form-select">
-              <option value="gpt-4o" ${settings.aiModel === 'gpt-4o' ? 'selected' : ''}>GPT-4o (Recommended)</option>
-              <option value="gpt-4o-mini" ${settings.aiModel === 'gpt-4o-mini' ? 'selected' : ''}>GPT-4o Mini (Faster/Cheaper)</option>
-              <option value="gpt-4-turbo" ${settings.aiModel === 'gpt-4-turbo' ? 'selected' : ''}>GPT-4 Turbo</option>
-            </select>
+            <label for="claude-key">✍️ Claude API Key <span style="font-size:0.7rem;color:var(--purple);">(Writing — Craig's Voice)</span></label>
+            <div class="input-with-toggle">
+              <input type="password" id="claude-key" class="form-input" 
+                     value="${settings.claudeApiKey}" 
+                     placeholder="sk-ant-..." />
+              <button class="btn-icon toggle-visibility" data-target="claude-key" title="Show/Hide">
+                <span class="eye-icon">👁️</span>
+              </button>
+            </div>
+            <span class="form-hint">Writes all posts and video scripts in Craig's voice. Get yours at console.anthropic.com</span>
+          </div>
+
+          <div class="form-group">
+            <label for="heygen-key">🎬 HeyGen API Key <span style="font-size:0.7rem;color:var(--gold);">(Video Production — AI Avatar)</span></label>
+            <div class="input-with-toggle">
+              <input type="password" id="heygen-key" class="form-input" 
+                     value="${settings.heygenApiKey}" 
+                     placeholder="Enter HeyGen API key..." />
+              <button class="btn-icon toggle-visibility" data-target="heygen-key" title="Show/Hide">
+                <span class="eye-icon">👁️</span>
+              </button>
+            </div>
+            <span class="form-hint">For automated video generation with your AI avatar. Get yours at app.heygen.com/settings</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+            <div class="form-group">
+              <label for="heygen-avatar">HeyGen Avatar ID</label>
+              <input type="text" id="heygen-avatar" class="form-input"
+                     value="${settings.heygenAvatarId}" placeholder="e.g. josh_lite3_20230714" />
+              <span class="form-hint">Your avatar's ID from HeyGen dashboard</span>
+            </div>
+            <div class="form-group">
+              <label for="heygen-voice">HeyGen Voice ID</label>
+              <input type="text" id="heygen-voice" class="form-input"
+                     value="${settings.heygenVoiceId}" placeholder="e.g. 1bd001e7e50f421d891986aed6e1" />
+              <span class="form-hint">Your voice clone or selected voice ID</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="manus-key">🎨 Manus API Key <span style="font-size:0.7rem;color:var(--purple);">(Slide Deck Generation)</span></label>
+            <div class="input-with-toggle">
+              <input type="password" id="manus-key" class="form-input"
+                     value="${settings.manusApiKey}"
+                     placeholder="Enter Manus API key..." />
+              <button class="btn-icon toggle-visibility" data-target="manus-key" title="Show/Hide">
+                <span class="eye-icon">👁️</span>
+              </button>
+            </div>
+            <span class="form-hint">Auto-generates slide decks from video script briefs. Get yours at manus.im/settings</span>
+          </div>
+
+          <div class="form-group">
+            <label for="canva-token">🖼️ Canva API Token <span style="font-size:0.7rem;color:var(--blue);">(Post Image Autofill)</span></label>
+            <div class="input-with-toggle">
+              <input type="password" id="canva-token" class="form-input"
+                     value="${settings.canvaApiToken}"
+                     placeholder="Enter Canva API token..." />
+              <button class="btn-icon toggle-visibility" data-target="canva-token" title="Show/Hide">
+                <span class="eye-icon">👁️</span>
+              </button>
+            </div>
+            <span class="form-hint">Auto-fills brand templates with post content. Set up at canva.dev</span>
+          </div>
+          <div class="form-group">
+            <label for="canva-template">Canva Post Template ID</label>
+            <input type="text" id="canva-template" class="form-input"
+                   value="${settings.canvaPostTemplateId}" placeholder="DAGx..." />
+            <span class="form-hint">ID of your Canva brand template for post images (found in Canva template URL)</span>
           </div>
         </div>
       </div>
@@ -166,23 +236,33 @@ export function renderSettingsPage() {
         </div>
         <div class="settings-card-body">
           <div class="form-group">
-            <label for="ghl-token">GHL Private Integration Token</label>
+            <label for="ghl-token">🔑 GHL Private Integration Token <span style="font-size:0.7rem;color:var(--green);">(API v2 — Bearer Auth)</span></label>
             <div class="input-with-toggle">
               <input type="password" id="ghl-token" class="form-input"
                      value="${settings.ghlToken}"
-                     placeholder="Enter your GHL token..." />
+                     placeholder="Enter your GHL Private Integration token..." />
               <button class="btn-icon toggle-visibility" data-target="ghl-token" title="Show/Hide">
                 <span class="eye-icon">👁️</span>
               </button>
             </div>
-            <span class="form-hint">Optional — needed for direct GHL API scheduling</span>
+            <span class="form-hint">Required for direct email dispatch. Agency Settings → Private Integrations → ensure conversations/message.write + contacts.write scopes</span>
           </div>
 
-          <div class="form-group">
-            <label for="ghl-location">GHL Location ID</label>
-            <input type="text" id="ghl-location" class="form-input"
-                   value="${settings.ghlLocationId}"
-                   placeholder="Enter your location ID..." />
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+            <div class="form-group">
+              <label for="ghl-location">Location ID</label>
+              <input type="text" id="ghl-location" class="form-input"
+                     value="${settings.ghlLocationId}"
+                     placeholder="e.g. vdgR8teGuIgHPMPzbQkK" />
+              <span class="form-hint">Sub-account ID for contact upsert</span>
+            </div>
+            <div class="form-group">
+              <label for="ghl-email-from">Verified Sender Email</label>
+              <input type="email" id="ghl-email-from" class="form-input"
+                     value="${settings.ghlEmailFrom}"
+                     placeholder="e.g. craig@caminocoaching.co.uk" />
+              <span class="form-hint">Must be from your LC Email dedicated domain</span>
+            </div>
           </div>
 
           <div class="form-group">
@@ -344,11 +424,18 @@ function gatherSettingsFromForm() {
   });
 
   return {
-    openaiApiKey: document.getElementById('openai-key')?.value || '',
+    geminiApiKey: document.getElementById('gemini-key')?.value || '',
+    claudeApiKey: document.getElementById('claude-key')?.value || '',
+    heygenApiKey: document.getElementById('heygen-key')?.value || '',
+    heygenAvatarId: document.getElementById('heygen-avatar')?.value || '',
+    heygenVoiceId: document.getElementById('heygen-voice')?.value || '',
+    manusApiKey: document.getElementById('manus-key')?.value || '',
+    canvaApiToken: document.getElementById('canva-token')?.value || '',
+    canvaPostTemplateId: document.getElementById('canva-template')?.value || '',
     ghlToken: document.getElementById('ghl-token')?.value || '',
     ghlLocationId: document.getElementById('ghl-location')?.value || '',
+    ghlEmailFrom: document.getElementById('ghl-email-from')?.value || '',
     publishMethod: document.querySelector('input[name="publish-method"]:checked')?.value || 'csv',
-    aiModel: document.getElementById('ai-model')?.value || 'gpt-4o',
     facebookGroups: groups,
     brandName: document.getElementById('brand-name')?.value || 'Camino Coaching',
     postLength: document.getElementById('post-length')?.value || 'medium',

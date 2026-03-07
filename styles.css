@@ -197,6 +197,41 @@ a:hover {
   font-size: 1rem;
 }
 
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.btn-start-fresh {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.85rem;
+  background: rgba(232, 68, 68, 0.08);
+  border: 1px solid rgba(232, 68, 68, 0.25);
+  border-radius: var(--r-full);
+  color: var(--racing-red);
+  font-family: var(--font);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.btn-start-fresh:hover {
+  background: rgba(232, 68, 68, 0.15);
+  border-color: rgba(232, 68, 68, 0.4);
+  box-shadow: 0 0 12px rgba(232, 68, 68, 0.15);
+  transform: translateY(-1px);
+}
+
+.btn-start-fresh:active {
+  transform: translateY(0);
+}
+
 .nav-status {
   display: flex;
   align-items: center;
@@ -1736,4 +1771,492 @@ a:hover {
   background: rgba(218, 165, 32, 0.1);
   border-color: rgba(218, 165, 32, 0.3);
   color: var(--gold);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   🎬 VIDEO FACTORY — Neurochemistry Video Script Generator
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Teal Accent for Neurochemistry ───────────────────────── */
+:root {
+  --neuro-teal: #00BFA5;
+  --neuro-teal-glow: rgba(0, 191, 165, 0.15);
+  --neuro-teal-dim: rgba(0, 191, 165, 0.08);
+}
+
+/* ─── Video Factory Layout ──────────────────────────────────── */
+.video-factory-layout {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+@media (max-width: 960px) {
+  .video-factory-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.video-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.control-hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: -0.2rem;
+  margin-bottom: 0.5rem;
+}
+
+/* ─── Chemical Selector Cards ───────────────────────────────── */
+.chemical-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.chemical-card {
+  position: relative;
+  padding: 0.65rem 0.75rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: all var(--transition);
+  overflow: hidden;
+}
+
+.chemical-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: var(--chem-color, var(--neuro-teal));
+  opacity: 0.5;
+  transition: opacity var(--transition);
+}
+
+.chemical-card:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+  transform: translateY(-1px);
+}
+
+.chemical-card:hover::before {
+  opacity: 1;
+}
+
+.chemical-card.selected {
+  background: rgba(0, 191, 165, 0.06);
+  border-color: var(--neuro-teal);
+  box-shadow: 0 0 16px var(--neuro-teal-glow);
+}
+
+.chemical-card.selected::before {
+  opacity: 1;
+  width: 4px;
+}
+
+.chemical-card-icon {
+  font-size: 1.2rem;
+  margin-bottom: 0.2rem;
+}
+
+.chemical-card-name {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.chemical-card-nick {
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Flow Cocktail card spanning full width */
+.chemical-card.flow-cocktail {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: linear-gradient(135deg, rgba(0, 191, 165, 0.05), rgba(0, 191, 165, 0.01));
+  border-color: rgba(0, 191, 165, 0.2);
+}
+
+.chemical-card.flow-cocktail::before {
+  background: linear-gradient(to bottom, #00BFA5, #f59e0b, #a855f7);
+}
+
+.chemical-card.flow-cocktail .chemical-card-icon {
+  font-size: 1.6rem;
+  margin-bottom: 0;
+}
+
+.chemical-card.flow-cocktail .chemical-card-name {
+  font-size: 0.85rem;
+}
+
+.chemical-card.flow-cocktail .chemical-card-nick {
+  font-size: 0.68rem;
+  color: var(--neuro-teal);
+}
+
+/* ─── Topic List ────────────────────────────────────────────── */
+.topic-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 220px;
+  overflow-y: auto;
+  margin-bottom: 0.75rem;
+  padding-right: 0.25rem;
+}
+
+.topic-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.topic-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.topic-pill {
+  padding: 0.45rem 0.65rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  font-family: var(--font);
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+  line-height: 1.35;
+}
+
+.topic-pill:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+.topic-pill.selected {
+  background: var(--neuro-teal-dim);
+  border-color: rgba(0, 191, 165, 0.35);
+  color: var(--neuro-teal);
+  font-weight: 600;
+}
+
+.topic-pill .topic-chem-tag {
+  display: inline-block;
+  font-size: 0.6rem;
+  padding: 0.05rem 0.3rem;
+  border-radius: var(--r-xs);
+  background: rgba(255, 255, 255, 0.04);
+  margin-right: 0.3rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+/* ─── Video Settings Grid ───────────────────────────────────── */
+.video-settings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.video-settings-grid .setting-group:last-child {
+  grid-column: 1 / -1;
+}
+
+.setting-group label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ─── Video Output ──────────────────────────────────────────── */
+.video-output {
+  min-height: 400px;
+}
+
+.video-output .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  padding: 2rem;
+  background: var(--bg-card);
+  border: 1px dashed var(--border);
+  border-radius: var(--r-lg);
+}
+
+.video-output .empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.3;
+}
+
+.video-output .empty-state p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.video-output .empty-hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
+
+/* ─── Generated Script Card ─────────────────────────────────── */
+.video-script-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(0, 191, 165, 0.2);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  animation: fadeIn 0.3s ease;
+}
+
+.video-script-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.25rem;
+  background: linear-gradient(135deg, rgba(0, 191, 165, 0.08), transparent);
+  border-bottom: 1px solid var(--border);
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.video-script-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.video-script-chem-icon {
+  font-size: 1.4rem;
+}
+
+.video-script-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.video-script-subtitle {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.video-script-header-right {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.video-script-body {
+  padding: 1.25rem;
+}
+
+.video-script-section {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.video-script-section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.video-script-section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--neuro-teal);
+  margin-bottom: 0.5rem;
+  padding: 0.15rem 0.5rem;
+  background: var(--neuro-teal-dim);
+  border-radius: var(--r-xs);
+}
+
+.video-script-section-content {
+  font-size: 0.82rem;
+  line-height: 1.65;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+}
+
+/* ─── Production Workflow Steps ──────────────────────────────── */
+.production-steps {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(0, 191, 165, 0.03);
+  border: 1px solid rgba(0, 191, 165, 0.1);
+  border-radius: var(--r-md);
+}
+
+.production-step {
+  flex: 1;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+.production-step-number {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--neuro-teal);
+  color: #0a0e18;
+  font-size: 0.72rem;
+  font-weight: 800;
+  margin-bottom: 0.35rem;
+}
+
+.production-step-tool {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.production-step-desc {
+  font-size: 0.62rem;
+  color: var(--text-muted);
+}
+
+.production-step-connector {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* ─── Video Calendar Section ────────────────────────────────── */
+.video-calendar-section {
+  margin-top: 1rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+
+.video-calendar-section h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+.section-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.25rem;
+}
+
+.video-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+}
+
+@media (max-width: 960px) {
+  .video-calendar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 540px) {
+  .video-calendar {
+    grid-template-columns: 1fr;
+  }
+}
+
+.video-cal-day {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 0.75rem;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.video-cal-day:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+}
+
+.video-cal-day-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--neuro-teal);
+  margin-bottom: 0.2rem;
+}
+
+.video-cal-day-type {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.35rem;
+}
+
+.video-cal-day-chem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.6rem;
+  padding: 0.1rem 0.35rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: var(--r-xs);
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.video-cal-day-length {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+}
+
+.video-cal-day-platform {
+  font-size: 0.58rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+
+/* ─── Badge Variants for Video ──────────────────────────────── */
+.badge-accent {
+  background: var(--neuro-teal-dim);
+  border: 1px solid rgba(0, 191, 165, 0.25);
+  color: var(--neuro-teal);
+}
+
+.badge-success {
+  background: rgba(61, 220, 132, 0.08);
+  border: 1px solid rgba(61, 220, 132, 0.2);
+  color: var(--green);
+}
+
+.badge-info {
+  background: rgba(68, 136, 255, 0.08);
+  border: 1px solid rgba(68, 136, 255, 0.2);
+  color: var(--blue);
 }

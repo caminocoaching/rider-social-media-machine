@@ -5,8 +5,8 @@
 // CTA: Free Winning Formula Audit + Podium Contenders Blueprint
 // ═══════════════════════════════════════════════════════════════
 
-// ─── 12 Content Pillars (Motorcycle Racing Mental Performance) ──
-// Source: AI_Content_Engine_Rider_Audience.docx — 12-Week Rotation
+// ─── 13 Content Pillars (Motorcycle Racing Mental Performance) ──
+// Source: AI_Content_Engine_Rider_Audience.docx — 12-Week Rotation + Outside the Paddock
 export const PILLARS = [
   {
     id: 'confidence',
@@ -210,6 +210,51 @@ export const PILLARS = [
       'What BSB riders know about flow state that club racers are still guessing about. 10 seasons of paddock data.',
       'The thing the MotoGP camera never shows you: what the rider does in the 90 seconds before they leave the pit lane.',
       'I watched a WorldSBK rider lose a race he was winning because of something that happened in the warm-up lap. His brain, not his bike.'
+    ]
+  },
+  {
+    id: 'outside-the-paddock',
+    name: 'Outside the Paddock',
+    icon: '🌍',
+    color: '#06b6d4',
+    description: 'Stories from other sports, technology, science, and achievements that connect back to mental performance principles. Aspirational, fascinating, or surprising content that makes riders feel part of something bigger.',
+    winningFormulaPillar: 'Inspiration & Authority',
+    dataPoints: 'Cross-sport validation. Tech innovation. Research breakthroughs.',
+    angles: ['Elite athletes using mental tools', 'Performance technology innovations', 'Breakthrough results in any sport', 'Brain science discoveries', 'Comebacks and underdog wins'],
+    searchCategories: [
+      {
+        name: 'Elite Athletes Mental Performance',
+        description: 'F1 drivers, tennis players, Olympic swimmers, rugby teams using neurofeedback, breathwork, flow training, or visualisation',
+        searchTerms: 'elite athlete mental performance training, F1 driver sports psychology, Olympic athlete mindset coach, professional sports neurofeedback, breathwork performance athlete'
+      },
+      {
+        name: 'Performance Technology',
+        description: 'New EEG headsets, HRV monitors, eye-tracking developments, AI coaching tools, sleep technology, reaction time training devices',
+        searchTerms: 'performance technology innovation 2026, EEG sport training, HRV wearable athletes, eye tracking sport technology, AI coaching tool, neurofeedback device sport'
+      },
+      {
+        name: 'Breakthrough Results & Achievements',
+        description: 'Championships won, records set, comebacks made in motorsport and beyond. Mental performance analysis layer.',
+        searchTerms: 'championship win 2026, race comeback story, athlete record breaking, motorsport underdog victory, sporting achievement mental performance'
+      },
+      {
+        name: 'Brain Science & Flow Research',
+        description: 'New studies on flow states, neuroplasticity, attention, decision-making under pressure, default mode network, dopamine and performance',
+        searchTerms: 'flow state research 2026, neuroplasticity performance study, decision making under pressure brain, attention neuroscience sport, dopamine motivation athletic performance'
+      },
+      {
+        name: 'Comebacks & Underdog Stories',
+        description: 'Rider returning from injury, team with no budget outperforming, athlete written off proving everyone wrong',
+        searchTerms: 'athlete comeback story 2026, underdog sports victory, injury comeback racing, against odds sporting achievement'
+      }
+    ],
+    topics: [
+      'Red Bull\'s F1 team just started using real-time brainwave monitoring during simulator sessions. Here\'s why your mental data matters more than your suspension data.',
+      'A new study from the University of Freiburg found that 8 weeks of neurofeedback training improved reaction time by 15% in competitive athletes. The brain is trainable.',
+      'Novak Djokovic credits breathwork and visualisation for his late-career dominance. The same protocols work at 180mph on two wheels.',
+      'The All Blacks have been using flow state training for 15 years. The mental performance revolution is not coming. It is already here. Motorsport is just late.',
+      'An Olympic swimmer just broke her own world record at age 31 using neurofeedback training. Age is a brain problem with a brain solution.',
+      'NASA\'s astronaut training programme uses the same box breathing protocol we teach to motorcycle racers. The science of high-pressure performance is universal.'
     ]
   }
 ];
@@ -432,31 +477,33 @@ export const VISUAL_FORMATS = {
 export const WEEKLY_SCHEDULE = [
   {
     day: 'Monday',
-    contentType: 'Research Drop',
-    pillarId: 'visual-targeting',
-    frameworkId: 'scary',
+    contentType: 'Outside the Paddock',
+    pillarId: 'outside-the-paddock',
+    frameworkId: 'familiar',
     ctaId: 'cta-a',
-    ctaType: 'direct-link',
+    ctaType: 'comment-keyword',
     fbFormat: 'Photo + long-form text (200-400 words)',
-    igFormat: 'Reel (data visual, 15-60s)',
-    visualFormat: 'bold-text',
-    visualNote: 'Hook line as the image. White text on black. Gold accent on the key data point.',
-    visualAlt: 'data-card',
-    searchFocus: 'eye tracking motorcycle research, neuroscience studies motor performance, sports science reaction time, peer-reviewed rider data'
+    igFormat: 'Reel (fascinating story, 15-60s)',
+    visualFormat: 'data-card',
+    visualNote: 'Data visualization or screenshot from the source article. Make it look like a window into another world.',
+    visualAlt: 'bold-text',
+    searchFocus: 'elite athlete mental performance, F1 team sports psychology, Olympic breathwork flow training, neurofeedback competitive sport, performance technology innovation 2026',
+    contentBrief: 'Most shareable post of the week. AI finds a story from another sport or a technology breakthrough. Interesting to ANYONE, not just riders struggling with confidence. Bridge it back to riding without making them feel broken.'
   },
   {
     day: 'Tuesday',
-    contentType: 'Client Story',
+    contentType: 'Client Transformation',
     pillarId: 'client-transformations',
-    frameworkId: 'familiar',
+    frameworkId: 'sexy',
     ctaId: 'cta-a',
     ctaType: 'comment-keyword',
     fbFormat: 'Photo + long-form text (200-400 words)',
     igFormat: 'Reel (transformation story, 15-60s)',
     visualFormat: 'social-proof',
-    visualNote: 'Trustpilot screenshot, client DM, or In The Zone app screenshot. Keep it raw and real.',
+    visualNote: 'Trustpilot screenshot, client DM, or In The Zone app screenshot. Lead with the RESULT, not the struggle.',
     visualAlt: 'paddock-photo',
-    searchFocus: 'motorcycle racer transformation stories, rider comeback stories, BSB WorldSBK rider interviews about mental performance'
+    searchFocus: 'motorcycle racer transformation stories, rider comeback stories, BSB WorldSBK rider interviews about mental performance',
+    contentBrief: 'Named athlete from debrief data. Framed as aspiration, not rescue. Lead with the result: "85% podium rate. 22 podiums from 26 sessions. Here is what Calum Beach did differently."'
   },
   {
     day: 'Wednesday',
@@ -470,7 +517,8 @@ export const WEEKLY_SCHEDULE = [
     visualFormat: 'whiteboard',
     visualNote: 'Brain diagram or mechanism sketch. Prefrontal cortex vs cerebellum. Keep it simple.',
     visualAlt: 'data-card',
-    searchFocus: 'neuroscience flow state, amygdala cerebellum motor performance, choking under pressure research, dual-task interference studies'
+    searchFocus: 'neuroscience flow state, decision making speed elite athletes, choking under pressure research, dual-task interference studies, attention neuroscience sport',
+    contentBrief: 'Science-backed insight with a racing application. AI finds a supporting study. "Researchers found that elite performers make decisions 200ms faster than amateurs. Not because of reflexes. Because of how they see."'
   },
   {
     day: 'Thursday',
@@ -482,13 +530,14 @@ export const WEEKLY_SCHEDULE = [
     fbFormat: 'Photo + long-form text (200-400 words)',
     igFormat: 'Reel (pattern interrupt, 15-60s)',
     visualFormat: 'bold-text',
-    visualNote: 'Provocative statement as the image. Make it bold and slightly uncomfortable.',
+    visualNote: 'Provocative statement as the image. Make it bold and slightly uncomfortable. ONE pain-forward post per week.',
     visualAlt: 'data-card',
-    searchFocus: 'motorcycle racing costs analysis, performance diminishing returns, hardware vs mental performance, paddock spending data'
+    searchFocus: 'motorcycle racing costs analysis, performance diminishing returns, hardware vs mental performance, paddock spending data',
+    contentBrief: 'The ONE pain-forward post per week. The Money Lie, one of the 7 Mistakes, or a challenge to conventional paddock wisdom. "You spent more on your race weekend than most people earn in a week. How much did you invest in the 75% of performance that happens between your ears?"'
   },
   {
     day: 'Friday',
-    contentType: 'MotoGP/Timely',
+    contentType: 'Timely Race Reaction',
     pillarId: 'motogp-wsbk-moments',
     frameworkId: 'familiar',
     ctaId: 'cta-f',
@@ -498,35 +547,38 @@ export const WEEKLY_SCHEDULE = [
     visualFormat: 'paddock-photo',
     visualNote: 'YOUR photo from the paddock, pit lane, or grid. This is your biggest visual edge.',
     visualAlt: 'talking-head',
-    searchFocus: 'MotoGP BSB WorldSBK race weekend news, rider interviews, championship updates, race results mental performance angles'
+    searchFocus: 'MotoGP BSB WorldSBK ASBK MotoAmerica race weekend news results, rider interviews, championship updates, race results mental performance analysis',
+    contentBrief: 'React to whatever happened on track that week. ASBK, MotoAmerica, MotoGP, WSBK, BSB. AI finds the race result, you add the mental performance analysis. "What Bulega did on Lap 12 wasn\'t bravery. It was a flow state decision made at 4 billion bits per second."'
   },
   {
     day: 'Saturday',
-    contentType: 'The 7 Mistakes',
-    pillarId: 'the-7-mistakes',
-    frameworkId: 'free-value',
+    contentType: 'Achievement/Tech Spotlight',
+    pillarId: 'outside-the-paddock',
+    frameworkId: 'strange',
     ctaId: 'cta-d',
     ctaType: 'comment-keyword',
     fbFormat: 'Photo + long-form text (200-400 words)',
-    igFormat: 'Carousel (myth-bust format, 3-5 slides)',
-    visualFormat: 'carousel',
-    visualNote: 'One mistake per slide. Hook on slide 1, CTA on last slide. IG carousel + FB single image.',
+    igFormat: 'Carousel (tech/research format, 3-5 slides)',
+    visualFormat: 'data-card',
+    visualNote: 'Tech product image, research paper visual, or achievement screenshot. Future-facing and optimistic.',
     visualAlt: 'bold-text',
-    searchFocus: 'common mistakes motorcycle racers, performance errors club racing, mental performance gaps, rider self-assessment data'
+    searchFocus: 'performance technology 2026, brain training sport study, neurofeedback results research, EEG HRV wearable athletes, breakthrough sporting achievement, against odds victory',
+    contentBrief: 'Second Outside the Paddock post. Tech innovation, breakthrough result from any sport, or research discovery. Keeps weekend content positive and forward-looking. "A new study found 8 weeks of neurofeedback training improved reaction time by 15%. The brain is trainable. Your lap time is a brain problem with a brain solution."'
   },
   {
     day: 'Sunday',
-    contentType: 'Relatable Pain',
-    pillarId: 'race-pressure',
+    contentType: 'Proof & Celebration',
+    pillarId: 'client-transformations',
     frameworkId: 'sexy',
     ctaId: 'cta-a',
     ctaType: 'direct-link',
     fbFormat: 'Photo + long-form text (200-400 words)',
-    igFormat: 'Reel (scenario/relatable, 15-60s)',
-    visualFormat: 'paddock-photo',
-    visualNote: 'Real photo from a race weekend. The holding area, the grid, the warm-up lane. Authentic over polished.',
-    visualAlt: 'talking-head',
-    searchFocus: 'race day pressure anxiety, performance anxiety competition sport, home track pressure, post-race emotional processing'
+    igFormat: 'Reel (celebration/proof, 15-60s)',
+    visualFormat: 'social-proof',
+    visualNote: 'Client win data, debrief app stats, review quote, or celebration moment. End the week on the highest note.',
+    visualAlt: 'paddock-photo',
+    searchFocus: 'personal best records achievement, performance coaching results, rider success story, championship winning mental preparation',
+    contentBrief: 'End the week on the highest note. Client wins, debrief data stats, a review quote, or a celebration of what is possible. "699 personal bests. 394 podiums. 138 race wins. Every single one traced back to specific mental preparation patterns."'
   }
 ];
 
@@ -536,7 +588,9 @@ export const AUTHORITY_LINES = [
   '118 riders, 142 circuits, 1,644 personal bests. The data from my In The Zone app tells the same story every time.',
   'Working with Sam Lowes, Joel Kelso, Jaume Masia, and John McPhee in Moto3 and WorldSBK showed me something most coaches miss entirely.',
   'Pattern recognition across 1,286 podiums and 1,063 race wins showed me this is never about talent. It is always about mental state.',
-  '1,800 performance debriefs in my In The Zone app, across BSB, MotoGP, WorldSBK, and club racing, reveal the same bottleneck every time.'
+  '1,800 performance debriefs in my In The Zone app, across BSB, MotoGP, WorldSBK, and club racing, reveal the same bottleneck every time.',
+  'Rated 4.9 out of 5 on Trustpilot from 84 unprompted rider reviews. 100% five-star. The riders speak for themselves.',
+  '120 reviews across Trustpilot and Google. Every single one five stars. From MotoGP paddocks to club racing tracks across 12 countries.'
 ];
 
 // ─── Case Studies ────────────────────────────────────────────
