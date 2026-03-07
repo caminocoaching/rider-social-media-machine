@@ -313,23 +313,24 @@ async function handleFindStories() {
 
 
 // ─── Assign neurochemical to a story based on pillar/topic ────
+const CHEM_DATA = {
+    'confidence': { name: 'Serotonin', icon: '🧘', color: '#FFD700', id: 'serotonin' },
+    'visual-targeting': { name: 'Dopamine', icon: '🎯', color: '#FF6B35', id: 'dopamine' },
+    'braking-zone-panic': { name: 'Norepinephrine', icon: '⚡', color: '#4488FF', id: 'flow-cocktail' },
+    'race-pressure': { name: 'Cortisol', icon: '🔥', color: '#FF4444', id: 'cortisol' },
+    'flow-state': { name: 'Endorphins', icon: '🌊', color: '#00BFA5', id: 'endorphins' },
+    '7-mistakes': { name: 'Cortisol', icon: '🔥', color: '#FF4444', id: 'cortisol' },
+    'tyre-grip': { name: 'Norepinephrine', icon: '⚡', color: '#4488FF', id: 'flow-cocktail' },
+    'sleep-recovery': { name: 'Serotonin', icon: '🧘', color: '#FFD700', id: 'serotonin' },
+    'dual-task-interference': { name: 'Acetylcholine', icon: '🧠', color: '#9B59B6', id: 'dopamine' },
+    'client-transformation': { name: 'Oxytocin', icon: '🤝', color: '#E91E8C', id: 'oxytocin' },
+    'race-weekend-review': { name: 'Dopamine', icon: '🎯', color: '#FF6B35', id: 'dopamine' },
+    'end-of-season': { name: 'Serotonin', icon: '🧘', color: '#FFD700', id: 'serotonin' },
+    'the-process': { name: 'Dopamine', icon: '🎯', color: '#FF6B35', id: 'dopamine' }
+};
+
 function assignChemical(topic, pillar) {
-    const chemMap = {
-        'confidence': { name: 'Serotonin', icon: '🧘', color: '#FFD700' },
-        'visual-targeting': { name: 'Dopamine', icon: '🎯', color: '#FF6B35' },
-        'braking-zone-panic': { name: 'Norepinephrine', icon: '⚡', color: '#4488FF' },
-        'race-pressure': { name: 'Cortisol', icon: '🔥', color: '#FF4444' },
-        'flow-state': { name: 'Endorphins', icon: '🌊', color: '#00BFA5' },
-        '7-mistakes': { name: 'Cortisol', icon: '🔥', color: '#FF4444' },
-        'tyre-grip': { name: 'Norepinephrine', icon: '⚡', color: '#4488FF' },
-        'sleep-recovery': { name: 'Serotonin', icon: '🧘', color: '#FFD700' },
-        'dual-task-interference': { name: 'Acetylcholine', icon: '🧠', color: '#9B59B6' },
-        'client-transformation': { name: 'Oxytocin', icon: '🤝', color: '#E91E8C' },
-        'race-weekend-review': { name: 'Dopamine', icon: '🎯', color: '#FF6B35' },
-        'end-of-season': { name: 'Serotonin', icon: '🧘', color: '#FFD700' },
-        'the-process': { name: 'Dopamine', icon: '🎯', color: '#FF6B35' }
-    };
-    return chemMap[pillar?.id] || { name: 'Dopamine', icon: '🎯', color: '#FF6B35' };
+    return CHEM_DATA[pillar?.id] || { name: 'Dopamine', icon: '🎯', color: '#FF6B35', id: 'dopamine' };
 }
 
 
@@ -482,6 +483,7 @@ function renderPosts() {
             <button class="post-action-btn" onclick="window.appActions.downloadPost(${i})">💾 .txt</button>
             <button class="post-action-btn" onclick="window.appActions.regenPost(${i})">🔄 Regen</button>
             <button class="post-action-btn" onclick="window.appActions.generateEmailForPost(${i})" style="color:var(--gold);">📧 Email</button>
+            <button class="post-action-btn" onclick="window.appActions.generateVideoForPost(${i})" style="color:var(--neuro-teal, #00BFA5);">🎬 Video</button>
           </div>
         </div>
       </div>
@@ -617,8 +619,111 @@ window.appActions = {
         } finally { setStatus('Ready'); }
     },
 
+    async generateVideoForPost(index) {
+        const post = state.posts[index];
+        if (!post) { showToast('Generate the post first.', 'error'); return; }
+        const settings = loadSettings();
+        if (!settings.claudeApiKey) { showToast('Claude API key needed.', 'error'); return; }
+
+        setStatus('🎬 Generating video script...', true);
+        showToast('Creating video script...', 'info');
+
+        try {
+            // Get chemicalId from the post's pillar
+            const chemData = CHEM_DATA[post.pillar?.id] || { id: 'dopamine' };
+            const topic = post.topic?.headline || post.topic || state.topics[index]?.headline || 'Rider mental performance';
+
+            const script = await generateVideoScript({
+                topic,
+                chemicalId: chemData.id,
+                videoLength: '45-60s',
+                platform: 'FB Reel + IG Reel',
+                outputFormat: '9:16',
+                apiKey: settings.claudeApiKey
+            });
+
+            showVideoModal(script, index, chemData, settings);
+            showToast(`Video script generated for post ${index + 1}!`, 'success');
+        } catch (err) {
+            showToast(`Video error: ${err.message}`, 'error');
+            console.error(err);
+        } finally { setStatus('Ready'); }
+    },
+
     clearSession() { clearSession(); }
 };
+
+
+// ─── Video Script Modal ──────────────────────────────────────────
+function showVideoModal(script, postIndex, chemData, settings) {
+    const existing = document.getElementById('video-modal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'video-modal';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width:780px;">
+        <div class="modal-header">
+          <div>
+            <h3 style="margin:0;font-size:1.1rem;">🎬 Video Script</h3>
+            <span style="font-size:0.75rem;color:var(--text-muted);">Post ${postIndex + 1} · ${chemData.icon} ${chemData.name}</span>
+          </div>
+          <button class="modal-close" onclick="document.getElementById('video-modal').remove()">&times;</button>
+        </div>
+        <div class="modal-body" style="max-height:60vh;overflow-y:auto;">
+          <pre style="white-space:pre-wrap;font-size:0.82rem;line-height:1.6;color:var(--text-primary);font-family:var(--font);">${escapeHtml(script)}</pre>
+        </div>
+        <div class="modal-footer" style="display:flex;gap:0.4rem;flex-wrap:wrap;padding:1rem 1.5rem;border-top:1px solid var(--border);">
+          <button class="btn btn-secondary" id="video-copy-script">📋 Copy Script</button>
+          <button class="btn btn-secondary" id="video-copy-slides">📊 Copy Slide Notes</button>
+          <button class="btn btn-primary" id="video-run-pipeline" style="margin-left:auto;">🚀 Run Full Pipeline</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+    // Copy full script
+    document.getElementById('video-copy-script').addEventListener('click', () => {
+        copyToClipboard(script);
+        showToast('Video script copied!', 'success');
+    });
+
+    // Copy just slide deck brief
+    document.getElementById('video-copy-slides').addEventListener('click', () => {
+        const slideMatch = script.match(/=== SLIDE DECK BRIEF[\s\S]*?(?===|$)/i);
+        copyToClipboard(slideMatch ? slideMatch[0].trim() : script);
+        showToast('Slide notes copied!', 'success');
+    });
+
+    // Run full pipeline (Manus → HeyGen)
+    document.getElementById('video-run-pipeline').addEventListener('click', async () => {
+        const pipelineBtn = document.getElementById('video-run-pipeline');
+        pipelineBtn.disabled = true;
+        pipelineBtn.textContent = '⏳ Running pipeline...';
+
+        try {
+            const result = await runFullPipeline({
+                script,
+                settings: {
+                    heygenApiKey: settings.heygenApiKey,
+                    heygenAvatarId: settings.heygenAvatarId,
+                    heygenVoiceId: settings.heygenVoiceId,
+                    manusApiKey: settings.manusApiKey
+                }
+            });
+            pipelineBtn.textContent = '✅ Pipeline running!';
+            pipelineBtn.style.background = 'var(--green)';
+            showToast(`Pipeline started! Manus: ${result.manus?.status || 'sent'}, HeyGen: ${result.heygen?.status || 'sent'}`, 'success');
+        } catch (err) {
+            pipelineBtn.textContent = '❌ Pipeline failed';
+            pipelineBtn.disabled = false;
+            showToast(`Pipeline error: ${err.message}`, 'error');
+        }
+    });
+}
 
 
 // ═══════════════════════════════════════════════════════════════
