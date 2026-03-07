@@ -244,108 +244,56 @@ NEVER: Car racing language in the body
 
 // ─── Generate Article Topics with Web Search (Weekly Wizard Step 1) ──
 export async function generateTopics(pillars, seasonalContext, apiKey) {
-    const pillarList = pillars.map((p, i) => {
-        const schedule = WEEKLY_SCHEDULE[i];
-        const brief = schedule?.contentBrief ? `\n   Content brief: ${schedule.contentBrief}` : '';
-        const searchCats = p.searchCategories
-            ? `\n   Search categories: ${p.searchCategories.map(c => c.name + ': ' + c.searchTerms).join(' | ')}`
-            : '';
-        return `${i + 1}. ${schedule?.day || 'Day ' + (i + 1)}: ${schedule?.contentType || p.name} (${p.name}) — ${p.description} \n   Search focus: ${schedule?.searchFocus || 'motorcycle racer mental performance'}${brief}${searchCats} \n   Sample topics: ${p.topics.slice(0, 3).join(', ')} `;
-    }).join('\n');
-
-    const seasonNote = seasonalContext
-        ? `\n\nSEASONAL CONTEXT: We are in ${seasonalContext.season}. Look for articles relevant to: ${seasonalContext.context} `
-        : '';
-
-    // Get championship calendar context for timely content
-    const calendarContext = formatContextForAI();
-    const calendarSearchTerms = getCalendarSearchTerms();
     const champContext = getChampionshipContext();
 
-    const calendarSearchNote = calendarSearchTerms.length > 0
-        ? `\n\n2026 CHAMPIONSHIP SEARCH TERMS(use these to find race - specific news): \n${calendarSearchTerms.slice(0, 6).map(t => `- ${t}`).join('\n')} `
+    const daySlots = [
+        'Monday: Outside the Paddock — fascinating story from F1, tennis, Olympic sport, or tech that connects to mental performance',
+        'Tuesday: Client Transformation — a result or comeback story (can be from any sport)',
+        'Wednesday: Neuroscience Teach — brain science, flow state, attention research with motorsport application',
+        'Thursday: Provocative Hook — the ONE uncomfortable truth about racing psychology',
+        'Friday: Timely Race Reaction — react to real MotoGP/WorldSBK/BSB results from this week',
+        'Saturday: Achievement/Tech Spotlight — performance technology, brain-tracking devices, or breakthrough results',
+        'Sunday: Proof & Celebration — inspiring wins, stats, or athlete mental breakthroughs'
+    ];
+
+    const liveRacing = champContext.hasLiveRacing
+        ? `LIVE RACING THIS WEEKEND — prioritise current race results and reactions.`
         : '';
 
-    const prompt = `Search the web for recent articles about motorcycle racing performance, rider mental performance, neuroscience of high - speed decision making, flow state in motorsport, choking under pressure, eye tracking in racing, and sports psychology for motorcycle racers.Focus on content from the last 7 days where possible, going back up to 30 days if needed.
+    const seasonNote = seasonalContext
+        ? `Season context: ${seasonalContext.season} — ${seasonalContext.context}`
+        : '';
 
-CRITICAL WEEKLY INSTRUCTION — OUTSIDE THE PADDOCK:
-Every week, you MUST find at least 2 current stories from OUTSIDE motorsport (other sports, technology, science, achievements) that connect to mental performance principles. Use these for the Monday and Saturday posts. Prioritise stories that are ASPIRATIONAL, FASCINATING, or SURPRISING over stories that highlight problems.
+    const prompt = `Search the web for 7 interesting stories from the last 7-30 days. Each story should connect to the mental performance side of motorcycle racing or sport in general.
 
-OUTSIDE THE PADDOCK SEARCH CATEGORIES (pick from these for Mon + Sat):
-1. ELITE ATHLETES IN OTHER SPORTS using mental performance tools (F1, tennis, Olympic athletes, rugby teams using neurofeedback, breathwork, flow training, visualisation)
-2. TECHNOLOGY & INVENTIONS that measure or enhance human performance (EEG headsets, HRV monitors, eye-tracking, AI coaching, sleep tech, reaction time devices)
-3. BREAKTHROUGH RESULTS in motorsport or beyond (championships, records, comebacks — add the mental performance analysis layer)
-4. BRAIN SCIENCE DISCOVERIES (flow state studies, neuroplasticity, attention research, decision-making under pressure, dopamine and performance)
-5. COMEBACKS & UNDERDOG STORIES (injury returns, no-budget teams winning, athletes written off proving everyone wrong)
-
-The bridge back to motorcycle racing should feel natural, not forced. The rider should think "that is cool" FIRST, then "oh, that connects to my riding" SECOND.
-
-WEEKLY CONTENT MIX:
-- Monday: Outside the Paddock (Familiar) — aspirational story from outside motorsport
-- Tuesday: Client Transformation (Sexy) — lead with the result, not the struggle
-- Wednesday: Neuroscience Teach (Strange) — science-backed insight with racing application
-- Thursday: Provocative Hook (Scary) — the ONE pain-forward post per week
-- Friday: Timely Race Reaction (Familiar) — react to real race results from this week
-- Saturday: Achievement/Tech Spotlight (Strange) — second Outside the Paddock post
-- Sunday: Proof & Celebration (Sexy) — client wins, stats, review quotes. End on the highest note.
-
-SEARCH PRIORITIES:
-- MotoGP, WorldSBK, BSB, Moto2, Moto3 news with mental performance angles
-- Rider interviews about pressure, crashes and coming back, confidence, pre - race nerves
-- Peer - reviewed neuroscience studies on attention, flow, choking, reaction time
-- Sports psychology research applicable to motorsport
-- Stories from F1, tennis, rugby, Olympic sports, cycling, combat sports that connect to mental performance
-- Performance technology innovations and brain science breakthroughs
-${champContext.hasLiveRacing ? '- PRIORITY: There is LIVE RACING this weekend — search for race weekend news, grid positions, and early results' : ''}
-${champContext.hasRecentResults ? '- PRIORITY: Race results available from last 7 days — search for post-race reports, winner interviews, and key battles' : ''}
-${champContext.hasUpcoming ? '- Search for upcoming race preview articles for events in the next 14 days' : ''}
-
-2026 CHAMPIONSHIP CALENDARS IN SEASON: ${champContext.inSeason.join(', ') || 'Off-season for most championships'}
-${calendarContext}
-${calendarSearchNote}
-
-SPECIFIC SEARCH AREAS(one per content pillar):
-
-${pillarList}
+${liveRacing}
 ${seasonNote}
 
-For EACH topic, find a SPECIFIC article and provide:
-1. A compelling Facebook headline / hook angle(MUST start with a specific data point or dramatic scenario)
-2. The source article that inspired it(title, publication, and key data point)
-3. 2 - 3 key talking points connecting the article to the pillar
-4. The emotional hook — what should the rider reading this feel ? (Recognition > Fear > Curiosity > Hope)
-5. A suggested neuroscience mechanism to reference
-6. Racing relevance — ONE sentence connecting the finding to what a club or amateur motorcycle racer actually experiences on a race weekend. Use MOTORCYCLE language: corner, apex, lean angle, braking zone, turn -in, body position, hanging off, throttle control, session, FP1, qualifying, grid, holding area, paddock, the bike, leathers, lid. NEVER use car racing language.
-7. Championship tie-in (OPTIONAL) — If a specific championship event is relevant, reference it.
-8. Content brief — What type of post this should be (Outside the Paddock, Client Transformation, Neuroscience Teach, Provocative Hook, Timely Race Reaction, Achievement/Tech Spotlight, or Proof & Celebration)
+Find one story for each slot:
+${daySlots.map((d, i) => `${i + 1}. ${d}`).join('\n')}
 
-QUALITY FILTERS — PREFER these sources:
-- Motorcycle racing publications: MCN, Crash.net, MotoMatters, BSB.com, MotoGP.com, WorldSBK.com, The Race, Motorsport.com, ASBK.com.au, MotoAmerica.com, CSBK.ca
-- Sports science journals: Frontiers in Psychology, BJSM, JSSM, Journal of Sports Sciences
-- Neuroscience: Nature, Scientific American, New Scientist
-- Credible news: BBC Sport, Sky Sports, ESPN
-- Performance technology: Wired, TechCrunch, MIT Technology Review
-- AVOID: listicles, self-help blogs, Reddit, unverified claims, car-only content
+IMPORTANT: At least 2 stories must be from OUTSIDE motorsport (other sports, science, tech, movies). The hook should make someone think "that's fascinating" before connecting it to racing.
 
-Format as JSON array:
+Return a JSON array with 7 objects:
 [
-    {
-        "pillarId": "outside-the-paddock",
-        "headline": "Red Bull's F1 team just started using real-time brainwave monitoring during simulator sessions. Here is why your mental data matters more than your suspension data.",
-        "sourceArticle": "Title of article — Publication — key data point",
-        "articleUrl": "URL if found",
-        "talkingPoints": ["Point 1", "Point 2", "Point 3"],
-        "emotionalHook": "Curiosity: That technology exists? I want that for my riding.",
-        "mechanism": "Neurofeedback — training the brain to recognise and reproduce peak performance states",
-        "racingRelevance": "If an F1 team measures brainwaves in the simulator, measuring your mental state before a session is not soft. It is the cutting edge.",
-        "contentBrief": "Outside the Paddock — Monday post. Bridge from F1 tech to rider mental data."
-    }
+  {
+    "pillarId": "${pillars[0]?.id || 'outside-the-paddock'}",
+    "headline": "Compelling headline connecting the story to rider mental performance",
+    "sourceArticle": "Article title — Publication",
+    "articleUrl": "URL",
+    "talkingPoints": ["Point 1", "Point 2", "Point 3"],
+    "emotionalHook": "What should the rider feel?",
+    "mechanism": "Neuroscience mechanism referenced",
+    "racingRelevance": "One sentence connecting to motorcycle racing",
+    "contentBrief": "Type of post"
+  }
 ]
 
-Return ONLY the JSON array with 7 items.`;
+Return ONLY the JSON array with exactly 7 items.`;
 
     return await callGeminiWithSearch(prompt, apiKey, true);
 }
+
 
 // ─── Generate a Single Post ──────────────────────────────────
 export async function generatePost({ topic, pillar, framework, cta, authorityLine, motorsportBridge, apiKey, campaignDay = null, scheduleDay = null }) {
@@ -710,7 +658,6 @@ async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
             body: JSON.stringify({
                 contents: [{ parts: [{ text: dedupPrompt }] }],
                 tools: [{ google_search: {} }],
-                systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
                 generationConfig: {
                     temperature: 0.8,
                     maxOutputTokens: 8192
@@ -725,6 +672,7 @@ async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
     }
 
     const data = await response.json();
+    console.log('[Gemini] Raw response:', JSON.stringify(data).substring(0, 500));
 
     let content = '';
     if (data.candidates?.[0]?.content?.parts) {
@@ -733,17 +681,24 @@ async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
         }
     }
 
-    content = content.trim();
+    // Strip markdown code fences if present
+    content = content.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
 
     if (!content) {
-        throw new Error('No content returned from Gemini API.');
+        const blockReason = data.candidates?.[0]?.finishReason;
+        const safetyRatings = data.candidates?.[0]?.safetyRatings;
+        console.error('[Gemini] No content. Finish reason:', blockReason, 'Safety:', safetyRatings);
+        throw new Error(`No content from Gemini (reason: ${blockReason || 'unknown'}). Try again.`);
     }
+
+    console.log('[Gemini] Parsed content preview:', content.substring(0, 200));
 
     if (parseJson) {
         try {
             const jsonMatch = content.match(/\[[\s\S]*\]/);
             return jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(content);
         } catch (e) {
+            console.error('[Gemini] JSON parse failed. Content:', content.substring(0, 500));
             throw new Error('Failed to parse Gemini response as JSON. Try again.');
         }
     }
