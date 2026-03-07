@@ -21,102 +21,56 @@
   <!-- ─── Toast Container ──────────────────────────────────── -->
   <div id="toast-container"></div>
 
-  <!-- ─── Navigation ───────────────────────────────────────── -->
+  <!-- ─── Clean Minimal Nav ─────────────────────────────────── -->
   <nav class="nav" id="main-nav">
     <div class="nav-inner">
       <div class="nav-brand">
         <span class="nav-logo">🏍️</span>
         <div class="nav-brand-text">
-          <span class="nav-title">Motorcycle Racer Social Media Machine</span>
-          <span class="nav-subtitle">Camino Coaching</span>
+          <span class="nav-title">Camino Coaching</span>
+          <span class="nav-subtitle">Social Media Machine</span>
         </div>
       </div>
       <div class="nav-links">
-        <button class="nav-link active" data-page="wizard" id="nav-wizard">
-          <span class="nav-link-icon">🧙‍♂️</span>
-          <span class="nav-link-text">Weekly Wizard</span>
+        <button class="nav-link active" data-page="weekly" id="nav-weekly">
+          <span class="nav-link-text">This Week's 7</span>
         </button>
         <button class="nav-link" data-page="single" id="nav-single">
-          <span class="nav-link-icon">🔍</span>
           <span class="nav-link-text">Single Post</span>
-        </button>
-        <button class="nav-link" data-page="video" id="nav-video">
-          <span class="nav-link-icon">🎬</span>
-          <span class="nav-link-text">Video Factory</span>
-        </button>
-        <button class="nav-link" data-page="reviews" id="nav-reviews">
-          <span class="nav-link-icon">⭐</span>
-          <span class="nav-link-text">Reviews</span>
-        </button>
-        <button class="nav-link" data-page="settings" id="nav-settings">
-          <span class="nav-link-icon">⚙️</span>
-          <span class="nav-link-text">Settings</span>
         </button>
       </div>
       <div class="nav-right">
-        <button class="btn-start-fresh" id="start-fresh-btn" onclick="window.appActions.clearSession()"
-          title="Clear saved session and start fresh">
-          🔄 Start Fresh
-        </button>
         <div class="nav-status" id="nav-status">
           <span class="status-dot" id="status-dot"></span>
           <span class="status-text" id="status-text">Ready</span>
         </div>
+        <button class="nav-link nav-settings-btn" data-page="settings" id="nav-settings" title="Settings">
+          <span class="nav-link-text">⚙️</span>
+        </button>
       </div>
     </div>
   </nav>
 
   <!-- ─── Main Content ─────────────────────────────────────── -->
   <main class="main">
-    <!-- ═══ WEEKLY WIZARD PAGE ═══ -->
-    <section class="page active" id="wizard-page">
-      <div class="page-header">
-        <div class="page-header-content">
-          <h1>🧙‍♂️ Weekly Wizard</h1>
-          <p class="page-subtitle">Generate 7 days of Facebook & Instagram posts in minutes. Research articles → Write
-            posts →
-            Export CSV to GHL Social Planner.</p>
-        </div>
-        <div class="page-header-badges" id="wizard-badges">
-          <!-- Season/context badges injected here -->
-        </div>
-      </div>
 
-      <!-- Wizard Steps -->
-      <div class="wizard-steps" id="wizard-steps">
-        <div class="wizard-step active" data-step="1">
-          <div class="wizard-step-number">1</div>
-          <div class="wizard-step-label">Find Topics</div>
-        </div>
-        <div class="wizard-step-connector"></div>
-        <div class="wizard-step" data-step="2">
-          <div class="wizard-step-number">2</div>
-          <div class="wizard-step-label">Write Posts</div>
-        </div>
-        <div class="wizard-step-connector"></div>
-        <div class="wizard-step" data-step="3">
-          <div class="wizard-step-number">3</div>
-          <div class="wizard-step-label">Export</div>
-        </div>
-      </div>
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- MODE 1: THIS WEEK'S 7                                  -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="page active" id="weekly-page">
+      <div class="hero-section">
+        <h1 class="hero-title">Find this week's 7 stories</h1>
+        <p class="hero-subtitle">AI searches the web for fascinating articles from motorsport, science, culture & sport
+          —
+          then connects each one to the neurochemistry of peak performance.</p>
 
-      <!-- Step 1: Find Topics -->
-      <div class="wizard-content" id="wizard-step-1">
-        <div class="step-header">
-          <h2>Step 1: Find This Week's Topics</h2>
-          <p>AI searches the web for 7 current articles across mental performance pillars for motorcycle racers, then
-            generates
-            data-driven topic angles for Facebook &amp; Instagram.</p>
-        </div>
-        <!-- Championship Calendar Context -->
-        <div id="calendar-context" class="calendar-context"></div>
-        <div class="pillar-preview" id="pillar-preview">
-          <!-- Pillar cards will be rendered here -->
-        </div>
-        <div class="step-actions">
-          <button class="btn btn-primary btn-lg" id="find-topics-btn">
+        <!-- Championship Context (auto-populated) -->
+        <div id="calendar-context" class="calendar-context compact"></div>
+
+        <div class="hero-actions">
+          <button class="btn btn-primary btn-hero" id="find-stories-btn">
             <span class="btn-icon-left">🔍</span>
-            Find Topics with AI
+            Find Stories
             <span class="btn-loading" style="display:none;">
               <span class="spinner"></span>
             </span>
@@ -124,256 +78,96 @@
         </div>
       </div>
 
-      <!-- Step 2: Topics Found → Write Posts -->
-      <div class="wizard-content hidden" id="wizard-step-2">
-        <div class="step-header">
-          <h2>Step 2: Review Topics & Write Posts</h2>
-          <p>Review the 7 article-inspired topics below. Edit any you'd like to change, then generate all posts in
-            parallel.</p>
-        </div>
-        <div class="topics-grid" id="topics-grid">
-          <!-- Topic cards will be rendered here -->
-        </div>
-        <div class="step-actions">
-          <button class="btn btn-secondary" id="back-to-step1">← Back</button>
-          <button class="btn btn-primary btn-lg" id="write-posts-btn">
-            <span class="btn-icon-left">✍️</span>
-            Write All 7 Posts
-            <span class="btn-loading" style="display:none;">
-              <span class="spinner"></span>
-            </span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Step 3: Posts Generated → Review & Export -->
-      <div class="wizard-content hidden" id="wizard-step-3">
-        <div class="step-header">
-          <h2>Step 3: Review & Export</h2>
-          <p>Your 7 Facebook & Instagram posts are ready. Review, edit, generate visuals, then export CSV for GHL Social
-            Planner.
-          </p>
-        </div>
-        <div class="posts-grid" id="posts-grid">
-          <!-- Post cards will be rendered here -->
-        </div>
-        <div class="export-bar" id="export-bar">
-          <div class="export-info">
-            <span class="export-count" id="export-count">7 posts ready</span>
-            <span class="export-schedule" id="export-schedule"></span>
+      <!-- Story Cards (hidden until AI returns results) -->
+      <div class="stories-container hidden" id="stories-container">
+        <div class="stories-header">
+          <h2 class="stories-title">This week's stories</h2>
+          <div class="stories-meta" id="stories-meta">
+            <!-- e.g. "7 stories found · balanced across 5 chemicals" -->
           </div>
-          <div class="export-actions">
-            <button class="btn btn-secondary" id="back-to-step2">← Back to Topics</button>
-            <button class="btn btn-primary btn-lg" id="export-csv-btn">
-              <span class="btn-icon-left">📄</span>
-              Export CSV for GHL
+        </div>
+
+        <div class="stories-list" id="stories-list">
+          <!-- Story cards rendered by JS -->
+        </div>
+
+        <div class="stories-actions">
+          <button class="btn btn-primary btn-hero" id="write-all-btn">
+            <span class="btn-icon-left">✍️</span>
+            Write All 7
+            <span class="btn-loading" style="display:none;">
+              <span class="spinner"></span>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Generated Posts (hidden until posts are written) -->
+      <div class="posts-container hidden" id="posts-container">
+        <div class="posts-header">
+          <h2 class="posts-title">Your posts are ready</h2>
+          <div class="posts-actions-bar">
+            <button class="btn btn-secondary" id="export-csv-btn">
+              <span class="btn-icon-left">📄</span> Export CSV
             </button>
-            <button class="btn btn-secondary btn-lg" id="copy-csv-btn">
-              <span class="btn-icon-left">📋</span>
-              Copy CSV
+            <button class="btn btn-secondary" id="copy-csv-btn">
+              <span class="btn-icon-left">📋</span> Copy CSV
             </button>
-            <button class="btn btn-secondary btn-lg" id="generate-emails-btn"
+            <button class="btn btn-secondary" id="generate-emails-btn"
               style="border-color:rgba(218,165,32,0.3);color:var(--gold);">
-              <span class="btn-icon-left">📧</span>
-              Generate All Emails
+              <span class="btn-icon-left">📧</span> Emails
             </button>
             <a href="https://app.gohighlevel.com/v2/location/vdgR8teGuIgHPMPzbQkK/marketing/social-planner/csv"
-              target="_blank" class="btn btn-secondary btn-lg" id="open-ghl-btn" style="text-decoration:none;">
-              <span class="btn-icon-left">🚀</span>
-              Open GHL Planner
+              target="_blank" class="btn btn-secondary" id="open-ghl-btn" style="text-decoration:none;">
+              <span class="btn-icon-left">🚀</span> Open GHL
             </a>
-            <button class="btn btn-secondary btn-lg" id="clear-session-btn" onclick="window.appActions.clearSession()"
-              style="color: var(--accent); border-color: rgba(255,68,68,0.3);">
-              <span class="btn-icon-left">🗑️</span>
-              Clear Session
+            <button class="btn btn-secondary" id="clear-session-btn"
+              style="color: var(--accent); border-color: rgba(255,68,68,0.3); margin-left:auto;">
+              <span class="btn-icon-left">🔄</span> Start Over
             </button>
           </div>
         </div>
+        <div class="posts-grid" id="posts-grid">
+          <!-- Post cards rendered by JS -->
+        </div>
       </div>
     </section>
 
-    <!-- ═══ SINGLE POST PAGE ═══ -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- MODE 2: SINGLE POST                                     -->
+    <!-- ═══════════════════════════════════════════════════════ -->
     <section class="page" id="single-page">
-      <div class="page-header">
-        <h1>🔍 Single Post Generator</h1>
-        <p class="page-subtitle">Generate an ad-hoc Facebook/Instagram post with full control over pillar, framework,
-          and CTA.
-        </p>
-      </div>
+      <div class="hero-section">
+        <h1 class="hero-title">Create a single post</h1>
+        <p class="hero-subtitle">Paste a link, type a quote, or describe something you saw.
+          The AI finds the angle, picks the chemistry, and writes everything.</p>
 
-      <div class="single-post-layout">
-        <!-- Controls -->
-        <div class="single-controls">
-          <div class="control-card">
-            <h3>Content Pillar</h3>
-            <div class="pillar-selector" id="pillar-selector">
-              <!-- Pillar buttons rendered by JS -->
-            </div>
-          </div>
-
-          <div class="control-card">
-            <h3>Framework (3S + 2F)</h3>
-            <div class="framework-selector" id="framework-selector">
-              <!-- Framework buttons rendered by JS -->
-            </div>
-          </div>
-
-          <div class="control-card">
-            <h3>CTA / Lead Magnet</h3>
-            <select class="form-select" id="cta-selector">
-              <option value="auto">🎯 Auto (CTA Rotation)</option>
-              <!-- CTA options rendered by JS -->
-            </select>
-          </div>
-
-          <div class="control-card">
-            <h3>Topic / Angle (optional)</h3>
-            <textarea class="form-textarea" id="single-topic" rows="3"
-              placeholder="Enter a specific topic, article headline, or leave blank for AI to choose..."></textarea>
-          </div>
-
-          <button class="btn btn-primary btn-lg btn-full" id="generate-single-btn">
+        <div class="single-input-area">
+          <textarea class="form-textarea single-textarea" id="single-input" rows="3"
+            placeholder='e.g. "Bulega won at Phillip Island today" or paste an article link...'></textarea>
+          <button class="btn btn-primary btn-hero" id="generate-single-btn">
             <span class="btn-icon-left">⚡</span>
-            Generate Post
+            Generate
             <span class="btn-loading" style="display:none;">
               <span class="spinner"></span>
             </span>
           </button>
         </div>
+      </div>
 
-        <!-- Result -->
-        <div class="single-result" id="single-result">
-          <div class="empty-state">
-            <span class="empty-icon">📝</span>
-            <p>Configure your post settings and click Generate</p>
-          </div>
-        </div>
+      <!-- Single post result -->
+      <div class="single-result-container hidden" id="single-result">
+        <!-- Rendered by JS -->
       </div>
     </section>
 
-    <!-- ═══ REVIEWS PLAYBOOK PAGE ═══ -->
-    <section class="page" id="reviews-page">
-      <div class="page-header">
-        <div class="page-header-content">
-          <h1>⭐ Review Content Playbook</h1>
-          <p class="page-subtitle">84 Trustpilot reviews (4.9★) + 36 Google reviews (5.0★). Pre-approved hooks,
-            objection killers, and carousel concepts for content generation.</p>
-        </div>
-        <div class="page-header-badges">
-          <span class="badge badge-accent">⭐ 4.9 Trustpilot</span>
-          <span class="badge badge-accent">🔍 5.0 Google</span>
-          <span class="badge badge-success">120 Total Reviews</span>
-          <span class="badge badge-info">100% Five-Star</span>
-        </div>
-      </div>
-      <div id="reviews-content">
-        <!-- Rendered by app.js -->
-      </div>
-    </section>
-
-    <!-- ═══ VIDEO FACTORY PAGE ═══ -->
-    <section class="page" id="video-page">
-      <div class="page-header">
-        <div class="page-header-content">
-          <h1>🎬 Video Factory</h1>
-          <p class="page-subtitle">Generate neurochemistry-powered video scripts for HeyGen avatar + Manus slide decks.
-            Under 15 minutes from script to published video.</p>
-        </div>
-        <div class="page-header-badges">
-          <span class="badge badge-accent">🧪 6 Chemicals</span>
-          <span class="badge badge-success">⚡ Flow Cocktail</span>
-          <span class="badge badge-info">📊 30 Ready Topics</span>
-        </div>
-      </div>
-
-      <div class="video-factory-layout">
-        <!-- Left Column: Controls -->
-        <div class="video-controls">
-          <!-- Chemical Selector -->
-          <div class="control-card">
-            <h3>🧪 Neurochemical Focus</h3>
-            <p class="control-hint">Choose the brain chemical for this video</p>
-            <div class="chemical-selector" id="chemical-selector">
-              <!-- Rendered by JS -->
-            </div>
-          </div>
-
-          <!-- Topic Selector -->
-          <div class="control-card">
-            <h3>📝 Video Topic</h3>
-            <p class="control-hint">Pick a ready-made topic or write your own</p>
-            <div class="topic-list" id="video-topic-list">
-              <!-- Rendered by JS -->
-            </div>
-            <textarea class="form-textarea" id="custom-video-topic" rows="3"
-              placeholder="Or type a custom topic / angle..."></textarea>
-          </div>
-
-          <!-- Video Settings -->
-          <div class="control-card">
-            <h3>⚙️ Video Settings</h3>
-            <div class="video-settings-grid">
-              <div class="setting-group">
-                <label for="video-length">Length</label>
-                <select class="form-select" id="video-length">
-                  <option value="30-45s">30-45s (Short Reel)</option>
-                  <option value="45-60s" selected>45-60s (Standard Reel)</option>
-                  <option value="90s-3min">90s-3min (Deep Dive)</option>
-                </select>
-              </div>
-              <div class="setting-group">
-                <label for="video-platform">Platform</label>
-                <select class="form-select" id="video-platform">
-                  <option value="FB Reel + IG Reel">FB Reel + IG Reel</option>
-                  <option value="IG Reel">IG Reel Only</option>
-                  <option value="FB native video">FB Native (Long)</option>
-                  <option value="FB native + IG Carousel">FB Native + IG Carousel</option>
-                </select>
-              </div>
-              <div class="setting-group">
-                <label for="video-format">Format</label>
-                <select class="form-select" id="video-format">
-                  <option value="9:16">9:16 Vertical (Reels)</option>
-                  <option value="16:9">16:9 Horizontal (Native)</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <button class="btn btn-primary btn-lg btn-full" id="generate-video-btn">
-            <span class="btn-icon-left">🎬</span>
-            Generate Video Script
-            <span class="btn-loading" style="display:none;">
-              <span class="spinner"></span>
-            </span>
-          </button>
-        </div>
-
-        <!-- Right Column: Output -->
-        <div class="video-output" id="video-output">
-          <div class="empty-state">
-            <span class="empty-icon">🧪</span>
-            <p>Select a neurochemical and topic, then click Generate</p>
-            <p class="empty-hint">Each video script includes the narration, Manus slide deck brief, and HeyGen
-              production notes</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Weekly Video Calendar -->
-      <div class="video-calendar-section">
-        <h2>📅 Weekly Video Calendar</h2>
-        <p class="section-subtitle">The neurochemistry video schedule runs alongside the 7 text posts</p>
-        <div class="video-calendar" id="video-calendar">
-          <!-- Rendered by JS -->
-        </div>
-      </div>
-    </section>
-
-    <!-- ═══ SETTINGS PAGE ═══ -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- SETTINGS (hidden behind gear icon)                      -->
+    <!-- ═══════════════════════════════════════════════════════ -->
     <section class="page" id="settings-page">
       <!-- Rendered by settings.js -->
     </section>
+
   </main>
 
   <!-- ─── Scripts ──────────────────────────────────────────── -->
