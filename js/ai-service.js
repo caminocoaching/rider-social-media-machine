@@ -247,24 +247,27 @@ export async function generateTopics(pillars, seasonalContext, apiKey) {
     const champContext = getChampionshipContext();
 
     const daySlots = [
-        'Monday: Outside the Paddock — fascinating story from F1, tennis, Olympic sport, or tech that connects to mental performance',
-        'Tuesday: Client Transformation — a result or comeback story (can be from any sport)',
-        'Wednesday: Neuroscience Teach — brain science, flow state, attention research with motorsport application',
-        'Thursday: Provocative Hook — the ONE uncomfortable truth about racing psychology',
-        'Friday: Timely Race Reaction — react to real MotoGP/WorldSBK/BSB results from this week',
-        'Saturday: Achievement/Tech Spotlight — performance technology, brain-tracking devices, or breakthrough results',
-        'Sunday: Proof & Celebration — inspiring wins, stats, or athlete mental breakthroughs'
+        'Monday: Outside the Paddock — a fascinating story from another sport, science, or tech. BUT it MUST bridge back to motorcycle racing mental performance. The rider should think "that is cool" first, then "that connects to my riding."',
+        'Tuesday: Client Transformation — a motorcycle racer comeback or breakthrough story. Lead with the result, not the struggle.',
+        'Wednesday: Neuroscience Teach — brain science (flow state, cortisol, dopamine, attention) applied specifically to riding a motorcycle on track. Reference corners, braking zones, lean angle, throttle control.',
+        'Thursday: Provocative Hook — ONE uncomfortable truth about racing psychology that motorcycle racers avoid admitting. Pain-forward.',
+        'Friday: Timely Race Reaction — react to REAL recent MotoGP, WorldSBK, BSB, or MotoAmerica results. Name specific riders and races.',
+        'Saturday: Achievement/Tech Spotlight — performance technology, brain-training devices, or breakthrough results connected to motorcycle racing.',
+        'Sunday: Proof & Celebration — inspiring motorcycle racer wins, championship stats, or mental performance breakthroughs on the bike.'
     ];
 
     const liveRacing = champContext.hasLiveRacing
-        ? `LIVE RACING THIS WEEKEND — prioritise current race results and reactions.`
+        ? `LIVE RACING THIS WEEKEND — prioritise current race results and reactions from MotoGP, WorldSBK, BSB, or MotoAmerica.`
         : '';
 
     const seasonNote = seasonalContext
         ? `Season context: ${seasonalContext.season} — ${seasonalContext.context}`
         : '';
 
-    const prompt = `Search the web for 7 interesting stories from the last 7-30 days. Each story should connect to the mental performance side of motorcycle racing or sport in general.
+    const prompt = `Search the web for 7 stories from the last 7-30 days for a motorcycle racing mental performance coach's social media. The audience is club racers, amateur racers, and aspiring professionals who race motorcycles on track.
+
+TARGET CHAMPIONSHIPS: MotoGP, World Superbikes (WorldSBK), British Superbikes (BSB), MotoAmerica, Moto2, Moto3, ASBK.
+SEARCH SOURCES: MotoGP.com, WorldSBK.com, Crash.net, MCN, The Race, Motorsport.com, BSB.com, MotoAmerica.com, BBC Sport, Sky Sports.
 
 ${liveRacing}
 ${seasonNote}
@@ -272,7 +275,12 @@ ${seasonNote}
 Find one story for each slot:
 ${daySlots.map((d, i) => `${i + 1}. ${d}`).join('\n')}
 
-IMPORTANT: At least 2 stories must be from OUTSIDE motorsport (other sports, science, tech, movies). The hook should make someone think "that's fascinating" before connecting it to racing.
+RULES:
+- Every headline must connect to the MENTAL PERFORMANCE side of motorcycle racing
+- Use MOTORCYCLE language: rider, corner, apex, lean angle, braking zone, turn-in, body position, throttle control, the bike, leathers, lid, paddock, grid, qualifying
+- NEVER use car racing language
+- At least 2 stories should reference SPECIFIC real riders or real race results
+- "Outside the paddock" stories must still bridge back to what a motorcycle racer experiences on track
 
 Return a JSON array with 7 objects:
 [
@@ -282,9 +290,9 @@ Return a JSON array with 7 objects:
     "sourceArticle": "Article title — Publication",
     "articleUrl": "URL",
     "talkingPoints": ["Point 1", "Point 2", "Point 3"],
-    "emotionalHook": "What should the rider feel?",
+    "emotionalHook": "What should the motorcycle racer feel?",
     "mechanism": "Neuroscience mechanism referenced",
-    "racingRelevance": "One sentence connecting to motorcycle racing",
+    "racingRelevance": "One sentence connecting to motorcycle racing on track",
     "contentBrief": "Type of post"
   }
 ]
