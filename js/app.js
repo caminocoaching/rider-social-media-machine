@@ -830,6 +830,14 @@ window.appActions = {
         const settings = loadSettings();
         if (!settings.claudeApiKey) { showToast('Claude API key needed.', 'error'); return; }
 
+        // Update button to show loading
+        const card = document.querySelector(`.story-card[data-index="${index}"]`);
+        if (card) {
+            card.querySelector('.story-card-actions').innerHTML = `
+                <span style="color:var(--neuro-teal);font-size:0.75rem;font-weight:600;">⏳ Writing...</span>
+            `;
+        }
+
         setStatus(`Writing post for story ${index + 1}...`, true);
         try {
             const content = await generatePost({
@@ -861,24 +869,130 @@ window.appActions = {
             saveSession();
             showToast(`Post ${index + 1} generated!`, 'success');
 
-            // If all posts are generated, show posts view
+            // If all posts are generated, show full posts view
             if (state.posts.filter(Boolean).length === state.stories.length) {
                 renderPosts();
                 showContainer('posts-container');
             } else {
-                // Show inline preview on the story card
-                const card = document.querySelector(`.story-card[data-index="${index}"]`);
+                // Show the generated post inline below the story card
                 if (card) {
-                    const preview = content.substring(0, 200).replace(/\n/g, ' ');
                     card.querySelector('.story-card-actions').innerHTML = `
                         <span style="color:var(--green);font-size:0.75rem;font-weight:600;">✅ Generated</span>
+                        <button class="story-generate-btn" onclick="window.appActions.toggleInlinePost(${index})" style="font-size:0.72rem;padding:0.3rem 0.75rem;">👁️ View Post</button>
                     `;
                     card.style.borderColor = 'rgba(46,160,67,0.3)';
+
+                    // Render the inline post preview below the story card
+                    this.renderInlinePost(index, card);
                 }
             }
         } catch (err) {
             showToast(`Error: ${err.message}`, 'error');
+            if (card) {
+                card.querySelector('.story-card-actions').innerHTML = `
+                    <button class="story-generate-btn" onclick="window.appActions.generateStory(${index})">🔄 Retry</button>
+                `;
+            }
         } finally { setStatus('Ready'); }
+    },
+
+    // Render single post inline below story card
+    renderInlinePost(index, card) {
+        const post = state.posts[index];
+        if (!post) return;
+
+        // Remove existing inline preview
+        const existingPreview = document.getElementById(`inline-post-${index}`);
+        if (existingPreview) existingPreview.remove();
+
+        // Parse FB/IG
+        const hasDual = (post.content || '').includes('=== FACEBOOK POST ===');
+        let fbContent = post.content || '';
+        let igContent = '';
+        if (hasDual) {
+            const fbMatch = post.content.match(/=== FACEBOOK POST ===([\s\S]*?)(?:=== INSTAGRAM CAPTION ===|$)/);
+            const igMatch = post.content.match(/=== INSTAGRAM CAPTION ===([\s\S]*?)(?:=== IMAGE TEXT ===|$)/);
+            fbContent = (fbMatch?.[1] || '').trim();
+            igContent = (igMatch?.[1] || '').trim();
+        }
+
+        const chem = state.stories[index]?.chemical || {};
+        const story = state.stories[index] || {};
+        const articleTitle = story.sourceArticle || story.source || '';
+        const articleLink = story.articleUrl || story.sourceUrl || '';
+        const wordCount = (fbContent || post.content || '').split(/\s+/).filter(Boolean).length;
+
+        const inlineDiv = document.createElement('div');
+        inlineDiv.id = `inline-post-${index}`;
+        inlineDiv.style.cssText = 'margin:0.5rem 0 1rem;border:1px solid rgba(0,191,165,0.2);border-radius:8px;background:var(--card);overflow:hidden;';
+
+        inlineDiv.innerHTML = `
+            <!-- Source Article -->
+            ${articleTitle ? `
+            <div style="padding:0.5rem 1rem;background:rgba(0,191,165,0.05);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.5rem;cursor:pointer;" onclick="window.appActions.openArticle('${encodeURIComponent(articleLink)}', '${encodeURIComponent(articleTitle)}')">
+                <span style="font-size:0.72rem;font-weight:600;color:var(--neuro-teal);">📰</span>
+                <span style="font-size:0.72rem;color:var(--text-secondary);flex:1;">${escapeHtml(articleTitle)}</span>
+                <span style="font-size:0.68rem;color:var(--neuro-teal);">👁️ Read</span>
+            </div>` : ''}
+
+            <!-- Platform Tabs -->
+            <div style="display:flex;gap:0;border-bottom:1px solid var(--border);">
+                <button class="platform-tab active" data-platform="fb" onclick="window.appActions.switchInlinePlatform(${index}, 'fb')" style="flex:1;padding:0.4rem;font-size:0.72rem;background:none;border:none;border-bottom:2px solid var(--neuro-teal);color:var(--text-primary);cursor:pointer;">📘 Facebook</button>
+                <button class="platform-tab" data-platform="ig" onclick="window.appActions.switchInlinePlatform(${index}, 'ig')" style="flex:1;padding:0.4rem;font-size:0.72rem;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);cursor:pointer;">📷 Instagram</button>
+            </div>
+
+            <!-- Content -->
+            <div id="inline-post-content-${index}" data-fb="${encodeURIComponent(fbContent)}" data-ig="${encodeURIComponent(igContent)}" style="padding:0.75rem 1rem;font-size:0.82rem;line-height:1.6;color:var(--text-primary);white-space:pre-wrap;max-height:300px;overflow-y:auto;">${escapeHtml(fbContent || post.content || '')}</div>
+
+            <!-- Actions -->
+            <div style="padding:0.5rem 1rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size:0.7rem;color:var(--text-muted);">${wordCount} words</span>
+                <div style="display:flex;gap:0.3rem;">
+                    <button class="post-action-btn" onclick="window.appActions.copyInlinePost(${index})" style="font-size:0.72rem;">📋 Copy</button>
+                    <button class="post-action-btn" onclick="window.appActions.editInlinePost(${index})" style="font-size:0.72rem;color:var(--gold);">✏️ Edit</button>
+                </div>
+            </div>
+        `;
+
+        card.after(inlineDiv);
+    },
+
+    toggleInlinePost(index) {
+        const existing = document.getElementById(`inline-post-${index}`);
+        if (existing) { existing.remove(); return; }
+        const card = document.querySelector(`.story-card[data-index="${index}"]`);
+        if (card) this.renderInlinePost(index, card);
+    },
+
+    switchInlinePlatform(index, platform) {
+        const container = document.getElementById(`inline-post-content-${index}`);
+        if (!container) return;
+        const content = platform === 'ig' ? decodeURIComponent(container.dataset.ig) : decodeURIComponent(container.dataset.fb);
+        container.textContent = content;
+
+        // Update tab styles
+        const parent = container.parentElement;
+        parent.querySelectorAll('.platform-tab').forEach(t => {
+            const isActive = t.dataset.platform === platform;
+            t.style.borderBottomColor = isActive ? 'var(--neuro-teal)' : 'transparent';
+            t.style.color = isActive ? 'var(--text-primary)' : 'var(--text-muted)';
+        });
+    },
+
+    copyInlinePost(index) {
+        const post = state.posts[index];
+        if (post) { copyToClipboard(post.content); showToast('Post copied!', 'success'); }
+    },
+
+    editInlinePost(index) {
+        // Jump to full posts view with this post ready to edit
+        renderPosts();
+        showContainer('posts-container');
+        setTimeout(() => {
+            const postCard = document.getElementById(`post-card-${index}`);
+            if (postCard) postCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            this.editPost(index);
+        }, 200);
     },
 
     async generateVideoForPost(index) {
