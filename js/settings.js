@@ -76,9 +76,14 @@ export function renderSettingsPage() {
   const container = document.getElementById('settings-page');
 
   container.innerHTML = `
-    <div class="page-header">
-      <h1>⚙️ Settings</h1>
-      <p class="page-subtitle">Configure your API keys, lead magnet links, and publishing preferences</p>
+    <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;">
+      <div>
+        <h1>⚙️ Settings</h1>
+        <p class="page-subtitle">Configure your API keys, lead magnet links, and publishing preferences</p>
+      </div>
+      <button onclick="if(confirm('Clear all stories, posts, and generated content? Your API keys and settings will be kept.')){localStorage.removeItem('riderSocialMedia_session');location.reload();}" style="background:none;border:1px solid rgba(255,107,107,0.4);color:#FF6B6B;cursor:pointer;padding:0.5rem 1rem;border-radius:8px;font-size:0.8rem;font-weight:600;white-space:nowrap;">
+        🗑️ Clear Session
+      </button>
     </div>
 
     <div class="settings-grid">
@@ -340,12 +345,9 @@ export function renderSettingsPage() {
       </div>
     </div>
 
-    <div class="settings-actions" style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;">
+    <div class="settings-actions">
       <button class="btn btn-primary btn-lg" id="save-settings-btn">
         <span class="btn-icon-left">💾</span> Save Settings
-      </button>
-      <button class="btn btn-lg" onclick="if(confirm('Clear all stories, posts, and generated content?')){localStorage.removeItem('riderSocialMedia_session');location.reload();}" style="background:none;border:1px solid rgba(255,107,107,0.3);color:#FF6B6B;cursor:pointer;padding:0.6rem 1.2rem;border-radius:8px;font-size:0.85rem;">
-        🗑️ Clear Session Data
       </button>
       <span class="save-status" id="save-status"></span>
     </div>
