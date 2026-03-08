@@ -347,9 +347,9 @@ function renderStoryCards() {
 
     container.innerHTML = state.stories.map((story, i) => {
         const chem = story.chemical || {};
-        const source = story.sourceUrl
-            ? new URL(story.sourceUrl).hostname.replace('www.', '')
-            : story.source || '';
+        const articleTitle = story.sourceArticle || story.source || '';
+        const articleUrl = story.articleUrl || story.sourceUrl || '';
+        const sourceDomain = articleUrl ? (() => { try { return new URL(articleUrl).hostname.replace('www.', ''); } catch { return ''; } })() : '';
 
         return `
       <div class="story-card" data-index="${i}">
@@ -366,8 +366,14 @@ function renderStoryCards() {
         </div>
         <div class="story-card-body">
           <h3 class="story-headline">${escapeHtml(story.headline || story.topic || '')}</h3>
+          ${articleTitle ? `
+          <div style="margin:0.4rem 0;padding:0.4rem 0.6rem;background:rgba(0,191,165,0.06);border-radius:4px;border-left:2px solid var(--neuro-teal, #00BFA5);">
+            <span style="font-size:0.72rem;color:var(--neuro-teal);font-weight:600;">📰 </span>
+            <span style="font-size:0.72rem;color:var(--text-secondary);">${escapeHtml(articleTitle)}</span>
+            ${articleUrl ? `<a href="${escapeHtml(articleUrl)}" target="_blank" rel="noopener" style="font-size:0.68rem;color:var(--neuro-teal);margin-left:0.4rem;text-decoration:none;">${escapeHtml(sourceDomain)} ↗</a>` : ''}
+          </div>
+          ` : ''}
           ${story.angle ? `<p class="story-angle">${escapeHtml(story.angle)}</p>` : ''}
-          <div class="story-source">${escapeHtml(source)}</div>
         </div>
         <div class="story-card-actions">
           <button class="story-generate-btn" onclick="window.appActions.generateStory(${i})">
