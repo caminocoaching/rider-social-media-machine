@@ -1115,9 +1115,9 @@ Return ONLY the JSON array.`;
                 <span style="font-size:0.7rem;color:var(--text-muted);">${wordCount} words</span>
                 <div style="display:flex;gap:0.3rem;align-items:center;">
                     <span id="inline-status-${index}" style="font-size:0.7rem;font-weight:600;margin-right:0.3rem;"></span>
-                    ${isConfirmed ? '' : `
+                    ${isConfirmed ? `<span style="font-size:0.7rem;color:var(--green);font-weight:600;">✅ Confirmed</span>` : `
                     <button id="inline-edit-btn-${index}" class="post-action-btn" onclick="window.appActions.inlineEdit(${index})" style="font-size:0.72rem;color:var(--gold);">✏️ Edit</button>
-                    <button id="inline-confirm-btn-${index}" class="post-action-btn" onclick="window.appActions.inlineConfirm(${index})" style="font-size:0.72rem;color:var(--neuro-teal);display:none;">✅ Confirm</button>
+                    <button id="inline-confirm-btn-${index}" class="post-action-btn" onclick="window.appActions.inlineConfirm(${index})" style="font-size:0.72rem;color:#0A1628;background:var(--neuro-teal);padding:0.3rem 0.7rem;border-radius:4px;font-weight:700;">✅ Confirm → Generate Scripts</button>
                     `}
                     <button class="post-action-btn" onclick="window.appActions.copyInlinePost(${index})" style="font-size:0.72rem;">📋 Copy</button>
                 </div>
@@ -1153,6 +1153,16 @@ Return ONLY the JSON array.`;
                         <button class="post-action-btn" onclick="window.appActions.copyInlineShorts(${index})" style="font-size:0.7rem;">📋 Copy Shorts</button>
                     </div>
                     <pre id="inline-shorts-txt-${index}" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:0.5rem;font-size:0.78rem;max-height:150px;overflow-y:auto;white-space:pre-wrap;color:var(--text-primary);line-height:1.5;">${isConfirmed ? escapeHtml(state.doneData[index]?.shortsTXT || 'Loading...') : 'Generating on confirm...'}</pre>
+                </div>
+
+                <!-- Quick Launch Links -->
+                <div style="border-top:1px solid var(--border);padding:0.6rem 1rem;">
+                    <div style="display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center;">
+                        <span style="font-size:0.68rem;font-weight:700;color:var(--text-muted);margin-right:0.2rem;">🚀 LAUNCH:</span>
+                        <a href="https://manus.im" target="_blank" rel="noopener" style="font-size:0.68rem;padding:0.2rem 0.5rem;background:rgba(0,191,165,0.1);color:var(--neuro-teal);border:1px solid rgba(0,191,165,0.25);border-radius:4px;text-decoration:none;font-weight:600;" title="Create slide deck in Manus">🎨 Manus</a>
+                        <a href="https://app.heygen.com/avatar/ppt-to-video" target="_blank" rel="noopener" style="font-size:0.68rem;padding:0.2rem 0.5rem;background:rgba(218,165,32,0.1);color:var(--gold);border:1px solid rgba(218,165,32,0.25);border-radius:4px;text-decoration:none;font-weight:600;" title="Upload slides + script to HeyGen">🎬 HeyGen</a>
+                        <a href="https://app.gohighlevel.com/v2/location/vdgR8teGuIgHPMPzbQkK/marketing/social-planner" target="_blank" rel="noopener" style="font-size:0.68rem;padding:0.2rem 0.5rem;background:rgba(46,160,67,0.1);color:var(--green);border:1px solid rgba(46,160,67,0.25);border-radius:4px;text-decoration:none;font-weight:600;" title="Schedule in GHL Social Planner">📱 GHL Planner</a>
+                    </div>
                 </div>
 
                 <!-- Source URL for Manus -->
