@@ -781,16 +781,17 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
                             const chunkTitle = (gc.title || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
                             const chunkWords = chunkTitle.split(/\s+/).filter(w => w.length > 3);
                             const urlPath = new URL(gc.uri).pathname.toLowerCase();
+                            // Slugify source text (strip spaces) for domain comparison
+                            const sourceSlug = sourceText.replace(/\s+/g, '');
 
-                            // Strategy 1: Full domain name in sourceArticle (e.g. "motogp" in "MotoGP.com")
+                            // Strategy 1: Domain in slugified source (e.g. "cyclingweekly" in "cyclingweekly")
+                            if (sourceSlug.includes(domain)) score += 10;
+
+                            // Strategy 1b: Domain in source with spaces (e.g. "motogp" in "motogp com")
                             if (sourceText.includes(domain)) score += 10;
 
-                            // Strategy 2: Domain contained within sourceArticle words (e.g. "cycling" and "weekly" both in source)
-                            if (domain.length > 6) {
-                                const domainParts = domain.match(/.{3,}/g) || [];
-                                const partMatches = domainParts.filter(p => sourceText.includes(p)).length;
-                                if (partMatches > 0) score += partMatches * 3;
-                            }
+                            // Strategy 2: Source words contain the domain (for short domains like "crash", "mcn")
+                            if (sourceWords.some(w => w === domain || domain.includes(w) && w.length > 2)) score += 8;
 
                             // Strategy 3: Source article title words matching chunk title
                             const sourceTitleOverlap = sourceWords.filter(w => chunkWords.includes(w)).length;
@@ -812,7 +813,7 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
                         }
                     });
 
-                    if (bestMatch && bestScore >= 3) {
+                    if (bestMatch && bestScore >= 2) {
                         console.log(`[Gemini] Matched story ${idx + 1} (score:${bestScore}) "${item.sourceArticle}" → ${bestMatch.gc.uri}`);
                         item.articleUrl = bestMatch.gc.uri;
                         usedChunkIndices.add(bestMatch.ci);

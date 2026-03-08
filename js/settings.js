@@ -344,7 +344,7 @@ export function renderSettingsPage() {
       <button class="btn btn-primary btn-lg" id="save-settings-btn">
         <span class="btn-icon-left">💾</span> Save Settings
       </button>
-      <button class="btn btn-lg" id="clear-session-btn" style="background:none;border:1px solid rgba(255,107,107,0.3);color:#FF6B6B;cursor:pointer;padding:0.6rem 1.2rem;border-radius:8px;font-size:0.85rem;">
+      <button class="btn btn-lg" onclick="if(confirm('Clear all stories, posts, and generated content?')){localStorage.removeItem('riderSocialMedia_session');location.reload();}" style="background:none;border:1px solid rgba(255,107,107,0.3);color:#FF6B6B;cursor:pointer;padding:0.6rem 1.2rem;border-radius:8px;font-size:0.85rem;">
         🗑️ Clear Session Data
       </button>
       <span class="save-status" id="save-status"></span>
