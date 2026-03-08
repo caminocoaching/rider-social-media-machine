@@ -261,7 +261,16 @@ export async function generateTopics(pillars, seasonalContext, apiKey) {
     const prompt = `Search the web for 7 stories from the last 7-30 days for a motorcycle racing mental performance coach's social media. The audience is club racers, amateur racers, and aspiring professionals who race motorcycles on track.
 
 TARGET CHAMPIONSHIPS: MotoGP, World Superbikes (WorldSBK), British Superbikes (BSB), MotoAmerica, Moto2, Moto3, ASBK.
-SEARCH SOURCES: MotoGP.com, WorldSBK.com, Crash.net, MCN, The Race, Motorsport.com, BSB.com, MotoAmerica.com, BBC Sport, Sky Sports, DC Rainmaker, Wareable, WHOOP blog, Oura blog, Garmin blog.
+
+PREFERRED SOURCES (search these first):
+- Motorcycle racing: MotoGP.com, WorldSBK.com, Crash.net, MCN, The Race, Motorsport.com, BSB.com, MotoAmerica.com, Autosport, MotoMatters, Paddock Magazine
+- Sports science: Frontiers in Psychology, BJSM, JSSM, Journal of Sports Sciences
+- News: BBC Sport, Sky Sports, ESPN
+- Neuroscience: Nature, Scientific American, New Scientist
+- Wearable tech: DC Rainmaker, Wareable, WHOOP blog, Oura blog, Garmin blog
+- Motorcycle-specific: Bike magazine, Visor Down, Bennetts
+
+AVOID: listicles, affiliate content, generic self-help blogs, Reddit/forums, unverified claims without data, car-only content.
 
 ${liveRacing}
 ${seasonNote}
@@ -269,31 +278,51 @@ ${seasonNote}
 Find one story for each slot:
 ${daySlots.map((d, i) => `${i + 1}. ${d}`).join('\n')}
 
+ARTICLE QUALITY STANDARD — what makes a 10/10 article:
+- Has a SPECIFIC data point (a percentage, a measurement, a time, a direct quote from a researcher or rider)
+- From a credible, citable source
+- Directly connects to something a motorcycle racer experiences on track
+- Makes a rider think: "That explains what happens to me" or "I never thought about it that way"
+- Current (last 7 days ideal, up to 30 days acceptable)
+
 RULES:
 - Every headline must connect to the MENTAL PERFORMANCE side of motorcycle racing
 - Use MOTORCYCLE language: rider, corner, apex, lean angle, braking zone, turn-in, body position, throttle control, the bike, leathers, lid, paddock, grid, qualifying
 - NO CAR RACING — do NOT use F1, NASCAR, IndyCar, or any car racing stories. This is a motorcycle-only audience.
-- Related topics are welcome: neuroscience, peak performance, wearable tech (Garmin watches/cycling computers, WHOOP strain/recovery/sleep, Oura Ring sleep staging/readiness, Apple Watch health studies/heart rate zones, GoPro performance analysis/telemetry), biometrics (HRV, EEG, heart rate variability, sleep tracking, strain scores, readiness scores), other sports (tennis, rugby, cycling, combat sports, Olympic athletes), technology, brain science
-- WEARABLE TECH STORIES ARE HIGHLY VALUED: any study, innovation, or use case involving Garmin, GoPro, WHOOP, Oura Ring, or Apple Watch in peak performance, athletic recovery, sleep optimisation, or race-day preparation is excellent content. Bridge it to what a motorcycle racer could learn or use.
+- Related topics are welcome: neuroscience, peak performance, wearable tech (Garmin, WHOOP, Oura Ring, Apple Watch, GoPro), biometrics (HRV, EEG, heart rate variability, sleep tracking, strain scores, readiness scores), other sports (tennis, rugby, cycling, combat sports), technology, brain science
+- WEARABLE TECH STORIES ARE HIGHLY VALUED: any study, innovation, or use case involving Garmin, GoPro, WHOOP, Oura Ring, or Apple Watch in peak performance, athletic recovery, sleep optimisation, or race-day preparation is excellent content.
 - At least 2 stories should reference SPECIFIC real motorcycle riders or real race results
 - "Outside the paddock" stories must still bridge back to what a motorcycle racer experiences on track
-- NO YOUTUBE — do NOT use YouTube videos as sources. Only use written articles from news sites, blogs, and publications. If a source is from youtube.com, skip it entirely and find a different article.
-- BANNED HEADLINE WORDS: Never use "unlock", "unleash", "inner genius", "secrets", "transform", "level up", "game-changer", "supercharge", "master your mindset", "hidden power". These are generic clickbait. Write headlines that a club racer would actually click on.
+- NO YOUTUBE — only written articles from news sites, blogs, and publications
+- BANNED HEADLINE WORDS: Never use "unlock", "unleash", "inner genius", "secrets", "transform", "level up", "game-changer", "supercharge", "master your mindset", "hidden power"
 - No em dashes or en dashes in headlines. Use commas or colons instead.
 
-CRITICAL URL RULE: The "articleUrl" MUST be a real, working URL from the Google Search results you received. Do NOT invent, guess, or fabricate any URL. If you cannot find a real URL for a story, set articleUrl to an empty string "".
+=== CRITICAL URL RULES (READ CAREFULLY) ===
+
+1. ARTICLE TITLE: The "sourceArticle" field MUST be the EXACT title as it appears on the source website. Do NOT rewrite, paraphrase, or invent titles. Copy word-for-word from the search result.
+
+2. ARTICLE URL: The "articleUrl" MUST be copied directly from the Google Search results you received. You searched the web — every article you found HAS a URL in the search results. Copy it exactly.
+
+3. NEVER FABRICATE URLs: Do NOT generate "simulated" or "plausible" URLs. Do NOT construct URLs based on "academic trends" or guess URL patterns. If you write a URL like "https://www.nature.com/articles/s41598-026-..." that you made up, that is WRONG. Only use URLs that appeared in your actual search results.
+
+4. NEVER write "(Simulated URL)" or similar disclaimers. Every URL must be a real, clickable link from your search.
+
+5. If you genuinely cannot find the URL for a specific article in your search results, set articleUrl to "" (empty string). Do NOT invent one.
 
 Return a JSON array with 7 objects:
 [
   {
     "pillarId": "${pillars[0]?.id || 'outside-the-paddock'}",
-    "headline": "Compelling headline connecting the story to rider mental performance",
-    "sourceArticle": "Article title — Publication",
-    "articleUrl": "REAL URL from search results only",
+    "headline": "Your compelling headline connecting the story to rider mental performance",
+    "sourceArticle": "EXACT article title word-for-word from the website",
+    "articleUrl": "REAL URL copied from your search results (never fabricated)",
+    "source": "Publication name | Date published",
+    "summary": "3 sentences describing the key finding of the article",
     "talkingPoints": ["Point 1", "Point 2", "Point 3"],
+    "killerDataPoint": "The specific number, percentage, measurement, or direct quote that makes this article valuable. Must be concrete.",
     "emotionalHook": "What should the motorcycle racer feel?",
     "mechanism": "Neuroscience mechanism referenced",
-    "racingRelevance": "One sentence connecting to motorcycle racing on track",
+    "racingRelevance": "One sentence connecting to motorcycle racing on track, using motorcycle language (corner, apex, braking zone, throttle, lean angle, the bike, lid, leathers, paddock)",
     "contentBrief": "Type of post"
   }
 ]
@@ -698,28 +727,21 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
     }
 
     // Extract REAL URLs from Gemini's grounding metadata
-    // Gemini returns grounding-api-redirect URLs in the text, but the REAL URLs are in groundingChunks
-    const groundingChunks = []; // { uri, title }
-    let groundingSupports = [];
+    const groundingChunks = [];
     try {
-        const groundingMeta = data.candidates?.[0]?.groundingMetadata;
-        if (groundingMeta?.groundingChunks) {
-            for (const chunk of groundingMeta.groundingChunks) {
+        const gm = data.candidates?.[0]?.groundingMetadata;
+        console.log('[Gemini] groundingMetadata keys:', gm ? Object.keys(gm) : 'NONE');
+        if (gm?.groundingChunks) {
+            for (const chunk of gm.groundingChunks) {
                 if (chunk.web?.uri) {
-                    groundingChunks.push({
-                        uri: chunk.web.uri,
-                        title: (chunk.web.title || '').toLowerCase()
-                    });
+                    groundingChunks.push({ uri: chunk.web.uri, title: chunk.web.title || '' });
                 }
             }
         }
-        if (groundingMeta?.groundingSupports) {
-            groundingSupports = groundingMeta.groundingSupports;
-        }
-        console.log('[Gemini] Grounding chunks:', groundingChunks.length, groundingChunks.map(c => c.uri));
-        console.log('[Gemini] Grounding supports:', groundingSupports.length);
+        console.log('[Gemini] Grounding chunks found:', groundingChunks.length);
+        groundingChunks.forEach((c, i) => console.log(`  [${i}] ${c.uri} — "${c.title}"`));
     } catch (e) {
-        console.log('[Gemini] No grounding metadata available');
+        console.warn('[Gemini] Error reading grounding metadata:', e);
     }
 
     // Strip markdown code fences if present
@@ -732,141 +754,156 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
         throw new Error(`No content from Gemini (reason: ${blockReason || 'unknown'}). Try again.`);
     }
 
-    console.log('[Gemini] Parsed content preview:', content.substring(0, 200));
-
     if (parseJson) {
         try {
             const jsonMatch = content.match(/\[[\s\S]*\]/);
             let parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(content);
 
-            // Fix article URLs — replace fake/redirect/YouTube URLs with real grounding URLs
             if (Array.isArray(parsed)) {
-                // Filter YouTube out of grounding chunks
+                // Remove YouTube from grounding chunks
                 const cleanChunks = groundingChunks.filter(gc =>
                     !gc.uri.includes('youtube.com') && !gc.uri.includes('youtu.be')
                 );
-                const usedChunkIndices = new Set();
+                const usedChunkIdxs = new Set(); // Track which chunks are already assigned
 
-                console.log('[Gemini] Clean chunks available:', cleanChunks.length, cleanChunks.map(c => c.uri));
+                console.log(`[URL] ${cleanChunks.length} grounding chunks available (YouTube filtered):`);
+                cleanChunks.forEach((c, i) => console.log(`  [${i}] ${c.uri} — "${c.title}"`));
 
-                parsed = parsed.map((item, idx) => {
-                    let url = item.articleUrl || '';
-                    const source = (item.sourceArticle || '').toLowerCase();
-                    const isFake = !url || url.includes('grounding-api-redirect') || url.includes('googleapis.com');
-                    const isYouTube = url.includes('youtube.com') || url.includes('youtu.be') ||
-                        source.includes('youtube') || source.includes('youtu.be');
-                    const isValidUrl = url.startsWith('http://') || url.startsWith('https://');
+                // Helper: compute word similarity score between two strings
+                const wordSimilarity = (textA, textB) => {
+                    const stopWords = new Set(['the', 'and', 'for', 'that', 'this', 'with', 'from', 'was', 'are', 'has', 'have', 'its', 'been', 'were', 'will', 'their', 'what', 'when', 'how', 'not', 'but', 'they', 'about', 'more', 'than', 'into', 'over', 'also', 'after', 'just', 'most', 'only', 'some', 'very', 'could', 'would', 'should', 'which', 'where', 'other', 'each', 'both', 'does', 'here', 'there', 'even', 'your', 'said', 'like', 'made', 'back', 'much']);
+                    const wordsA = textA.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 2 && !stopWords.has(w));
+                    const wordsB = textB.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 2 && !stopWords.has(w));
+                    if (wordsA.length === 0 || wordsB.length === 0) return 0;
+                    const overlap = wordsA.filter(w => wordsB.includes(w)).length;
+                    return overlap / Math.max(Math.min(wordsA.length, wordsB.length), 1);
+                };
 
-                    if (isYouTube) {
-                        console.log(`[Gemini] Stripped YouTube from story ${idx + 1}`);
+                // Score ALL stories against ALL chunks, then assign best matches
+                const storyScores = parsed.map((item, idx) => {
+                    const url = item.articleUrl || '';
+
+                    // Strip YouTube
+                    if (url.includes('youtube.com') || url.includes('youtu.be')) {
                         item.articleUrl = '';
-                        url = '';
-                        if (source.includes('youtube')) {
-                            item.sourceArticle = (item.sourceArticle || '').replace(/\s*[-—]\s*YouTube$/i, '').trim();
-                        }
                     }
 
-                    // If URL looks valid and real, keep it
-                    if (isValidUrl && !isFake && !isYouTube) {
-                        console.log(`[Gemini] Story ${idx + 1} has valid URL: ${url}`);
-                        return item;
-                    }
-
-                    // APPROACH 1: Use groundingSupports to find which chunks relate to this story's text
-                    const storyText = `${item.sourceArticle || ''} ${item.headline || ''}`.toLowerCase();
-                    let foundViaSupports = false;
-
-                    if (groundingSupports.length > 0) {
-                        for (const support of groundingSupports) {
-                            const supportText = (support.segment?.text || '').toLowerCase();
-                            // Check if this support segment relates to our story
-                            const storyWords = storyText.split(/\s+/).filter(w => w.length > 4);
-                            const matchingWords = storyWords.filter(w => supportText.includes(w));
-                            if (matchingWords.length >= 2 && support.groundingChunkIndices?.length > 0) {
-                                for (const chunkIdx of support.groundingChunkIndices) {
-                                    if (chunkIdx < groundingChunks.length && !usedChunkIndices.has(chunkIdx)) {
-                                        const chunk = groundingChunks[chunkIdx];
-                                        if (!chunk.uri.includes('youtube.com') && !chunk.uri.includes('youtu.be')) {
-                                            console.log(`[Gemini] Story ${idx + 1} matched via groundingSupports → ${chunk.uri}`);
-                                            item.articleUrl = chunk.uri;
-                                            usedChunkIndices.add(chunkIdx);
-                                            foundViaSupports = true;
-                                            break;
-                                        }
-                                    }
-                                }
+                    // If Gemini provided a valid, real URL — keep it
+                    if (item.articleUrl && !item.articleUrl.includes('grounding-api-redirect') &&
+                        !item.articleUrl.includes('googleapis.com') &&
+                        (item.articleUrl.startsWith('http://') || item.articleUrl.startsWith('https://'))) {
+                        item.urlMatchMethod = 'gemini-direct';
+                        console.log(`[URL] Story ${idx + 1}: ✅ Gemini-provided URL → ${item.articleUrl}`);
+                        // Check if this URL matches a grounding chunk and mark it used
+                        for (let ci = 0; ci < cleanChunks.length; ci++) {
+                            if (cleanChunks[ci].uri === item.articleUrl) {
+                                usedChunkIdxs.add(ci);
+                                item.groundingTitle = cleanChunks[ci].title || '';
+                                break;
                             }
-                            if (foundViaSupports) break;
                         }
+                        return null; // Already resolved
                     }
 
-                    // APPROACH 2: Scored heuristic matching (fallback)
-                    if (!foundViaSupports) {
-                        const sourceText = (item.sourceArticle || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
-                        const headlineText = (item.headline || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
-                        const sourceSlug = sourceText.replace(/\s+/g, '');
-                        const sourceWords = sourceText.split(/\s+/).filter(w => w.length > 3);
-                        const headlineWords = headlineText.split(/\s+/).filter(w => w.length > 3);
+                    // Build combined text for matching
+                    const storyText = `${item.headline || ''} ${item.sourceArticle || ''} ${item.emotionalHook || ''} ${item.racingRelevance || ''}`;
 
-                        let bestMatch = null;
-                        let bestScore = 0;
+                    // Score each chunk
+                    const chunkScores = cleanChunks.map((chunk, ci) => {
+                        const chunkText = `${chunk.title || ''}`;
+                        const chunkUri = chunk.uri || '';
 
-                        cleanChunks.forEach((gc, ci) => {
-                            if (usedChunkIndices.has(ci)) return;
-                            let score = 0;
-                            try {
-                                const hostname = new URL(gc.uri).hostname.replace('www.', '');
-                                const domain = hostname.split('.')[0];
-                                const chunkTitle = (gc.title || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
-                                const chunkWords = chunkTitle.split(/\s+/).filter(w => w.length > 3);
-                                const urlPath = new URL(gc.uri).pathname.toLowerCase();
+                        let score = 0;
+                        let method = '';
 
-                                // Domain in slugified source
-                                if (sourceSlug.includes(domain) && domain.length > 2) score += 10;
-                                if (sourceText.includes(domain) && domain.length > 2) score += 10;
-
-                                // Source title word overlap
-                                const srcOverlap = sourceWords.filter(w => chunkWords.includes(w)).length;
-                                score += srcOverlap * 2;
-
-                                // Headline word overlap
-                                const headOverlap = headlineWords.filter(w => chunkWords.includes(w)).length;
-                                score += headOverlap * 1.5;
-
-                                // URL path keyword overlap
-                                const pathOverlap = headlineWords.filter(w => urlPath.includes(w)).length;
-                                score += pathOverlap;
-
-                            } catch { }
-
-                            if (score > bestScore) {
-                                bestScore = score;
-                                bestMatch = { gc, ci };
+                        // Domain match (high value)
+                        try {
+                            const domain = new URL(chunkUri).hostname.replace('www.', '').split('.')[0];
+                            const srcLower = (item.sourceArticle || '').toLowerCase().replace(/[\s\-\.]/g, '');
+                            if (domain.length > 2 && srcLower.includes(domain)) {
+                                score += 0.5;
+                                method = 'domain-match';
                             }
-                        });
+                        } catch { }
 
-                        if (bestMatch && bestScore >= 2) {
-                            console.log(`[Gemini] Story ${idx + 1} matched via heuristics (score:${bestScore}) → ${bestMatch.gc.uri}`);
-                            item.articleUrl = bestMatch.gc.uri;
-                            usedChunkIndices.add(bestMatch.ci);
+                        // Title similarity
+                        const titleScore = wordSimilarity(storyText, chunkText);
+                        score += titleScore;
+                        if (titleScore > 0.3 && !method) method = 'title-match';
+
+                        // URL path keyword match (check if URL path contains key words from story)
+                        try {
+                            const pathWords = new URL(chunkUri).pathname.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 3);
+                            const headWords = (item.headline || '').toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 3);
+                            const pathOverlap = headWords.filter(w => pathWords.some(pw => pw.includes(w) || w.includes(pw))).length;
+                            if (pathOverlap > 0) {
+                                score += pathOverlap * 0.15;
+                                if (!method) method = 'path-match';
+                            }
+                        } catch { }
+
+                        if (!method && score > 0) method = 'fuzzy-match';
+
+                        return { ci, score, method, chunkTitle: chunk.title || '', chunkUri };
+                    });
+
+                    return { idx, chunkScores: chunkScores.sort((a, b) => b.score - a.score) };
+                }).filter(Boolean);
+
+                // Assign best matches, prioritising highest scores first
+                // Sort stories by their best available score (highest first) so confident matches go first
+                storyScores.sort((a, b) => (b.chunkScores[0]?.score || 0) - (a.chunkScores[0]?.score || 0));
+
+                for (const story of storyScores) {
+                    const item = parsed[story.idx];
+                    let assigned = false;
+
+                    for (const cs of story.chunkScores) {
+                        if (usedChunkIdxs.has(cs.ci)) continue; // Already used by another story
+                        if (cs.score <= 0) continue;
+
+                        usedChunkIdxs.add(cs.ci);
+                        item.articleUrl = cs.chunkUri;
+                        item.groundingTitle = cs.chunkTitle;
+                        item.urlMatchScore = cs.score;
+
+                        // Classify confidence
+                        if (cs.method === 'domain-match' || cs.score >= 0.5) {
+                            item.urlMatchMethod = 'domain-match';
+                        } else if (cs.score >= 0.25) {
+                            item.urlMatchMethod = 'title-match';
                         } else {
-                            // APPROACH 3: Last resort — if there are unused chunks and we have few stories matched, 
-                            // assign the next unused chunk (ordered)
-                            const unusedChunk = cleanChunks.find((gc, ci) => !usedChunkIndices.has(ci));
-                            if (unusedChunk) {
-                                const ci = cleanChunks.indexOf(unusedChunk);
-                                console.log(`[Gemini] Story ${idx + 1} assigned unused chunk → ${unusedChunk.uri}`);
-                                item.articleUrl = unusedChunk.uri;
-                                usedChunkIndices.add(ci);
-                            } else {
-                                console.log(`[Gemini] Story ${idx + 1} — no URL available at all`);
-                                item.articleUrl = '';
+                            item.urlMatchMethod = 'best-guess';
+                        }
+
+                        console.log(`[URL] Story ${story.idx + 1}: ${cs.score >= 0.25 ? '✅' : '🟡'} ${item.urlMatchMethod} (score: ${cs.score.toFixed(2)}, method: ${cs.method}) → ${cs.chunkUri}`);
+                        if (cs.chunkTitle) console.log(`  Grounding title: "${cs.chunkTitle}"`);
+                        assigned = true;
+                        break;
+                    }
+
+                    if (!assigned) {
+                        // Last resort: assign any remaining unused chunk (Gemini DID search, so URLs exist)
+                        for (let ci = 0; ci < cleanChunks.length; ci++) {
+                            if (!usedChunkIdxs.has(ci)) {
+                                usedChunkIdxs.add(ci);
+                                item.articleUrl = cleanChunks[ci].uri;
+                                item.groundingTitle = cleanChunks[ci].title || '';
+                                item.urlMatchMethod = 'best-guess';
+                                item.urlMatchScore = 0;
+                                console.warn(`[URL] Story ${story.idx + 1}: 🟡 best-guess (no keyword match) → ${cleanChunks[ci].uri}`);
+                                assigned = true;
+                                break;
                             }
                         }
                     }
 
-                    return item;
-                });
+                    if (!assigned) {
+                        console.warn(`[URL] Story ${story.idx + 1}: ⚠️ ALL CHUNKS EXHAUSTED — no URL available`);
+                        item.articleUrl = '';
+                        item.urlMatchMethod = 'unverified';
+                    }
+                }
             }
 
             return parsed;
