@@ -445,6 +445,9 @@ function renderPosts() {
         }
 
         const chem = state.stories[i]?.chemical || {};
+        const story = state.stories[i] || {};
+        const articleTitle = story.sourceArticle || story.source || '';
+        const articleLink = story.articleUrl || story.sourceUrl || '';
 
         return `
       <div class="post-card" id="post-card-${i}" data-index="${i}">
@@ -464,6 +467,15 @@ function renderPosts() {
             <span id="post-status-${i}" style="font-size:0.72rem;font-weight:600;margin-left:0.5rem;"></span>
           </div>
         </div>
+
+        <!-- Source Article -->
+        ${articleTitle ? `
+        <div style="padding:0.5rem 1.25rem;background:rgba(0,191,165,0.05);border-top:1px solid var(--border);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+          <span style="font-size:0.72rem;font-weight:600;color:var(--neuro-teal, #00BFA5);">📰 Source:</span>
+          <span style="font-size:0.75rem;color:var(--text-secondary);flex:1;">${escapeHtml(articleTitle)}</span>
+          ${articleLink ? `<a href="${escapeHtml(articleLink)}" target="_blank" rel="noopener" style="font-size:0.7rem;color:var(--neuro-teal);text-decoration:none;white-space:nowrap;">🔗 Read Article ↗</a>` : ''}
+        </div>
+        ` : ''}
 
         <!-- Platform Tabs (always show both FB + IG) -->
         <div class="platform-tabs" id="platform-tabs-${i}">
