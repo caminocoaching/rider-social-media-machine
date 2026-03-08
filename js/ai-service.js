@@ -700,6 +700,7 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
     // Extract REAL URLs from Gemini's grounding metadata
     // Gemini returns grounding-api-redirect URLs in the text, but the REAL URLs are in groundingChunks
     const groundingChunks = []; // { uri, title }
+    let groundingSupports = [];
     try {
         const groundingMeta = data.candidates?.[0]?.groundingMetadata;
         if (groundingMeta?.groundingChunks) {
@@ -712,7 +713,11 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
                 }
             }
         }
-        console.log('[Gemini] Grounding chunks found:', groundingChunks.length, groundingChunks.map(c => c.uri).slice(0, 5));
+        if (groundingMeta?.groundingSupports) {
+            groundingSupports = groundingMeta.groundingSupports;
+        }
+        console.log('[Gemini] Grounding chunks:', groundingChunks.length, groundingChunks.map(c => c.uri));
+        console.log('[Gemini] Grounding supports:', groundingSupports.length);
     } catch (e) {
         console.log('[Gemini] No grounding metadata available');
     }
@@ -740,8 +745,9 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
                 const cleanChunks = groundingChunks.filter(gc =>
                     !gc.uri.includes('youtube.com') && !gc.uri.includes('youtu.be')
                 );
-                // Track which chunks have been used (prevent 2 stories sharing same URL)
                 const usedChunkIndices = new Set();
+
+                console.log('[Gemini] Clean chunks available:', cleanChunks.length, cleanChunks.map(c => c.uri));
 
                 parsed = parsed.map((item, idx) => {
                     let url = item.articleUrl || '';
@@ -752,7 +758,7 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
                     const isValidUrl = url.startsWith('http://') || url.startsWith('https://');
 
                     if (isYouTube) {
-                        console.log(`[Gemini] Stripped YouTube from story ${idx + 1}: ${url || source}`);
+                        console.log(`[Gemini] Stripped YouTube from story ${idx + 1}`);
                         item.articleUrl = '';
                         url = '';
                         if (source.includes('youtube')) {
@@ -761,65 +767,102 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
                     }
 
                     // If URL looks valid and real, keep it
-                    if (isValidUrl && !isFake && !isYouTube) return item;
+                    if (isValidUrl && !isFake && !isYouTube) {
+                        console.log(`[Gemini] Story ${idx + 1} has valid URL: ${url}`);
+                        return item;
+                    }
 
-                    // Need to find a URL from grounding chunks
-                    const sourceText = (item.sourceArticle || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
-                    const headlineText = (item.headline || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
-                    const sourceWords = sourceText.split(/\s+/).filter(w => w.length > 3);
-                    const headlineWords = headlineText.split(/\s+/).filter(w => w.length > 3);
+                    // APPROACH 1: Use groundingSupports to find which chunks relate to this story's text
+                    const storyText = `${item.sourceArticle || ''} ${item.headline || ''}`.toLowerCase();
+                    let foundViaSupports = false;
 
-                    let bestMatch = null;
-                    let bestScore = 0;
-
-                    cleanChunks.forEach((gc, ci) => {
-                        if (usedChunkIndices.has(ci)) return;
-                        let score = 0;
-                        try {
-                            const hostname = new URL(gc.uri).hostname.replace('www.', '');
-                            const domain = hostname.split('.')[0]; // e.g. "cyclingweekly"
-                            const chunkTitle = (gc.title || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
-                            const chunkWords = chunkTitle.split(/\s+/).filter(w => w.length > 3);
-                            const urlPath = new URL(gc.uri).pathname.toLowerCase();
-                            // Slugify source text (strip spaces) for domain comparison
-                            const sourceSlug = sourceText.replace(/\s+/g, '');
-
-                            // Strategy 1: Domain in slugified source (e.g. "cyclingweekly" in "cyclingweekly")
-                            if (sourceSlug.includes(domain)) score += 10;
-
-                            // Strategy 1b: Domain in source with spaces (e.g. "motogp" in "motogp com")
-                            if (sourceText.includes(domain)) score += 10;
-
-                            // Strategy 2: Source words contain the domain (for short domains like "crash", "mcn")
-                            if (sourceWords.some(w => w === domain || domain.includes(w) && w.length > 2)) score += 8;
-
-                            // Strategy 3: Source article title words matching chunk title
-                            const sourceTitleOverlap = sourceWords.filter(w => chunkWords.includes(w)).length;
-                            score += sourceTitleOverlap * 2;
-
-                            // Strategy 4: Headline words matching chunk title
-                            const headlineTitleOverlap = headlineWords.filter(w => chunkWords.includes(w)).length;
-                            score += headlineTitleOverlap * 1.5;
-
-                            // Strategy 5: Headline words in URL path
-                            const pathOverlap = headlineWords.filter(w => urlPath.includes(w)).length;
-                            score += pathOverlap * 1;
-
-                        } catch { /* skip malformed URLs */ }
-
-                        if (score > bestScore) {
-                            bestScore = score;
-                            bestMatch = { gc, ci };
+                    if (groundingSupports.length > 0) {
+                        for (const support of groundingSupports) {
+                            const supportText = (support.segment?.text || '').toLowerCase();
+                            // Check if this support segment relates to our story
+                            const storyWords = storyText.split(/\s+/).filter(w => w.length > 4);
+                            const matchingWords = storyWords.filter(w => supportText.includes(w));
+                            if (matchingWords.length >= 2 && support.groundingChunkIndices?.length > 0) {
+                                for (const chunkIdx of support.groundingChunkIndices) {
+                                    if (chunkIdx < groundingChunks.length && !usedChunkIndices.has(chunkIdx)) {
+                                        const chunk = groundingChunks[chunkIdx];
+                                        if (!chunk.uri.includes('youtube.com') && !chunk.uri.includes('youtu.be')) {
+                                            console.log(`[Gemini] Story ${idx + 1} matched via groundingSupports → ${chunk.uri}`);
+                                            item.articleUrl = chunk.uri;
+                                            usedChunkIndices.add(chunkIdx);
+                                            foundViaSupports = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            if (foundViaSupports) break;
                         }
-                    });
+                    }
 
-                    if (bestMatch && bestScore >= 2) {
-                        console.log(`[Gemini] Matched story ${idx + 1} (score:${bestScore}) "${item.sourceArticle}" → ${bestMatch.gc.uri}`);
-                        item.articleUrl = bestMatch.gc.uri;
-                        usedChunkIndices.add(bestMatch.ci);
-                    } else {
-                        console.log(`[Gemini] No confident match for story ${idx + 1} "${item.sourceArticle}" (best score: ${bestScore}) — leaving empty`);
-                        item.articleUrl = '';
+                    // APPROACH 2: Scored heuristic matching (fallback)
+                    if (!foundViaSupports) {
+                        const sourceText = (item.sourceArticle || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
+                        const headlineText = (item.headline || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
+                        const sourceSlug = sourceText.replace(/\s+/g, '');
+                        const sourceWords = sourceText.split(/\s+/).filter(w => w.length > 3);
+                        const headlineWords = headlineText.split(/\s+/).filter(w => w.length > 3);
+
+                        let bestMatch = null;
+                        let bestScore = 0;
+
+                        cleanChunks.forEach((gc, ci) => {
+                            if (usedChunkIndices.has(ci)) return;
+                            let score = 0;
+                            try {
+                                const hostname = new URL(gc.uri).hostname.replace('www.', '');
+                                const domain = hostname.split('.')[0];
+                                const chunkTitle = (gc.title || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
+                                const chunkWords = chunkTitle.split(/\s+/).filter(w => w.length > 3);
+                                const urlPath = new URL(gc.uri).pathname.toLowerCase();
+
+                                // Domain in slugified source
+                                if (sourceSlug.includes(domain) && domain.length > 2) score += 10;
+                                if (sourceText.includes(domain) && domain.length > 2) score += 10;
+
+                                // Source title word overlap
+                                const srcOverlap = sourceWords.filter(w => chunkWords.includes(w)).length;
+                                score += srcOverlap * 2;
+
+                                // Headline word overlap
+                                const headOverlap = headlineWords.filter(w => chunkWords.includes(w)).length;
+                                score += headOverlap * 1.5;
+
+                                // URL path keyword overlap
+                                const pathOverlap = headlineWords.filter(w => urlPath.includes(w)).length;
+                                score += pathOverlap;
+
+                            } catch { }
+
+                            if (score > bestScore) {
+                                bestScore = score;
+                                bestMatch = { gc, ci };
+                            }
+                        });
+
+                        if (bestMatch && bestScore >= 2) {
+                            console.log(`[Gemini] Story ${idx + 1} matched via heuristics (score:${bestScore}) → ${bestMatch.gc.uri}`);
+                            item.articleUrl = bestMatch.gc.uri;
+                            usedChunkIndices.add(bestMatch.ci);
+                        } else {
+                            // APPROACH 3: Last resort — if there are unused chunks and we have few stories matched, 
+                            // assign the next unused chunk (ordered)
+                            const unusedChunk = cleanChunks.find((gc, ci) => !usedChunkIndices.has(ci));
+                            if (unusedChunk) {
+                                const ci = cleanChunks.indexOf(unusedChunk);
+                                console.log(`[Gemini] Story ${idx + 1} assigned unused chunk → ${unusedChunk.uri}`);
+                                item.articleUrl = unusedChunk.uri;
+                                usedChunkIndices.add(ci);
+                            } else {
+                                console.log(`[Gemini] Story ${idx + 1} — no URL available at all`);
+                                item.articleUrl = '';
+                            }
+                        }
                     }
 
                     return item;
