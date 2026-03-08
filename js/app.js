@@ -367,10 +367,10 @@ function renderStoryCards() {
         <div class="story-card-body">
           <h3 class="story-headline">${escapeHtml(story.headline || story.topic || '')}</h3>
           ${articleTitle ? `
-          <div style="margin:0.4rem 0;padding:0.4rem 0.6rem;background:rgba(0,191,165,0.06);border-radius:4px;border-left:2px solid var(--neuro-teal, #00BFA5);">
+          <div style="margin:0.4rem 0;padding:0.4rem 0.6rem;background:rgba(0,191,165,0.06);border-radius:4px;border-left:2px solid var(--neuro-teal, #00BFA5);cursor:pointer;" onclick="window.appActions.openArticle('${encodeURIComponent(articleUrl)}', '${encodeURIComponent(articleTitle)}')">
             <span style="font-size:0.72rem;color:var(--neuro-teal);font-weight:600;">📰 </span>
             <span style="font-size:0.72rem;color:var(--text-secondary);">${escapeHtml(articleTitle)}</span>
-            ${articleUrl ? `<a href="${escapeHtml(articleUrl)}" target="_blank" rel="noopener" style="font-size:0.68rem;color:var(--neuro-teal);margin-left:0.4rem;text-decoration:none;">${escapeHtml(sourceDomain)} ↗</a>` : ''}
+            <span style="font-size:0.68rem;color:var(--neuro-teal);margin-left:0.4rem;">👁️ Read</span>
           </div>
           ` : ''}
           ${story.angle ? `<p class="story-angle">${escapeHtml(story.angle)}</p>` : ''}
@@ -383,6 +383,39 @@ function renderStoryCards() {
       </div>
     `;
     }).join('');
+}
+
+// ─── Article Preview Popup ───────────────────────────────────────
+function openArticleModal(url, title) {
+    const existing = document.getElementById('article-modal');
+    if (existing) existing.remove();
+
+    const decodedUrl = decodeURIComponent(url);
+    const decodedTitle = decodeURIComponent(title);
+
+    const modal = document.createElement('div');
+    modal.id = 'article-modal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.85);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;';
+
+    modal.innerHTML = `
+        <div style="width:100%;max-width:900px;height:90vh;display:flex;flex-direction:column;background:var(--card, #0A1628);border-radius:12px;overflow:hidden;border:1px solid var(--border, #1E293B);">
+            <!-- Header -->
+            <div style="padding:0.75rem 1.25rem;background:rgba(0,191,165,0.08);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;flex-shrink:0;">
+                <span style="font-size:0.82rem;font-weight:700;color:var(--neuro-teal, #00BFA5);">📰 Source Article</span>
+                <span style="font-size:0.78rem;color:var(--text-secondary);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(decodedTitle)}</span>
+                <a href="${escapeHtml(decodedUrl)}" target="_blank" rel="noopener" style="font-size:0.72rem;color:var(--neuro-teal);text-decoration:none;white-space:nowrap;padding:0.3rem 0.6rem;background:rgba(0,191,165,0.1);border-radius:4px;border:1px solid rgba(0,191,165,0.2);">Open in new tab ↗</a>
+                <button onclick="document.getElementById('article-modal').remove()" style="background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;padding:0.2rem 0.5rem;">✕</button>
+            </div>
+            <!-- Article iframe -->
+            <iframe src="${escapeHtml(decodedUrl)}" style="flex:1;width:100%;border:none;background:#fff;" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
+        </div>
+    `;
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
+
+    document.body.appendChild(modal);
 }
 
 
@@ -476,10 +509,10 @@ function renderPosts() {
 
         <!-- Source Article -->
         ${articleTitle ? `
-        <div style="padding:0.5rem 1.25rem;background:rgba(0,191,165,0.05);border-top:1px solid var(--border);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+        <div style="padding:0.5rem 1.25rem;background:rgba(0,191,165,0.05);border-top:1px solid var(--border);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;cursor:pointer;" onclick="window.appActions.openArticle('${encodeURIComponent(articleLink)}', '${encodeURIComponent(articleTitle)}')">
           <span style="font-size:0.72rem;font-weight:600;color:var(--neuro-teal, #00BFA5);">📰 Source:</span>
           <span style="font-size:0.75rem;color:var(--text-secondary);flex:1;">${escapeHtml(articleTitle)}</span>
-          ${articleLink ? `<a href="${escapeHtml(articleLink)}" target="_blank" rel="noopener" style="font-size:0.7rem;color:var(--neuro-teal);text-decoration:none;white-space:nowrap;">🔗 Read Article ↗</a>` : ''}
+          <span style="font-size:0.7rem;color:var(--neuro-teal);white-space:nowrap;">👁️ Read Article</span>
         </div>
         ` : ''}
 
@@ -553,6 +586,12 @@ function renderPosts() {
 
 // ─── Post Actions ─────────────────────────────────────────────
 window.appActions = {
+
+    // ─── OPEN ARTICLE POPUP ──────────────────────────────────────
+    openArticle(encodedUrl, encodedTitle) {
+        if (!encodedUrl) { showToast('No article URL available.', 'info'); return; }
+        openArticleModal(encodedUrl, encodedTitle);
+    },
 
     // ─── EDIT: Show textareas for FB + IG editing ─────────────────
     editPost(index) {
