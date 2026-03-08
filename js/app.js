@@ -461,6 +461,10 @@ function renderPosts() {
           </div>
           <div class="post-card-header-right">
             <span class="schedule-info">${date.dayName} ${date.dateString}</span>
+            <label class="done-toggle" style="display:inline-flex;align-items:center;gap:0.35rem;margin-left:0.75rem;cursor:pointer;font-size:0.78rem;color:var(--text-muted);">
+              <input type="checkbox" id="done-check-${i}" onchange="window.appActions.markDone(${i}, this.checked)" style="accent-color:var(--neuro-teal, #00BFA5);width:16px;height:16px;cursor:pointer;">
+              <span id="done-label-${i}">Done</span>
+            </label>
           </div>
         </div>
 
@@ -473,6 +477,35 @@ function renderPosts() {
         ` : `
         <div class="post-content" id="post-content-${i}">${escapeHtml(post.content || '')}</div>
         `}
+
+        <!-- Done Panels (hidden until checkbox ticked) -->
+        <div id="done-panels-${i}" style="display:none;">
+
+          <!-- 📧 EMAIL HTML PANEL -->
+          <div style="padding:1rem 1.25rem;border-top:1px solid var(--border);background:rgba(218,165,32,0.04);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+              <span style="font-weight:700;font-size:0.82rem;color:var(--gold, #DAA520);">📧 Email HTML</span>
+              <div style="display:flex;gap:0.3rem;">
+                <button class="post-action-btn" id="copy-email-html-${i}" onclick="window.appActions.copyEmailHTML(${i})" style="font-size:0.72rem;color:var(--gold);">📋 Copy HTML</button>
+                <button class="post-action-btn" id="preview-email-${i}" onclick="window.appActions.previewEmail(${i})" style="font-size:0.72rem;color:var(--gold);">👁️ Preview</button>
+              </div>
+            </div>
+            <div id="email-html-container-${i}" style="background:#0D1117;border:1px solid rgba(218,165,32,0.15);border-radius:6px;padding:0.5rem;max-height:150px;overflow-y:auto;">
+              <pre id="email-html-code-${i}" style="white-space:pre-wrap;font-size:0.68rem;line-height:1.4;color:var(--text-muted);font-family:monospace;margin:0;">Generating email...</pre>
+            </div>
+          </div>
+
+          <!-- 🎬 CLEAN VIDEO SCRIPT PANEL -->
+          <div style="padding:1rem 1.25rem;border-top:1px solid var(--border);background:rgba(0,191,165,0.04);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+              <span style="font-weight:700;font-size:0.82rem;color:var(--neuro-teal, #00BFA5);">🎬 Video Script (clean TXT)</span>
+              <button class="post-action-btn" id="copy-video-txt-${i}" onclick="window.appActions.copyVideoTXT(${i})" style="font-size:0.72rem;color:var(--neuro-teal);">📋 Copy Script</button>
+            </div>
+            <div style="background:rgba(0,191,165,0.06);border:1px solid rgba(0,191,165,0.15);border-radius:6px;padding:0.75rem;max-height:200px;overflow-y:auto;">
+              <pre id="video-txt-${i}" style="white-space:pre-wrap;font-size:0.78rem;line-height:1.6;color:var(--text-primary);font-family:var(--font);margin:0;">Generating video script...</pre>
+            </div>
+          </div>
+        </div>
 
         <div class="post-card-footer">
           <div class="post-meta">
@@ -494,6 +527,129 @@ function renderPosts() {
 
 // ─── Post Actions ─────────────────────────────────────────────
 window.appActions = {
+    // ─── MARK DONE: Generate Email HTML + Clean Video Script ─────
+    async markDone(index, checked) {
+        const donePanels = document.getElementById(`done-panels-${index}`);
+        const doneLabel = document.getElementById(`done-label-${index}`);
+        const postCard = document.getElementById(`post-card-${index}`);
+
+        if (!checked) {
+            if (donePanels) donePanels.style.display = 'none';
+            if (doneLabel) { doneLabel.textContent = 'Done'; doneLabel.style.color = ''; }
+            if (postCard) postCard.style.borderLeft = '';
+            return;
+        }
+
+        // Show panels immediately with loading state
+        if (donePanels) donePanels.style.display = 'block';
+        if (doneLabel) { doneLabel.textContent = '⏳ Generating...'; doneLabel.style.color = 'var(--neuro-teal)'; }
+        if (postCard) postCard.style.borderLeft = '3px solid var(--neuro-teal, #00BFA5)';
+
+        const post = state.posts[index];
+        if (!post) return;
+        const settings = loadSettings();
+        if (!settings.claudeApiKey) { showToast('Claude API key needed.', 'error'); return; }
+
+        const chemData = CHEM_DATA[post.pillar?.id] || { id: 'dopamine', icon: '🧪', name: 'Dopamine' };
+        const story = state.stories[index] || state.topics[index] || {};
+        const topic = post.topic?.headline || post.topic || state.topics[index]?.headline || 'Rider mental performance';
+
+        setStatus(`⏳ Generating email + video for post ${index + 1}...`, true);
+
+        // Generate both in parallel
+        const [emailResult, videoResult] = await Promise.allSettled([
+            // 1) Email HTML
+            (async () => {
+                const emailData = await generateEmail({
+                    postContent: post.content,
+                    topic: post.topic || state.topics[index],
+                    pillar: post.pillar,
+                    cta: post.cta,
+                    apiKey: settings.claudeApiKey
+                });
+                return { emailData, emailHTML: renderEmailHTML(emailData, post.pillar) };
+            })(),
+            // 2) Video Script
+            (async () => {
+                const script = await generateVideoScript({
+                    topic,
+                    chemicalId: chemData.id,
+                    videoLength: '45-60s',
+                    platform: 'FB Reel + IG Reel',
+                    outputFormat: '9:16',
+                    apiKey: settings.claudeApiKey,
+                    sourceArticle: story.sourceArticle || story.source || '',
+                    articleUrl: story.articleUrl || story.sourceUrl || '',
+                    talkingPoints: story.talkingPoints || [],
+                    emotionalHook: story.emotionalHook || '',
+                    mechanism: story.mechanism || '',
+                    racingRelevance: story.racingRelevance || '',
+                    postContent: post.content || ''
+                });
+                return script;
+            })()
+        ]);
+
+        // Handle Email Result
+        const emailCodeEl = document.getElementById(`email-html-code-${index}`);
+        if (emailResult.status === 'fulfilled') {
+            const { emailData, emailHTML } = emailResult.value;
+            if (!state.doneData) state.doneData = {};
+            if (!state.doneData[index]) state.doneData[index] = {};
+            state.doneData[index].emailHTML = emailHTML;
+            state.doneData[index].emailData = emailData;
+            if (emailCodeEl) emailCodeEl.textContent = emailHTML;
+            showToast(`📧 Email HTML ready for post ${index + 1}`, 'success');
+        } else {
+            if (emailCodeEl) emailCodeEl.textContent = `Error: ${emailResult.reason?.message || 'Failed to generate email'}`;
+        }
+
+        // Handle Video Result
+        const videoTxtEl = document.getElementById(`video-txt-${index}`);
+        if (videoResult.status === 'fulfilled') {
+            const fullScript = videoResult.value;
+            const scriptMatch = fullScript.match(/=== VIDEO SCRIPT ===\s*([\s\S]*?)(?:=== SLIDE DECK|$)/i);
+            const rawNarration = (scriptMatch?.[1] || fullScript).trim();
+            const cleanTXT = rawNarration
+                .replace(/^(?:HOOK|SCENARIO|THE SCIENCE|THE COST|THE BRIDGE|CTA)\s*(?:\([^)]*\))?\s*:\s*/gim, '')
+                .replace(/\n{3,}/g, '\n\n')
+                .trim();
+
+            if (!state.doneData) state.doneData = {};
+            if (!state.doneData[index]) state.doneData[index] = {};
+            state.doneData[index].videoScript = fullScript;
+            state.doneData[index].cleanVideoTXT = cleanTXT;
+            if (videoTxtEl) videoTxtEl.textContent = cleanTXT;
+            showToast(`🎬 Video script ready for post ${index + 1}`, 'success');
+        } else {
+            if (videoTxtEl) videoTxtEl.textContent = `Error: ${videoResult.reason?.message || 'Failed to generate video script'}`;
+        }
+
+        if (doneLabel) { doneLabel.textContent = '✅ Done'; doneLabel.style.color = 'var(--green, #2EA043)'; }
+        setStatus('Ready');
+    },
+
+    // Copy email HTML
+    copyEmailHTML(index) {
+        const html = state.doneData?.[index]?.emailHTML;
+        if (html) { copyToClipboard(html); showToast('Email HTML copied — paste into GHL!', 'success'); }
+        else { showToast('Tick Done first to generate the email.', 'info'); }
+    },
+
+    // Preview email in new window
+    previewEmail(index) {
+        const html = state.doneData?.[index]?.emailHTML;
+        if (html) { const w = window.open('', '_blank', 'width=640,height=800'); w.document.write(html); w.document.close(); }
+        else { showToast('Tick Done first to generate the email.', 'info'); }
+    },
+
+    // Copy clean video narration TXT
+    copyVideoTXT(index) {
+        const txt = state.doneData?.[index]?.cleanVideoTXT;
+        if (txt) { copyToClipboard(txt); showToast('Clean video script copied — paste into HeyGen!', 'success'); }
+        else { showToast('Tick Done first to generate the video script.', 'info'); }
+    },
+
     switchPlatform(index, platform) {
         const container = document.getElementById(`post-content-${index}`);
         if (!container) return;
