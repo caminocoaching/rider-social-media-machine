@@ -554,10 +554,16 @@ function renderPosts() {
             igContent = (igMatch?.[1] || '').trim();
         }
 
+        // Auto-generate IG version if empty: use FB content (it already has hashtags at the end)
+        if (!igContent && fbContent) {
+            igContent = fbContent;
+        }
+
         const chem = state.stories[i]?.chemical || {};
         const story = state.stories[i] || {};
         const articleTitle = story.sourceArticle || story.source || '';
         const articleLink = story.articleUrl || story.sourceUrl || '';
+        const isConfirmed = !!state.doneData?.[i];
 
         return `
       <div class="post-card" id="post-card-${i}" data-index="${i}">
@@ -574,7 +580,7 @@ function renderPosts() {
           </div>
           <div class="post-card-header-right">
             <span class="schedule-info">${date.dayName} ${date.dateString}</span>
-            <span id="post-status-${i}" style="font-size:0.72rem;font-weight:600;margin-left:0.5rem;"></span>
+            <span id="post-status-${i}" style="font-size:0.72rem;font-weight:600;margin-left:0.5rem;">${isConfirmed ? '<span style="color:var(--green);">✅</span>' : ''}</span>
           </div>
         </div>
 
@@ -609,7 +615,7 @@ function renderPosts() {
         </div>
 
         <!-- Confirmed Panels (hidden until Confirm clicked) -->
-        <div id="done-panels-${i}" style="display:none;">
+        <div id="done-panels-${i}" style="display:${isConfirmed ? 'block' : 'none'};">
 
           <!-- 📧 EMAIL HTML PANEL -->
           <div style="padding:1rem 1.25rem;border-top:1px solid var(--border);background:rgba(218,165,32,0.04);">
@@ -621,20 +627,49 @@ function renderPosts() {
               </div>
             </div>
             <div style="background:#0D1117;border:1px solid rgba(218,165,32,0.15);border-radius:6px;padding:0.5rem;max-height:150px;overflow-y:auto;">
-              <pre id="email-html-code-${i}" style="white-space:pre-wrap;font-size:0.68rem;line-height:1.4;color:var(--text-muted);font-family:monospace;margin:0;">Generating email...</pre>
+              <pre id="email-html-code-${i}" style="white-space:pre-wrap;font-size:0.68rem;line-height:1.4;color:var(--text-muted);font-family:monospace;margin:0;">${isConfirmed ? escapeHtml(state.doneData[i]?.emailHTML || 'Loading...') : 'Generating email...'}</pre>
             </div>
           </div>
 
           <!-- 🎬 CLEAN VIDEO SCRIPT PANEL -->
           <div style="padding:1rem 1.25rem;border-top:1px solid var(--border);background:rgba(0,191,165,0.04);">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
-              <span style="font-weight:700;font-size:0.82rem;color:var(--neuro-teal, #00BFA5);">🎬 Video Script (clean TXT)</span>
+              <span style="font-weight:700;font-size:0.82rem;color:var(--neuro-teal, #00BFA5);">🎬 Video Script (45-60s)</span>
               <button class="post-action-btn" onclick="window.appActions.copyVideoTXT(${i})" style="font-size:0.72rem;color:var(--neuro-teal);">📋 Copy Script</button>
             </div>
             <div style="background:rgba(0,191,165,0.06);border:1px solid rgba(0,191,165,0.15);border-radius:6px;padding:0.75rem;max-height:200px;overflow-y:auto;">
-              <pre id="video-txt-${i}" style="white-space:pre-wrap;font-size:0.78rem;line-height:1.6;color:var(--text-primary);font-family:var(--font);margin:0;">Generating video script...</pre>
+              <pre id="video-txt-${i}" style="white-space:pre-wrap;font-size:0.78rem;line-height:1.6;color:var(--text-primary);font-family:var(--font);margin:0;">${isConfirmed ? escapeHtml(state.doneData[i]?.cleanVideoTXT || 'Loading...') : 'Generating video script...'}</pre>
             </div>
           </div>
+
+          <!-- ⚡ SHORTS SCRIPT PANEL -->
+          <div style="padding:1rem 1.25rem;border-top:1px solid var(--border);background:rgba(255,107,107,0.04);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+              <span style="font-weight:700;font-size:0.82rem;color:#FF6B6B;">⚡ Shorts Script (sub-30s)</span>
+              <button class="post-action-btn" onclick="window.appActions.copyShortsTXT && window.appActions.copyShortsTXT(${i})" style="font-size:0.72rem;color:#FF6B6B;">📋 Copy Shorts</button>
+            </div>
+            <div style="background:rgba(255,107,107,0.06);border:1px solid rgba(255,107,107,0.15);border-radius:6px;padding:0.75rem;max-height:150px;overflow-y:auto;">
+              <pre id="shorts-txt-${i}" style="white-space:pre-wrap;font-size:0.78rem;line-height:1.6;color:var(--text-primary);font-family:var(--font);margin:0;">${isConfirmed ? escapeHtml(state.doneData[i]?.shortsTXT || 'Loading...') : 'Generating shorts script...'}</pre>
+            </div>
+          </div>
+
+          <!-- 🚀 LAUNCH LINKS -->
+          <div style="border-top:1px solid var(--border);padding:0.6rem 1.25rem;background:rgba(0,191,165,0.02);">
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
+              <span style="font-size:0.72rem;font-weight:700;color:var(--text-muted);">🚀 NEXT:</span>
+              <a href="https://manus.im/app/project/9SDGQdQC5wMtzPWss5vc4K" target="_blank" rel="noopener" style="font-size:0.72rem;padding:0.25rem 0.6rem;background:rgba(0,191,165,0.12);color:var(--neuro-teal);border:1px solid rgba(0,191,165,0.3);border-radius:5px;text-decoration:none;font-weight:700;">🎨 Manus Slides</a>
+              <a href="https://app.heygen.com/avatar/ppt-to-video" target="_blank" rel="noopener" style="font-size:0.72rem;padding:0.25rem 0.6rem;background:rgba(218,165,32,0.12);color:var(--gold);border:1px solid rgba(218,165,32,0.3);border-radius:5px;text-decoration:none;font-weight:700;">🎬 HeyGen Video</a>
+              <a href="https://app.gohighlevel.com/v2/location/vdgR8teGuIgHPMPzbQkK/marketing/social-planner" target="_blank" rel="noopener" style="font-size:0.72rem;padding:0.25rem 0.6rem;background:rgba(46,160,67,0.12);color:var(--green);border:1px solid rgba(46,160,67,0.3);border-radius:5px;text-decoration:none;font-weight:700;">📱 GHL Planner</a>
+            </div>
+          </div>
+
+          <!-- 🔗 Source URL for Manus -->
+          ${articleLink ? `
+          <div style="border-top:1px solid var(--border);padding:0.5rem 1.25rem;display:flex;align-items:center;gap:0.5rem;">
+            <span style="font-size:0.68rem;color:var(--neuro-teal);font-weight:700;">🔗 Article URL for Manus:</span>
+            <a href="${escapeHtml(articleLink)}" target="_blank" rel="noopener" style="font-size:0.68rem;color:var(--text-secondary);flex:1;word-break:break-all;text-decoration:underline;">${escapeHtml(articleLink.length > 60 ? articleLink.substring(0, 60) + '...' : articleLink)}</a>
+            <button class="post-action-btn" onclick="navigator.clipboard.writeText('${escapeHtml(articleLink)}');window.showToast('Article URL copied!','success')" style="font-size:0.66rem;">📋</button>
+          </div>` : ''}
         </div>
 
         <div class="post-card-footer">
@@ -646,7 +681,7 @@ function renderPosts() {
             <button class="post-action-btn" onclick="window.appActions.downloadPost(${i})">💾 .txt</button>
             <button class="post-action-btn" onclick="window.appActions.regenPost(${i})">🔄 Regen</button>
             <button class="post-action-btn" id="edit-btn-${i}" onclick="window.appActions.editPost(${i})" style="color:var(--gold);">✏️ Edit</button>
-            <button class="post-action-btn" id="confirm-btn-${i}" onclick="window.appActions.confirmPost(${i})" style="color:var(--green, #2EA043);font-weight:700;display:none;">✅ Confirm</button>
+            ${isConfirmed ? `<span style="font-size:0.72rem;color:var(--green);font-weight:700;">✅ Confirmed</span>` : `<button class="post-action-btn" id="confirm-btn-${i}" onclick="window.appActions.confirmPost(${i})" style="color:#0A1628;background:var(--neuro-teal);padding:0.3rem 0.7rem;border-radius:4px;font-weight:700;">✅ Confirm → Scripts</button>`}
           </div>
         </div>
       </div>
