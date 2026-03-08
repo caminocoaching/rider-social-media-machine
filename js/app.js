@@ -633,13 +633,25 @@ window.appActions = {
             const chemData = CHEM_DATA[post.pillar?.id] || { id: 'dopamine' };
             const topic = post.topic?.headline || post.topic || state.topics[index]?.headline || 'Rider mental performance';
 
+            // Pass the full story data + post content so the video is grounded in the same article
+            const story = state.stories[index] || state.topics[index] || {};
+
             const script = await generateVideoScript({
                 topic,
                 chemicalId: chemData.id,
                 videoLength: '45-60s',
                 platform: 'FB Reel + IG Reel',
                 outputFormat: '9:16',
-                apiKey: settings.claudeApiKey
+                apiKey: settings.claudeApiKey,
+                // Source article context for the video to reference
+                sourceArticle: story.sourceArticle || story.source || '',
+                articleUrl: story.articleUrl || story.sourceUrl || '',
+                talkingPoints: story.talkingPoints || [],
+                emotionalHook: story.emotionalHook || '',
+                mechanism: story.mechanism || '',
+                racingRelevance: story.racingRelevance || '',
+                // The actual generated post content
+                postContent: post.content || ''
             });
 
             showVideoModal(script, index, chemData, settings);
@@ -654,30 +666,145 @@ window.appActions = {
 };
 
 
-// ─── Video Script Modal ──────────────────────────────────────────
+// ─── Video Script Modal (Manual Workflow) ────────────────────────
 function showVideoModal(script, postIndex, chemData, settings) {
     const existing = document.getElementById('video-modal');
     if (existing) existing.remove();
+
+    // ─── Parse the script into clean sections ────────────────────
+    // Extract Manus slide brief
+    const manusBriefMatch = script.match(/=== SLIDE DECK BRIEF.*?===\s*([\s\S]*?)(?:=== HEYGEN|=== SOCIAL|$)/i);
+    const manusBriefRaw = (manusBriefMatch?.[1] || '').trim();
+
+    // Build a clean Manus prompt with context
+    const manusPrompt = `CREATE A SLIDE DECK FOR A 45-60 SECOND VIDEO
+
+BRAND: Camino Coaching — Motorcycle Racer Mental Performance
+PRESENTER: Craig Muirhead (AI avatar will narrate over these slides)
+STYLE: Dark background (#0A1628), teal accents (#00BFA5), bold sans-serif headings, clean and minimal
+FORMAT: 16:9 landscape, 7-8 slides
+FONT: Inter or similar modern sans-serif
+EXPORT: PowerPoint (.pptx)
+
+NEUROCHEMISTRY FOCUS: ${chemData.icon} ${chemData.name}
+
+SLIDE CONTENT:
+${manusBriefRaw}
+
+DESIGN NOTES:
+- Slide 1 (Hook): Large bold text, dark background, teal accent. This is the scroll-stopper.
+- Slide 3 (The Chemical): Show the chemical name in teal (#00BFA5) with a simple icon or molecule graphic.
+- Slide 5 (The Data): One BIG number (e.g. "0.3-0.5s") centred, with a short label below.
+- Slide 7 (CTA): Include "Comment REVIEW" or "Free Rider Mindset Quiz" with the Camino Coaching logo.
+- Slide 8 (End Card): Camino Coaching logo, "4.9 Trustpilot · 120 five-star reviews", website URL.
+- Keep text minimal on each slide — the avatar narrates the detail.
+- No stock photos of cars or generic business imagery. Motorcycle racing imagery only if needed.`;
+
+    // Extract pure HeyGen narration script (strip all section headers, timecodes, labels)
+    const videoScriptMatch = script.match(/=== VIDEO SCRIPT ===\s*([\s\S]*?)(?:=== SLIDE DECK|$)/i);
+    const videoScriptRaw = (videoScriptMatch?.[1] || script).trim();
+
+    // Strip section labels like "HOOK (0-5s):", "THE SCIENCE (15-35s):", etc.
+    const heygenScript = videoScriptRaw
+        .replace(/^(?:HOOK|SCENARIO|THE SCIENCE|THE COST|THE BRIDGE|CTA)\s*(?:\([^)]*\))?\s*:\s*/gim, '')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+
+    // Extract social caption
+    const captionMatch = script.match(/=== SOCIAL CAPTION ===\s*([\s\S]*?)$/i);
+    const socialCaption = (captionMatch?.[1] || '').trim();
+
+    // Extract HeyGen notes
+    const heygenNotesMatch = script.match(/=== HEYGEN NOTES ===\s*([\s\S]*?)(?:=== SOCIAL|$)/i);
+    const heygenNotes = (heygenNotesMatch?.[1] || '').trim();
 
     const modal = document.createElement('div');
     modal.id = 'video-modal';
     modal.className = 'modal-overlay';
     modal.innerHTML = `
-      <div class="modal-content" style="max-width:780px;">
+      <div class="modal-content" style="max-width:820px;">
         <div class="modal-header">
           <div>
-            <h3 style="margin:0;font-size:1.1rem;">🎬 Video Script</h3>
+            <h3 style="margin:0;font-size:1.1rem;">🎬 Video Production Workflow</h3>
             <span style="font-size:0.75rem;color:var(--text-muted);">Post ${postIndex + 1} · ${chemData.icon} ${chemData.name}</span>
           </div>
           <button class="modal-close" onclick="document.getElementById('video-modal').remove()">&times;</button>
         </div>
-        <div class="modal-body" style="max-height:60vh;overflow-y:auto;">
-          <pre style="white-space:pre-wrap;font-size:0.82rem;line-height:1.6;color:var(--text-primary);font-family:var(--font);">${escapeHtml(script)}</pre>
-        </div>
-        <div class="modal-footer" style="display:flex;gap:0.4rem;flex-wrap:wrap;padding:1rem 1.5rem;border-top:1px solid var(--border);">
-          <button class="btn btn-secondary" id="video-copy-script">📋 Copy Script</button>
-          <button class="btn btn-secondary" id="video-copy-slides">📊 Copy Slide Notes</button>
-          <button class="btn btn-primary" id="video-run-pipeline" style="margin-left:auto;">🚀 Run Full Pipeline</button>
+        <div class="modal-body" style="max-height:70vh;overflow-y:auto;padding:0;">
+
+          <!-- ═══ STEP 1: MANUS SLIDE DECK ═══ -->
+          <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;">
+              <span style="background:var(--neuro-teal, #00BFA5);color:#0A1628;font-weight:800;font-size:0.75rem;padding:0.15rem 0.5rem;border-radius:4px;">STEP 1</span>
+              <span style="font-weight:700;font-size:0.9rem;color:var(--text-primary);">🎨 Create Slide Deck in Manus</span>
+            </div>
+            <div id="manus-brief-preview" style="background:rgba(0,191,165,0.06);border:1px solid rgba(0,191,165,0.15);border-radius:8px;padding:0.75rem 1rem;max-height:200px;overflow-y:auto;margin-bottom:0.75rem;">
+              <pre style="white-space:pre-wrap;font-size:0.78rem;line-height:1.5;color:var(--text-primary);font-family:var(--font);margin:0;">${escapeHtml(manusPrompt)}</pre>
+            </div>
+            <div style="display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center;">
+              <button class="btn btn-primary" id="copy-manus-brief" style="font-size:0.8rem;padding:0.45rem 1rem;">
+                📋 Copy Manus Brief
+              </button>
+              <a href="https://manus.im" target="_blank" class="btn btn-secondary" style="font-size:0.8rem;padding:0.45rem 1rem;text-decoration:none;">
+                🚀 Open Manus
+              </a>
+              <span id="manus-copy-status" style="font-size:0.7rem;color:var(--green);margin-left:0.5rem;"></span>
+            </div>
+            <p style="font-size:0.7rem;color:var(--text-muted);margin:0.5rem 0 0;">Paste this into Manus → Download the .pptx slide deck when ready</p>
+          </div>
+
+          <!-- ═══ STEP 2: HEYGEN NARRATION SCRIPT ═══ -->
+          <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;">
+              <span style="background:var(--gold, #DAA520);color:#0A1628;font-weight:800;font-size:0.75rem;padding:0.15rem 0.5rem;border-radius:4px;">STEP 2</span>
+              <span style="font-weight:700;font-size:0.9rem;color:var(--text-primary);">🎬 Upload Slides + Script to HeyGen</span>
+            </div>
+            <div style="background:rgba(218,165,32,0.06);border:1px solid rgba(218,165,32,0.15);border-radius:8px;padding:0.75rem 1rem;max-height:250px;overflow-y:auto;margin-bottom:0.75rem;">
+              <pre style="white-space:pre-wrap;font-size:0.82rem;line-height:1.7;color:var(--text-primary);font-family:var(--font);margin:0;">${escapeHtml(heygenScript)}</pre>
+            </div>
+            <div style="display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center;">
+              <button class="btn btn-primary" id="copy-heygen-script" style="font-size:0.8rem;padding:0.45rem 1rem;background:var(--gold, #DAA520);color:#0A1628;">
+                📋 Copy HeyGen Script
+              </button>
+              <a href="https://app.heygen.com/avatar/ppt-to-video" target="_blank" class="btn btn-secondary" style="font-size:0.8rem;padding:0.45rem 1rem;text-decoration:none;">
+                🚀 Open HeyGen PPT-to-Video
+              </a>
+              <span id="heygen-copy-status" style="font-size:0.7rem;color:var(--green);margin-left:0.5rem;"></span>
+            </div>
+            <p style="font-size:0.7rem;color:var(--text-muted);margin:0.5rem 0 0;">Upload the .pptx from Step 1 → Paste this script as the narration → Generate video</p>
+            ${heygenNotes ? `<details style="margin-top:0.5rem;"><summary style="font-size:0.7rem;color:var(--text-muted);cursor:pointer;">📝 HeyGen avatar notes</summary><p style="font-size:0.75rem;color:var(--text-muted);margin:0.4rem 0 0;padding-left:1rem;">${escapeHtml(heygenNotes)}</p></details>` : ''}
+          </div>
+
+          <!-- ═══ STEP 3: SOCIAL CAPTION + GHL ═══ -->
+          <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;">
+              <span style="background:var(--green, #2EA043);color:#FFF;font-weight:800;font-size:0.75rem;padding:0.15rem 0.5rem;border-radius:4px;">STEP 3</span>
+              <span style="font-weight:700;font-size:0.9rem;color:var(--text-primary);">📱 Upload Video + Caption to GHL</span>
+            </div>
+            ${socialCaption ? `
+            <div style="background:rgba(46,160,67,0.06);border:1px solid rgba(46,160,67,0.15);border-radius:8px;padding:0.75rem 1rem;margin-bottom:0.75rem;">
+              <pre style="white-space:pre-wrap;font-size:0.82rem;line-height:1.6;color:var(--text-primary);font-family:var(--font);margin:0;">${escapeHtml(socialCaption)}</pre>
+            </div>
+            ` : '<p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.75rem;">No social caption generated — use the post content as the caption.</p>'}
+            <div style="display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center;">
+              <button class="btn btn-primary" id="copy-social-caption" style="font-size:0.8rem;padding:0.45rem 1rem;background:var(--green, #2EA043);">
+                📋 Copy Caption
+              </button>
+              <a href="https://app.gohighlevel.com/v2/location/vdgR8teGuIgHPMPzbQkK/marketing/social-planner" target="_blank" class="btn btn-secondary" style="font-size:0.8rem;padding:0.45rem 1rem;text-decoration:none;">
+                🚀 Open GHL Planner
+              </a>
+              <span id="caption-copy-status" style="font-size:0.7rem;color:var(--green);margin-left:0.5rem;"></span>
+            </div>
+            <p style="font-size:0.7rem;color:var(--text-muted);margin:0.5rem 0 0;">Upload the finished video from HeyGen → Paste the caption → Schedule in GHL Social Planner</p>
+          </div>
+
+          <!-- ═══ FULL RAW SCRIPT (collapsible) ═══ -->
+          <details style="padding:0.75rem 1.5rem;">
+            <summary style="font-size:0.8rem;font-weight:600;color:var(--text-muted);cursor:pointer;">📄 View Full Raw Script</summary>
+            <pre style="white-space:pre-wrap;font-size:0.75rem;line-height:1.5;color:var(--text-muted);font-family:var(--font);margin:0.5rem 0 0;padding:0.75rem;background:rgba(255,255,255,0.03);border-radius:6px;">${escapeHtml(script)}</pre>
+            <button class="btn btn-secondary" id="copy-full-script" style="font-size:0.75rem;padding:0.35rem 0.8rem;margin-top:0.5rem;">📋 Copy Full Script</button>
+          </details>
+
         </div>
       </div>
     `;
@@ -685,43 +812,31 @@ function showVideoModal(script, postIndex, chemData, settings) {
     document.body.appendChild(modal);
     modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
 
-    // Copy full script
-    document.getElementById('video-copy-script').addEventListener('click', () => {
+    // ─── Copy button handlers ────────────────────────────────────
+    document.getElementById('copy-manus-brief').addEventListener('click', () => {
+        copyToClipboard(manusPrompt);
+        const status = document.getElementById('manus-copy-status');
+        if (status) status.textContent = '✅ Copied!';
+        showToast('Manus slide brief copied — paste into Manus to create your deck!', 'success');
+    });
+
+    document.getElementById('copy-heygen-script').addEventListener('click', () => {
+        copyToClipboard(heygenScript);
+        const status = document.getElementById('heygen-copy-status');
+        if (status) status.textContent = '✅ Copied!';
+        showToast('Clean narration script copied — paste into HeyGen!', 'success');
+    });
+
+    document.getElementById('copy-social-caption').addEventListener('click', () => {
+        copyToClipboard(socialCaption || '');
+        const status = document.getElementById('caption-copy-status');
+        if (status) status.textContent = '✅ Copied!';
+        showToast('Social caption copied — paste into GHL planner!', 'success');
+    });
+
+    document.getElementById('copy-full-script')?.addEventListener('click', () => {
         copyToClipboard(script);
-        showToast('Video script copied!', 'success');
-    });
-
-    // Copy just slide deck brief
-    document.getElementById('video-copy-slides').addEventListener('click', () => {
-        const slideMatch = script.match(/=== SLIDE DECK BRIEF[\s\S]*?(?===|$)/i);
-        copyToClipboard(slideMatch ? slideMatch[0].trim() : script);
-        showToast('Slide notes copied!', 'success');
-    });
-
-    // Run full pipeline (Manus → HeyGen)
-    document.getElementById('video-run-pipeline').addEventListener('click', async () => {
-        const pipelineBtn = document.getElementById('video-run-pipeline');
-        pipelineBtn.disabled = true;
-        pipelineBtn.textContent = '⏳ Running pipeline...';
-
-        try {
-            const result = await runFullPipeline({
-                script,
-                settings: {
-                    heygenApiKey: settings.heygenApiKey,
-                    heygenAvatarId: settings.heygenAvatarId,
-                    heygenVoiceId: settings.heygenVoiceId,
-                    manusApiKey: settings.manusApiKey
-                }
-            });
-            pipelineBtn.textContent = '✅ Pipeline running!';
-            pipelineBtn.style.background = 'var(--green)';
-            showToast(`Pipeline started! Manus: ${result.manus?.status || 'sent'}, HeyGen: ${result.heygen?.status || 'sent'}`, 'success');
-        } catch (err) {
-            pipelineBtn.textContent = '❌ Pipeline failed';
-            pipelineBtn.disabled = false;
-            showToast(`Pipeline error: ${err.message}`, 'error');
-        }
+        showToast('Full raw script copied!', 'success');
     });
 }
 

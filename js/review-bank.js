@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════
 // 🏍️ REVIEW CONTENT PLAYBOOK — Review Bank Module
-// Source: Trustpilot (84 reviews, 4.9★, 100% five-star)
+// Source: Trustpilot (85 reviews, 4.9★, 100% five-star)
 //         Google (36 reviews, 5.0★, 100% five-star)
 // For Craig Muirhead / Camino Coaching
 // ═══════════════════════════════════════════════════════════════
@@ -31,7 +31,7 @@ export const REVIEW_AUTHORITY_LINES = [
     'Rated 4.9 out of 5 on Trustpilot from 84 unprompted rider reviews.',
     '84 five-star reviews on Trustpilot. 100% satisfaction rate.',
     '84 riders have left a review. All five stars. Read them yourself: https://uk.trustpilot.com/review/caminocoaching.co.uk',
-    '120 reviews across Trustpilot and Google. Every single one is five stars.',
+    '85 reviews on Trustpilot. Every single one is five stars.',
     '4.9 on Trustpilot. 5.0 on Google. 120 riders reviewed. 100% five stars.'
 ];
 
@@ -283,7 +283,7 @@ export const SCREENSHOT_PRIORITIES = [
     { reviewer: 'Sami C', reason: 'Hesitant-then-converted narrative — "the real deal"', hookId: 'hook-sami-hesitant' },
     { reviewer: 'The Nibbler', reason: 'Long-term client — "many years now" (longevity proof)', hookId: 'hook-nibbler-mental' },
     { reviewer: 'Sherwick Min', reason: 'Retired pro — appeals to experienced riders', hookId: 'hook-sherwick-retired' },
-    { reviewer: 'Trustpilot Header', reason: 'Overall page showing 4.9 and 84 reviews', hookId: null }
+    { reviewer: 'Trustpilot Header', reason: 'Overall page showing 4.9 and 85 reviews', hookId: null }
 ];
 
 // ─── Carousel Concepts (Section 5 of Playbook) ──────────────

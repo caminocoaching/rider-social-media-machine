@@ -73,7 +73,7 @@ export const PILLARS = [
       'The expectation of performing well is the exact thing that stops you performing well. Your own expectations are the heaviest weight.',
       'Grid position expectation: if qualifying goes well, race pressure quadruples. Your brain changes state before the lights go out.',
       'You are P5 in practice. Then race day arrives. Your brain chemistry is completely different and nobody told you how to manage it.',
-      'Self-created pressure is more destructive than any external pressure. The data from 1,800 debriefs proves it every time.'
+      'Self-created pressure is more destructive than any external pressure. The data from 2,358 debriefs proves it every time.'
     ]
   },
   {
@@ -104,7 +104,7 @@ export const PILLARS = [
     angles: ['Each mistake standalone', 'Combined overview', 'Quiz-style scenario posts', 'Before/after comparison', 'Which mistake is yours'],
     topics: [
       'The 7 biggest mental mistakes costing you lap times. Number 4 is the one most riders refuse to admit.',
-      'Most riders are making at least 3 of these 7 mistakes every single race weekend. The data from 1,800 debriefs shows the pattern.',
+      'Most riders are making at least 3 of these 7 mistakes every single race weekend. The data from 2,358 debriefs shows the pattern.',
       'You miss the podium by 0.001s. Your mate beats you in identical conditions. You crash at your best corner. How you react to each reveals everything.',
       'Mistake number 1: treating mental performance like something that just happens. It is trainable. The data proves it.',
       'Which of the 7 mental mistakes is costing you the most? Most riders guess wrong. That is why the quiz exists.'
@@ -137,7 +137,7 @@ export const PILLARS = [
     dataPoints: 'HRV above 6 = strongest PB predictor. 50+ racers sleep data.',
     angles: ['Saturday night sleep quality', 'Screen time impact', 'Caffeine timing', 'Race weekend recovery', 'Why Sunday is slower'],
     topics: [
-      'Riders with HRV above 6 are the strongest single predictor of PB potential. We found this across 1,800 debriefs.',
+      'Riders with HRV above 6 are the strongest single predictor of PB potential. We found this across 2,358 debriefs.',
       'Sleep data from 50 racers reveals why Sunday is consistently slower than Saturday. It is not fatigue. It is recovery failure.',
       'Your screen time before bed the night before a race measures exactly how much reaction time you will lose in qualifying.',
       'The thing nobody in the paddock talks about: your pre-race sleep routine is worth more than your last suspension upgrade.',
@@ -149,15 +149,15 @@ export const PILLARS = [
     name: 'Dual-Task Interference',
     icon: '🔄',
     color: '#f472b6',
-    description: 'Thinking vs riding, sector time obsession, in-helmet mental chatter. UCL research. 1,800+ debrief pattern analysis.',
+    description: 'Thinking vs riding, sector time obsession, in-helmet mental chatter. UCL research. 2,358 debrief pattern analysis.',
     winningFormulaPillar: 'Focus & Attention',
-    dataPoints: 'UCL research. 1,800+ debrief insights.',
+    dataPoints: 'UCL research. 2,358 debrief insights.',
     angles: ['Thinking vs automatic riding', 'Sector time trap', 'In-helmet chatter', 'Processing overload mid-corner', 'The radio effect'],
     topics: [
       'Thinking about your riding while riding is the single biggest performance killer. UCL research calls it dual-task interference. Your paddock calls it "getting in your own head."',
       'Sector time obsession costs you 0.3s in the sector after you check the board. Your brain cannot process data and ride at the limit simultaneously.',
       'The mental chatter inside your helmet is not concentration. It is your prefrontal cortex stealing bandwidth from your cerebellum.',
-      '1,800 debriefs show the same pattern: riders who report "thinking about nothing" set personal bests. Riders who report "really concentrating" plateau.',
+      '2,358 debriefs show the same pattern: riders who report "thinking about nothing" set personal bests. Riders who report "really concentrating" plateau.',
       'Your brain has a processing limit. Every instruction you consciously give yourself uses bandwidth that should be running automatic motor patterns.'
     ]
   },
@@ -166,9 +166,9 @@ export const PILLARS = [
     name: 'Client Transformations',
     icon: '🏆',
     color: '#22c55e',
-    description: 'Before/after stories, championship wins, PB breakthroughs. 1,644 PBs, 1,063 wins, 1,286 podiums. Named rider case studies.',
+    description: 'Before/after stories, championship wins, PB breakthroughs. 808 PBs, 159 wins, 438 podiums. Named rider case studies.',
     winningFormulaPillar: 'Proof & Authority',
-    dataPoints: '1,644 PBs, 1,286 podiums, 1,063 wins. Named riders.',
+    dataPoints: '808 PBs, 438 podiums, 159 wins. Named riders.',
     angles: ['Before/after journey', 'Championship wins', 'PB breakthrough stories', 'The moment it clicked', 'From burnout to champion'],
     topics: [
       'Cormac Buchanan went from questioning whether he belonged in Moto3 to standing on world championship pole positions.',
@@ -200,14 +200,14 @@ export const PILLARS = [
     name: 'MotoGP/WSBK Moments',
     icon: '🏁',
     color: '#8b5cf6',
-    description: 'Timely reactions to race weekends, pro rider quotes, paddock observations. 10 seasons embedded. Named client results.',
+    description: 'Timely reactions to race weekends, pro rider quotes, paddock observations. 60 months embedded. Named client results.',
     winningFormulaPillar: 'Credibility & Authority',
-    dataPoints: '10 seasons in elite paddocks. Named riders.',
+    dataPoints: '60 months in elite paddocks. Named riders.',
     angles: ['Pro rider quote analysis', 'Race weekend reaction', 'Paddock insider observation', 'Elite vs club pattern', 'What the camera does not show'],
     topics: [
       'Marc Marquez just said something most club racers will completely misunderstand.',
       'Lorenzo Baldassarri\'s WorldSBK podium proves something most people in the paddock still refuse to believe about mental performance.',
-      'What BSB riders know about flow state that club racers are still guessing about. 10 seasons of paddock data.',
+      'What BSB riders know about flow state that club racers are still guessing about. 60 months of paddock data.',
       'The thing the MotoGP camera never shows you: what the rider does in the 90 seconds before they leave the pit lane.',
       'I watched a WorldSBK rider lose a race he was winning because of something that happened in the warm-up lap. His brain, not his bike.'
     ]
@@ -313,26 +313,12 @@ export const FRAMEWORKS = [
   }
 ];
 
-// ─── 6 CTA Templates — Lead Magnets + Free Training ──────────
+// ─── 5 CTA Templates — Lead Magnets + Free Training ──────────
 // Source: Motorcycle_Racer_Funnel_Complete_Reference.md
-// 5 Lead Magnets (LM1-LM5) + 1 Direct Blueprint CTA
+// 4 Lead Magnets (LM2-LM5) + 1 Direct Blueprint CTA
+// LM1 (Race Weekend Review) removed from CTA rotation — kept as a separate product
 // Each LM feeds into Podium Contenders Blueprint → Strategy Call → Programme
 export const CTAS = [
-  {
-    id: 'cta-a',
-    name: 'LM1: Rider Race Weekend Review',
-    shortName: 'CTA A: Review',
-    leadMagnet: 'LM1',
-    frequency: '3-4x per week (workhorse CTA — primary lead magnet)',
-    primary: true,
-    triggerWord: 'REVIEW',
-    deliveryMethod: 'DM only — not posted publicly. Creates exclusivity and personal touchpoint.',
-    url: 'improve-rider.scoreapp.com',
-    urlStatus: 'CONFIRMED',
-    whenToUse: 'After race weekends (Fri eve through Tue), performance posts, lap time plateau posts, overthinking posts, year-round during racing season (Apr-Oct), winter testing',
-    whatRiderGets: '3-minute assessment scoring race weekend mental performance across: pre-session routine, sleep/recovery, food/hydration, visualisation, preparation, bike/track confidence, FP speed, relaxation management, plateaus, overthinking, inner voice, championship pressure, overall confidence',
-    ctaTemplate: '\n\n·· Oh, by the way - after every race weekend, I send a free Race Weekend Review to riders who want to know exactly where they left performance on the table. 3-minute assessment that scores your preparation, focus, and mental approach across every session. Drop me a DM with "REVIEW" after your next race weekend and I\'ll send you the link.'
-  },
   {
     id: 'cta-b',
     name: 'LM2: End of Season Review',
@@ -384,7 +370,7 @@ export const CTAS = [
     triggerWord: 'SLEEP',
     deliveryMethod: 'ManyChat — rider comments SLEEP, receives DM with link.',
     whenToUse: 'Sleep and recovery posts, race weekend preparation, HRV/biofeedback content, "the thing nobody talks about" pattern interrupts, why riders feel slower Sunday vs Saturday, off-season recovery, "what you do OFF the bike affects what happens ON the bike"',
-    whatRiderGets: '60-second assessment (deliberately short). Checks: sleep duration race weekends vs normal, sleep quality/interruptions, caffeine timing, screen time before bed, wake-up routine/cognitive readiness, Saturday night recovery before Sunday. Data link: Riders with HRV above 6 are strongest single predictor of PB potential (1,800+ debriefs).',
+    whatRiderGets: '60-second assessment (deliberately short). Checks: sleep duration race weekends vs normal, sleep quality/interruptions, caffeine timing, screen time before bed, wake-up routine/cognitive readiness, Saturday night recovery before Sunday. Data link: Riders with HRV above 6 are strongest single predictor of PB potential (2,358 debriefs).',
     ctaTemplate: '\n\n·· Completely unrelated - I built a 60-second sleep test for motorcycle racers. Checks whether your sleep habits are helping or hurting your reaction times, concentration, and consistency. Most riders have no idea. Free. Instant results. Comment "SLEEP" and I\'ll send you the link.'
   },
   {
@@ -432,7 +418,7 @@ export const VISUAL_FORMATS = {
     description: 'Clean graphic turning your debrief stats into visual format. Bar charts, comparison graphics.',
     specs: 'Canva 1080×1080. Dark background. Gold/white data. Simple bar or comparison. One stat per card.',
     whenToUse: 'Research drops, the 7 mistakes, any post referencing your debrief data. Makes numbers sticky.',
-    example: '"1,644 PBs analysed: riders with HRV above 6 are 3x more likely to PB" — clean bar chart, branded.'
+    example: '"808 PBs analysed: riders with HRV above 6 are 3x more likely to PB" — clean bar chart, branded.'
   },
   'social-proof': {
     id: 'social-proof',
@@ -480,7 +466,7 @@ export const WEEKLY_SCHEDULE = [
     contentType: 'Outside the Paddock',
     pillarId: 'outside-the-paddock',
     frameworkId: 'familiar',
-    ctaId: 'cta-a',
+    ctaId: 'cta-d',
     ctaType: 'comment-keyword',
     fbFormat: 'Photo + long-form text (200-400 words)',
     igFormat: 'Reel (fascinating story, 15-60s)',
@@ -495,7 +481,7 @@ export const WEEKLY_SCHEDULE = [
     contentType: 'Client Transformation',
     pillarId: 'client-transformations',
     frameworkId: 'sexy',
-    ctaId: 'cta-a',
+    ctaId: 'cta-c',
     ctaType: 'comment-keyword',
     fbFormat: 'Photo + long-form text (200-400 words)',
     igFormat: 'Reel (transformation story, 15-60s)',
@@ -570,8 +556,8 @@ export const WEEKLY_SCHEDULE = [
     contentType: 'Proof & Celebration',
     pillarId: 'client-transformations',
     frameworkId: 'sexy',
-    ctaId: 'cta-a',
-    ctaType: 'direct-link',
+    ctaId: 'cta-e',
+    ctaType: 'comment-keyword',
     fbFormat: 'Photo + long-form text (200-400 words)',
     igFormat: 'Reel (celebration/proof, 15-60s)',
     visualFormat: 'social-proof',
@@ -584,13 +570,13 @@ export const WEEKLY_SCHEDULE = [
 
 // ─── 5 Authority Lines (Craig Muirhead specific, rotating) ────
 export const AUTHORITY_LINES = [
-  'After 10 seasons inside elite racing paddocks, from MotoGP pit lanes to BSB garages, I have tracked this same pattern across 1,800 performance debriefs.',
-  '118 riders, 142 circuits, 1,644 personal bests. The data from my In The Zone app tells the same story every time.',
+  'After 60 months inside elite racing paddocks, from MotoGP pit lanes to BSB garages, I have tracked this same pattern across 2,358 performance debriefs.',
+  '100+ circuits, 808 personal bests. The data from my In The Zone app tells the same story every time.',
   'Working with Sam Lowes, Joel Kelso, Jaume Masia, and John McPhee in Moto3 and WorldSBK showed me something most coaches miss entirely.',
-  'Pattern recognition across 1,286 podiums and 1,063 race wins showed me this is never about talent. It is always about mental state.',
-  '1,800 performance debriefs in my In The Zone app, across BSB, MotoGP, WorldSBK, and club racing, reveal the same bottleneck every time.',
-  'Rated 4.9 out of 5 on Trustpilot from 84 unprompted rider reviews. 100% five-star. The riders speak for themselves.',
-  '120 reviews across Trustpilot and Google. Every single one five stars. From MotoGP paddocks to club racing tracks across 12 countries.'
+  'Pattern recognition across 438 podiums and 159 race wins showed me this is never about talent. It is always about mental state.',
+  '2,358 performance debriefs in my In The Zone app, across BSB, MotoGP, WorldSBK, and club racing, reveal the same bottleneck every time.',
+  'Rated 4.9 out of 5 on Trustpilot from 85 unprompted rider reviews. 100% five-star. The riders speak for themselves.',
+  '85 reviews on Trustpilot. Every single one five stars. From MotoGP paddocks to club racing tracks across 12 countries.'
 ];
 
 // ─── Case Studies ────────────────────────────────────────────
@@ -607,7 +593,7 @@ export const CASE_STUDIES = [
 
 // ─── Rider Data Points ──────────────────────────────────────
 export const RIDER_INSIGHTS = [
-  'Confidence below 7.0 out of 10 costs you 0.9 seconds per lap. That\'s 1,800 debriefs of data.',
+  'Confidence below 7.0 out of 10 costs you 0.9 seconds per lap. That\'s 2,358 debriefs of data.',
   'Only 27% of riders have a pre-session routine. The other 73% are winging the most important 3 minutes.',
   '30% of your cognitive processing is wasted watching other riders.',
   'Box breathing before a session lifts goal achievement from 58% to 71%.',
@@ -622,8 +608,7 @@ export const RIDER_INSIGHTS = [
 // ─── Funnel Path (from Motorcycle_Racer_Funnel_Complete_Reference.md) ──
 export const FUNNEL = {
   step1: 'Facebook/Instagram Post (value + unrelated "Oh, by the way" CTA)',
-  step2a: 'CTA A → LM1: Rider Race Weekend Review (DM delivery) — improve-rider.scoreapp.com',
-  step2b: 'CTA B → LM2: End of Season Review — riderseason.scoreapp.com',
+  step2a: 'CTA B → LM2: End of Season Review — riderseason.scoreapp.com',
   step2c: 'CTA C → LM3: Rider Flow Profile — ManyChat trigger: FLOW',
   step2d: 'CTA D → LM4: Rider Mindset Quiz — ManyChat trigger: MINDSET',
   step2e: 'CTA E → LM5: Rider Sleep Test — ManyChat trigger: SLEEP',
@@ -652,7 +637,7 @@ export const BLUEPRINT_CONTENT = {
     title: 'The 7 Biggest Mistakes Costing You Lap Times',
     content: [
       'The 7 mental performance mistakes that cost measurable seconds per lap',
-      'Data from 1,800+ debriefs proving each mistake\'s lap time cost',
+      'Data from 2,358 debriefs proving each mistake\'s lap time cost',
       'The "Drunken Monkey" concept: conscious mind at 110 bits/sec vs subconscious at 4 billion bits/sec',
       'Why "trying harder" literally makes you slower (explicit monitoring theory)',
       'The neuroscience behind each mistake (cortisol, prefrontal cortex, amygdala hijack)',
@@ -753,22 +738,22 @@ export const CAMPAIGN_ARC = [
 ];
 
 // ─── CTA Rotation Schedule (matches weekly schedule + funnel logic) ──
-// Primary CTA (LM1: Review) appears 3-4x/week as per funnel spec
-// Sleep Test (LM5) used sparingly — 1-2x/month pattern interrupt
+// CTA Rotation — distributed across Flow, Mindset, Sleep, Blueprint, Season
+// LM1 (Race Weekend Review) removed from rotation
 export const CTA_ROTATION_SCHEDULE = {
-  1: 'cta-a',    // Monday: Race Weekend Review (post-race debrief energy)
-  2: 'cta-a',    // Tuesday: Race Weekend Review (still processing race)
-  3: 'cta-d',    // Wednesday: Mindset Quiz (mid-week engagement)
-  4: 'cta-a',    // Thursday: Race Weekend Review (building to weekend)
+  1: 'cta-d',    // Monday: Mindset Quiz (post-race debrief energy)
+  2: 'cta-c',    // Tuesday: Flow Profile (aspiration, transformation)
+  3: 'cta-d',    // Wednesday: Mindset Quiz (neuroscience teach)
+  4: 'cta-e',    // Thursday: Sleep Test (pattern interrupt, provocative)
   5: 'cta-f',    // Friday: Blueprint (pre-race weekend, training window)
   6: 'cta-c',    // Saturday: Flow Profile (race day, flow relevance)
-  0: 'cta-a'     // Sunday: Race Weekend Review (post-race, highest intent)
+  0: 'cta-e'     // Sunday: Sleep Test (recovery, preparation)
 };
 
 // ─── ManyChat Trigger Words (from Funnel Reference) ──────────
 // Rider comments trigger word → ManyChat auto-response → DM with link → Email captured → GHL automation
 export const TRIGGER_WORDS = {
-  'REVIEW': { cta: 'cta-a', delivers: 'Race Weekend Review link (DM delivery)', url: 'improve-rider.scoreapp.com' },
+  // 'REVIEW' removed from CTA rotation — kept as standalone product
   'SEASON': { cta: 'cta-b', delivers: 'End of Season Review link (public)', url: 'riderseason.scoreapp.com' },
   'FLOW': { cta: 'cta-c', delivers: 'Rider Flow Profile link via ManyChat DM' },
   'MINDSET': { cta: 'cta-d', delivers: 'Rider Mindset Quiz link via ManyChat DM' },
@@ -790,15 +775,26 @@ export function getActiveCTAs() {
 // ─── Smart CTA Selection (matches lead magnet to post content) ──
 export function selectCTAForPillar(pillarId) {
   const pillarToCTA = {
-    'visual-targeting': 'cta-a',       // Performance post → Race Weekend Review
-    'braking-zone-panic': 'cta-a',      // Performance post → Race Weekend Review
+    'visual-targeting': 'cta-d',       // Performance post → Mindset Quiz
+    'braking-zone-panic': 'cta-d',      // Performance post → Mindset Quiz
     'competitor-obsession': 'cta-d',    // Reactions/setbacks → Mindset Quiz
     'overthinking-trap': 'cta-c',       // Flow related → Flow Profile
-    'lap-time-plateau': 'cta-a',        // Performance post → Race Weekend Review
+    'lap-time-plateau': 'cta-c',        // Plateau → Flow Profile
     'change-mode-chaos': 'cta-e',       // Pattern interrupt → Sleep Test
-    'expectation-pressure': 'cta-d'     // Reactions/setbacks → Mindset Quiz
+    'expectation-pressure': 'cta-d',    // Reactions/setbacks → Mindset Quiz
+    'sleep-recovery': 'cta-e',          // Sleep content → Sleep Test
+    'flow-state': 'cta-c',             // Flow content → Flow Profile
+    'the-7-mistakes': 'cta-d',         // Quiz-style → Mindset Quiz
+    'confidence': 'cta-c',             // Confidence → Flow Profile
+    'race-pressure': 'cta-d',          // Pressure → Mindset Quiz
+    'client-transformations': 'cta-f',  // Proof → Blueprint
+    'motogp-wsbk-moments': 'cta-f',    // Timely → Blueprint
+    'outside-the-paddock': 'cta-d',    // Outside paddock → Mindset Quiz
+    'the-money-lie': 'cta-f',          // Money → Blueprint
+    'dual-task-interference': 'cta-c', // Cognitive → Flow Profile
+    'tyre-grip-management': 'cta-d'    // Grip → Mindset Quiz
   };
-  const ctaId = pillarToCTA[pillarId] || 'cta-a';
+  const ctaId = pillarToCTA[pillarId] || 'cta-d';
   return CTAS.find(c => c.id === ctaId) || CTAS[0];
 }
 
@@ -831,7 +827,7 @@ export const MOTORSPORT_BRIDGES = [
   'I see this in the paddock every weekend. The rider who tries hardest is the one who crashes.',
   'I have watched riders lose qualifying positions because their brain switched from flow to survival mode between Turns 3 and 4.',
   'Race engineers do not tell drivers to "try harder." They say "trust the process." Your riding is no different.',
-  'After 1,800 performance debriefs with elite athletes, the number one finding is this: the best performers are the calmest under pressure.',
+  'After 2,358 performance debriefs with elite athletes, the number one finding is this: the best performers are the calmest under pressure.',
   'In motorsport, we measure everything. Heart rate. Reaction time. Braking points. The data always tells the same story: stress makes you slower.',
   'The difference between P1 and P5 in qualifying is rarely talent. It is mental state.',
   'Marc Marquez can ride any bike fast within 3 laps. It is not talent. It is a specific cognitive process that most riders can learn.'
@@ -896,7 +892,7 @@ export const HOOKS = {
   scary: [
     'Your brain makes decisions 200-300 milliseconds slower than you think. At 150mph, that\'s 20 metres.',
     'Only 27% of riders have a pre-session routine. The other 73% are winging the most important 3 minutes of their weekend.',
-    'Confidence below 7.0 out of 10 costs you 0.9 seconds per lap. That\'s not opinion. That\'s 1,800 debriefs of data.',
+    'Confidence below 7.0 out of 10 costs you 0.9 seconds per lap. That\'s not opinion. That\'s 2,358 debriefs of data.',
     '30% of your cognitive processing is wasted on what the rider next to you is doing.',
     'Over 60% of riders plateau. Not because they lack talent. Because their brain has decided this speed is safe enough.',
     'Every interruption to your focus costs 23 minutes of recovery. How many times did your brain get interrupted last session?',
@@ -924,7 +920,7 @@ export const HOOKS = {
     'Adam McLean hadn\'t raced for 6 years. He came back and finished top 10 at the IOM TT.',
     'There\'s a version of your riding where corners feel effortless, your body moves without thinking, and the lap time takes care of itself.',
     'Fin went from the bottom of the timing sheets to winning his first race. Every time he went out, he PB\'d.',
-    '1,644 personal bests. Not from bike setup changes. From what happened between the rider\'s ears.',
+    '808 personal bests. Not from bike setup changes. From what happened between the rider\'s ears.',
     'Harry was at the back of the grid in Junior Supersport 300. 12 weeks later he won his first race.',
     'What if the gap between your current pace and your potential pace isn\'t talent or bravery? What if it\'s chemistry?',
     'The riders who work with us don\'t suddenly become braver. They become calmer. And calm is faster than brave.'
@@ -948,7 +944,7 @@ export const HOOKS = {
     'What BSB riders do in the 30 minutes before a race that club racers skip entirely.',
     'The IOM TT is the most dangerous race on earth. Adam McLean\'s mental preparation is what keeps him alive and fast.',
     'John McPhee won a Moto3 race from last on the grid. His mental state in the first 3 corners made it possible.',
-    'I\'ve spent 10 seasons in MotoGP and BSB paddocks. The riders who try hardest are the ones who crash.',
+    'I\'ve spent 60 months in MotoGP and BSB paddocks. The riders who try hardest are the ones who crash.',
     'Jonathan Rea won 6 World Superbike championships. Talent? Partly. Consistency of mental process? Entirely.',
     'Blake Wilson became FIM Ohvale 190 MiniGP UK Series Champion at 13 years old. His secret wasn\'t the bike.',
     'Every BSB weekend, the rider who qualifies on pole doesn\'t always win. The one with the best mental process does.'

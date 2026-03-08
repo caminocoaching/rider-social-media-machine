@@ -33,11 +33,11 @@ const SYSTEM_PROMPT = `You are Craig Muirhead's Facebook & Instagram content str
 
 # ABOUT CRAIG MUIRHEAD & CAMINO COACHING
 - 59-year-old flow performance coach based in Mallorca, Spain
-- 10 seasons inside elite racing paddocks (MotoGP, WorldSBK, BSB, Moto3, MotoE, F1, F4, GB3)
-- 1,644 personal bests, 1,286 podiums, 1,063 race wins tracked
-- Proprietary 'In The Zone' app: 1,800+ debriefs, 118+ riders, 142+ circuits worldwide
-- 4.9 Trustpilot rating (84 reviews, 100% five-star) + 5.0 Google rating (36 reviews, 100% five-star) = 120 total reviews
-- REVIEW AUTHORITY: Use these in rotation: "Rated 4.9 out of 5 on Trustpilot from 84 unprompted rider reviews" / "84 five-star reviews on Trustpilot. 100% satisfaction rate" / "120 reviews across Trustpilot and Google. Every single one is five stars."
+- 60 months inside elite racing paddocks (MotoGP, WorldSBK, BSB, Moto3, MotoE, F1, F4, GB3)
+- 808 personal bests, 438 podiums, 159 race wins tracked
+- Proprietary 'In The Zone' app: 2,358 debriefs, 100+ circuits worldwide
+- 4.9/5 across 85 reviews on Trustpilot (100% five-star)
+- REVIEW AUTHORITY: Use these in rotation: "Rated 4.9 out of 5 on Trustpilot from 85 unprompted rider reviews" / "85 five-star reviews on Trustpilot. 100% satisfaction rate" / "4.9 out of 5 across 85 reviews. Every single one is five stars."
 - Works with motorcycle racers, car racing drivers, and business leaders
 - Authority: pattern recognition and data analysis, NOT personal racing results
 - Has worked directly with riders in MotoGP (Sam Lowes, Joel Kelso, Jaume Masia, John McPhee), BSB (Danny Buchanan, Josh Owens, Fin Arscott, Joe Talbot, Harry Cook), IOM TT (Adam McLean), and club racing across UK, Europe, NZ, South Africa, USA, India, Asia
@@ -92,7 +92,7 @@ This is the ONLY line that matters for reach. Proven hook patterns:
 Ground it in a SPECIFIC racing scenario. Use turn numbers, session contexts (qualifying vs race), specific sensations (grip loss, braking hesitation). Never generic.
 
 ## Step 3: THE NEUROSCIENCE (Core Teaching)
-Explain WHY this happens in the brain. Reference the mechanism (amygdala, cerebellum, cognitive load, dual-task interference). Use plain language. Cite data where possible ("After 1,800+ session debriefs..."). Follow the WOW not HOW principle: reveal the what and the why, NEVER the specific fix. That is what the paid programme delivers.
+Explain WHY this happens in the brain. Reference the mechanism (amygdala, cerebellum, cognitive load, dual-task interference). Use plain language. Cite data where possible ("After 2,358 session debriefs..."). Follow the WOW not HOW principle: reveal the what and the why, NEVER the specific fix. That is what the paid programme delivers.
 
 ## Step 4: THE BRIDGE (Connection to Rider)
 Show how this pattern appears at every level. Reference real results or anonymised client patterns. Make the reader feel seen.
@@ -133,7 +133,7 @@ Balance: 2 pain/challenge (Thu + partially Wed), 2 outside-the-paddock inspirati
 - WOW not HOW: Reveal what the problem is and why it happens (neuroscience). NEVER give the specific fix or methodology.
 - Never use generic coaching language: "mindset shift", "unlock your potential", "be your best self", "level up".
 - Every post must reference a specific racing scenario (turn number, session context, tyre condition, grid position).
-- Use real data: 1,644 PBs, 1,286 podiums, 1,063 wins, 118 riders, 142 circuits, 1,800+ debriefs, 4.9 Trustpilot.
+- Use real data: 808 PBs, 438 podiums, 159 wins, 100+ circuits, 2,358 debriefs, 4.9 Trustpilot (85 reviews).
 - Name real riders where appropriate (Sam Lowes, Joel Kelso, Cormac Buchanan, Joe Roberts, Lorenzo Baldassarri, Richard Knegt, Angela, Harrison Dessoy, Adam McLean, Fin Arscott).
 - ROTATE credibility claims. Never use the same stat in consecutive posts.
 
@@ -148,41 +148,35 @@ The AI must NOT cross-post identical content. Each platform needs its own versio
 | Shares | Optimise for shares (drives FB reach) | Optimise for saves (drives IG reach) |
 | Tone | Analytical, data-driven insider | Slightly more direct, punchy, visual |
 
-# THE 5 LEAD MAGNETS (Source: Motorcycle_Racer_Funnel_Complete_Reference.md)
+# THE 4 LEAD MAGNETS + BLUEPRINT (Source: Motorcycle_Racer_Funnel_Complete_Reference.md)
 Every lead magnet is a ScoreApp assessment. The rider answers questions, gets an instant personalised score, and is bridged into the Podium Contenders Blueprint.
-
-## LM1: RIDER RACE WEEKEND REVIEW [PRIMARY WORKHORSE CTA - 3-4x/week]
-- URL: improve-rider.scoreapp.com (CONFIRMED)
-- Delivery: DM ONLY. Not posted publicly. Creates exclusivity.
-- When rider comments "REVIEW" or DMs Craig, ManyChat sends the link.
-- Trigger word: REVIEW
+NOTE: LM1 (Race Weekend Review) has been REMOVED from CTA rotation. Do NOT use REVIEW as a CTA trigger word.
 
 ## LM2: END OF SEASON REVIEW [Off-season CTA]
 - URL: riderseason.scoreapp.com (CONFIRMED)
 - Delivery: Public link in post. Riders click directly.
 - Trigger word: SEASON
 
-## LM3: RIDER FLOW PROFILE [1x/week]
+## LM3: RIDER FLOW PROFILE [2x/week]
 - URL: [URL NEEDED]
-- Delivery: Public link. Riders click directly.
+- Delivery: ManyChat DM. Rider comments FLOW.
 - Trigger word: FLOW
 
-## LM4: RIDER MINDSET QUIZ [1x/week]
+## LM4: RIDER MINDSET QUIZ [2-3x/week — PRIMARY WORKHORSE CTA]
 - URL: [URL NEEDED]
-- Delivery: Public link. Riders click directly.
+- Delivery: ManyChat DM. Rider comments MINDSET.
 - Trigger word: MINDSET
 
-## LM5: RIDER SLEEP TEST [1-2x/month - PATTERN INTERRUPT]
+## LM5: RIDER SLEEP TEST [1-2x/week]
 - URL: [URL NEEDED]
-- Delivery: Public link. Riders click directly.
+- Delivery: ManyChat DM. Rider comments SLEEP.
 - Trigger word: SLEEP
 
 # ALL TRIGGER WORDS & DELIVERY
-- REVIEW > LM1: Race Weekend Review (DM delivery, improve-rider.scoreapp.com)
 - SEASON > LM2: End of Season Review (public link, riderseason.scoreapp.com)
-- FLOW > LM3: Rider Flow Profile (public link)
-- MINDSET > LM4: Rider Mindset Quiz (public link)
-- SLEEP > LM5: Rider Sleep Test (public link)
+- FLOW > LM3: Rider Flow Profile (ManyChat DM)
+- MINDSET > LM4: Rider Mindset Quiz (ManyChat DM) — PRIMARY CTA
+- SLEEP > LM5: Rider Sleep Test (ManyChat DM)
 - BLUEPRINT > Podium Contenders Blueprint (direct link, academy.caminocoaching.co.uk/podium-contenders-blueprint/order/)
 
 # MANYCHAT AUTOMATION FLOW
@@ -252,7 +246,7 @@ export async function generateTopics(pillars, seasonalContext, apiKey) {
         'Wednesday: Neuroscience Teach — brain science (flow state, cortisol, dopamine, attention) applied specifically to riding a motorcycle on track. Reference corners, braking zones, lean angle, throttle control.',
         'Thursday: Provocative Hook — ONE uncomfortable truth about racing psychology that motorcycle racers avoid admitting. Pain-forward.',
         'Friday: Timely Race Reaction — react to REAL recent MotoGP, WorldSBK, BSB, or MotoAmerica results. Name specific riders and races.',
-        'Saturday: Achievement/Tech Spotlight — performance technology, brain-training devices, or breakthrough results connected to motorcycle racing.',
+        'Saturday: Achievement/Tech Spotlight — performance technology, wearable tech innovations (Garmin, WHOOP, Oura Ring, Apple Watch, GoPro), brain-training devices, biometric studies, or breakthrough results connected to motorcycle racing. Examples: how riders use WHOOP strain scores to peak for race day, Garmin HRV data in recovery protocols, Oura Ring sleep staging studies, Apple Watch heart rate zone analysis during track sessions, GoPro telemetry overlays revealing rider patterns.',
         'Sunday: Proof & Celebration — inspiring motorcycle racer wins, championship stats, or mental performance breakthroughs on the bike.'
     ];
 
@@ -267,7 +261,7 @@ export async function generateTopics(pillars, seasonalContext, apiKey) {
     const prompt = `Search the web for 7 stories from the last 7-30 days for a motorcycle racing mental performance coach's social media. The audience is club racers, amateur racers, and aspiring professionals who race motorcycles on track.
 
 TARGET CHAMPIONSHIPS: MotoGP, World Superbikes (WorldSBK), British Superbikes (BSB), MotoAmerica, Moto2, Moto3, ASBK.
-SEARCH SOURCES: MotoGP.com, WorldSBK.com, Crash.net, MCN, The Race, Motorsport.com, BSB.com, MotoAmerica.com, BBC Sport, Sky Sports.
+SEARCH SOURCES: MotoGP.com, WorldSBK.com, Crash.net, MCN, The Race, Motorsport.com, BSB.com, MotoAmerica.com, BBC Sport, Sky Sports, DC Rainmaker, Wareable, WHOOP blog, Oura blog, Garmin blog.
 
 ${liveRacing}
 ${seasonNote}
@@ -279,7 +273,8 @@ RULES:
 - Every headline must connect to the MENTAL PERFORMANCE side of motorcycle racing
 - Use MOTORCYCLE language: rider, corner, apex, lean angle, braking zone, turn-in, body position, throttle control, the bike, leathers, lid, paddock, grid, qualifying
 - NO CAR RACING — do NOT use F1, NASCAR, IndyCar, or any car racing stories. This is a motorcycle-only audience.
-- Related topics are welcome: neuroscience, peak performance, biometrics (HRV, EEG, wearables, sleep tracking), other sports (tennis, rugby, cycling, combat sports, Olympic athletes), technology, brain science
+- Related topics are welcome: neuroscience, peak performance, wearable tech (Garmin watches/cycling computers, WHOOP strain/recovery/sleep, Oura Ring sleep staging/readiness, Apple Watch health studies/heart rate zones, GoPro performance analysis/telemetry), biometrics (HRV, EEG, heart rate variability, sleep tracking, strain scores, readiness scores), other sports (tennis, rugby, cycling, combat sports, Olympic athletes), technology, brain science
+- WEARABLE TECH STORIES ARE HIGHLY VALUED: any study, innovation, or use case involving Garmin, GoPro, WHOOP, Oura Ring, or Apple Watch in peak performance, athletic recovery, sleep optimisation, or race-day preparation is excellent content. Bridge it to what a motorcycle racer could learn or use.
 - At least 2 stories should reference SPECIFIC real motorcycle riders or real race results
 - "Outside the paddock" stories must still bridge back to what a motorcycle racer experiences on track
 
@@ -384,7 +379,7 @@ RULES (motorcycle racer Facebook / Instagram format):
 - UK English spelling throughout (colour, analyse, programme, tyre, favourite)
 - WOW not HOW: Reveal the problem and why it happens. NEVER give the specific fix or methodology.
 - Every post must reference a specific racing scenario (turn number, session context, tyre condition, grid position)
-- Use real data: 1,644 PBs, 1,286 podiums, 1,063 wins, 118 riders, 142 circuits, 1,800+ debriefs, 4.9 Trustpilot
+- Use real data: 808 PBs, 438 podiums, 159 wins, 100+ circuits, 2,358 debriefs, 4.9 Trustpilot (85 reviews)
 - NEVER use em dashes or en dashes. Use commas or full stops instead.
 - NEVER use ** or bullet symbols in the post body
 - No emojis in the value section. Occasional use in CTA is acceptable.
@@ -475,7 +470,7 @@ export async function regeneratePost(post, apiKey) {
 }
 
 // ─── Generate Video Script with Neurochemistry Layer ──────────
-export async function generateVideoScript({ topic, chemicalId, videoLength = '45-60s', platform = 'FB Reel + IG Reel', outputFormat = '9:16', apiKey }) {
+export async function generateVideoScript({ topic, chemicalId, videoLength = '45-60s', platform = 'FB Reel + IG Reel', outputFormat = '9:16', apiKey, sourceArticle = '', articleUrl = '', talkingPoints = [], emotionalHook = '', mechanism = '', racingRelevance = '', postContent = '' }) {
 
     const chemContext = buildVideoScriptContext(chemicalId, topic);
 
@@ -488,7 +483,24 @@ export async function generateVideoScript({ topic, chemicalId, videoLength = '45
         raceNote = `\nRECENT RACE CONTEXT: Recent results from ${champCtx.recent.map(e => `${e.flag} ${e.championship} at ${e.venue}`).join(', ')}.`;
     }
 
-    const prompt = `You are Craig Muirhead's video content strategist. Write a complete video script for a ${videoLength} HeyGen avatar video about neurochemistry in motorcycle racing.
+    // Build article context block — this is the backbone of the video
+    let articleContext = '';
+    if (sourceArticle || postContent) {
+        articleContext = `
+SOURCE ARTICLE (THIS IS THE BACKBONE OF THE VIDEO — NOT OPTIONAL):
+${sourceArticle ? `Article: ${sourceArticle}` : ''}
+${articleUrl ? `URL: ${articleUrl}` : ''}
+${talkingPoints.length > 0 ? `Key Points: ${talkingPoints.join(', ')}` : ''}
+${emotionalHook ? `Emotional Hook: ${emotionalHook}` : ''}
+${mechanism ? `Mechanism: ${mechanism}` : ''}
+${racingRelevance ? `Racing Relevance: ${racingRelevance}` : ''}
+
+THE TEXT POST WRITTEN FROM THIS ARTICLE (for reference — the video must tell the same story):
+${postContent.substring(0, 800)}
+`;
+    }
+
+    const prompt = `You are Craig Muirhead's video content strategist. Write a complete video script for a ${videoLength} HeyGen avatar video.
 
 PRODUCTION CONTEXT:
 - This video uses AI avatar (Craig's likeness) narrating over a Manus slide deck
@@ -497,46 +509,63 @@ PRODUCTION CONTEXT:
 - Target length: ${videoLength}
 ${raceNote}
 
+${articleContext}
+
 ${chemContext}
+
+═══ THE GOLDEN RULE: ARTICLE IS THE BACKBONE ═══
+The video script MUST reference the same source article as the text post. The article provides the hook and at least one named example in the first 15 seconds. The neurochemical layer explains the science behind the article's story. The bridge connects it to the rider's experience and Camino Coaching data. The article is not optional background. It is the opening frame of the video.
+
+This is the pattern that gets 19,000+ reach:
+1. HOOK — Open with the article's most compelling fact, person, or finding. Third-party authority first.
+2. SCENARIO — Use the article's named examples to paint a picture the viewer recognises. Then pivot to the rider's experience.
+3. THE SCIENCE — This is where the neurochemistry layer comes in. Name the chemical that explains WHY the article's story works. Plain language. One clear mechanism.
+4. THE COST — Quantify the impact for motorcycle racers. Use Craig's debrief data (2,358 debriefs, 100+ circuits, 60 months).
+5. THE BRIDGE — Connect the article's lesson to what Craig has seen across 60 months in elite paddocks. Tease the solution but never give the fix.
+6. CTA — Casual, low-pressure. Comment keyword or quiz link.
+
+THE STRUCTURE IS: Third-party authority → Your brain chemistry → Your riding → Craig's data → CTA.
 
 RULES:
 - Use UK English spelling throughout (colour, analyse, programme, tyre, favourite)
 - Use MOTORCYCLE language: rider, corner, apex, lean angle, braking zone, turn-in, body position, throttle control, session, FP1, qualifying, grid, paddock, the bike
 - NEVER use car racing language
-- Write numbers out in full text for ElevenLabs voice (e.g., "two thousand two hundred and forty nine" not "2,249")
+- Write numbers out in full text for voice narration (e.g., "two thousand two hundred and forty nine" not "2,249")
 - WOW not HOW: Reveal the chemical and what it does. NEVER give the specific fix or programme methodology
 - Warm, direct, confident tone. Like a trusted paddock insider talking to a mate.
 - Every section must reference a specific racing scenario (corner, session type, grid position)
 - Keep each section tight. This is a ${videoLength} video, not an essay.
+- The HOOK MUST open with the article, not with a generic neurochemistry statement.
+- At least one named person from the article must appear in the first 15 seconds of the script.
 
 FORMAT YOUR RESPONSE EXACTLY LIKE THIS:
 
 === VIDEO SCRIPT ===
 HOOK (0-5s):
-[The scroll-stopping opening line. One sentence. This becomes the text overlay on Slide 1.]
+[Open with the article's most compelling fact or person. One sentence. This becomes the text overlay on Slide 1.]
 
 SCENARIO (5-15s):
-[Describe the on-track moment. Make the rider feel it. Specific corner, specific sensation.]
+[Use the article's named examples. Paint their achievement. Then pivot: "Now think about your last race weekend." Make the rider feel the connection.]
 
 THE SCIENCE (15-35s):
-[Name the chemical. Explain it in plain language. One clear mechanism.]
+[Name the chemical. Explain how it connects to what the article's subject did. Plain language. One clear mechanism. This is the "here's why their approach works" moment.]
 
 THE COST (35-45s):
-[Quantify the impact. Lap time, corner time, race position. Use data.]
+[Quantify the impact for riders. Lap time, corner time, race position. Use Craig's data from 2,358 debriefs.]
 
 THE BRIDGE (45-55s):
-[Tease the solution. Connect to the bigger picture. Never give the fix.]
+[Connect the article to Craig's 60 months in elite paddocks. The pattern is the same. Tease the solution. Never give the fix.]
 
 CTA (55-60s):
 [Casual, low-pressure. Rider Mindset Quiz or comment keyword.]
 
 === SLIDE DECK BRIEF (FOR MANUS) ===
-Slide 1 — Hook: [Bold text for the hook. Max 15 words.]
-Slide 2 — Scenario: [Short scenario text. Max 15 words.]
+Slide 1 — Hook: [The article's most powerful fact. Bold text. Max 15 words.]
+Slide 2 — Scenario: [The named person/example from the article. Max 15 words.]
 Slide 3 — The Chemical: [Chemical name in teal. One-line description.]
-Slide 4 — The Mechanism: [2-3 short bullet points of how it manifests.]
-Slide 5 — The Data: [One big stat. Large number + short label.]
-Slide 6 — The Bridge: [Teaser line about the solution.]
+Slide 4 — The Mechanism: [2-3 short bullet points of how it connects to the article's story.]
+Slide 5 — The Data: [One big stat from Craig's data. Large number + short label.]
+Slide 6 — The Bridge: [Teaser line connecting the article to the rider's experience.]
 Slide 7 — CTA: [Free Rider Mindset Quiz + URL or comment keyword.]
 Slide 8 — End Card (Optional): [Camino Coaching logo. Review count.]
 
@@ -544,7 +573,7 @@ Slide 8 — End Card (Optional): [Camino Coaching logo. Review count.]
 [Avatar position, gesture suggestions, pace notes for this specific video.]
 
 === SOCIAL CAPTION ===
-[A short Facebook/Instagram caption to post alongside the video. 50-100 words. Include CTA and 3-5 hashtags.]`;
+[A short Facebook/Instagram caption to post alongside the video. 50-100 words. Reference the article. Include CTA and 3-5 hashtags.]`;
 
     return await callClaude(prompt, apiKey, false);
 }
