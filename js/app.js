@@ -250,6 +250,22 @@ function initWeeklyMode() {
     document.getElementById('copy-csv-btn')?.addEventListener('click', handleCopyCSV);
     document.getElementById('generate-emails-btn')?.addEventListener('click', handleGenerateAllEmails);
     document.getElementById('clear-session-btn')?.addEventListener('click', clearSession);
+
+    // Delegated click handler for article preview popups
+    document.body.addEventListener('click', (e) => {
+        const link = e.target.closest('.article-preview-link');
+        if (link) {
+            e.preventDefault();
+            e.stopPropagation();
+            const url = link.dataset.url || '';
+            const title = link.dataset.title || '';
+            if (url) {
+                openArticleModal(url, title);
+            } else {
+                showToast('No article URL available for this story.', 'info');
+            }
+        }
+    });
 }
 
 
@@ -367,7 +383,7 @@ function renderStoryCards() {
         <div class="story-card-body">
           <h3 class="story-headline">${escapeHtml(story.headline || story.topic || '')}</h3>
           ${articleTitle ? `
-          <div style="margin:0.4rem 0;padding:0.4rem 0.6rem;background:rgba(0,191,165,0.06);border-radius:4px;border-left:2px solid var(--neuro-teal, #00BFA5);cursor:pointer;" onclick="window.appActions.openArticle('${encodeURIComponent(articleUrl)}', '${encodeURIComponent(articleTitle)}')">
+          <div class="article-preview-link" data-url="${encodeURIComponent(articleUrl)}" data-title="${encodeURIComponent(articleTitle)}" style="margin:0.4rem 0;padding:0.4rem 0.6rem;background:rgba(0,191,165,0.06);border-radius:4px;border-left:2px solid var(--neuro-teal, #00BFA5);cursor:pointer;">
             <span style="font-size:0.72rem;color:var(--neuro-teal);font-weight:600;">📰 </span>
             <span style="font-size:0.72rem;color:var(--text-secondary);">${escapeHtml(articleTitle)}</span>
             <span style="font-size:0.68rem;color:var(--neuro-teal);margin-left:0.4rem;">👁️ Read</span>
@@ -509,7 +525,7 @@ function renderPosts() {
 
         <!-- Source Article -->
         ${articleTitle ? `
-        <div style="padding:0.5rem 1.25rem;background:rgba(0,191,165,0.05);border-top:1px solid var(--border);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;cursor:pointer;" onclick="window.appActions.openArticle('${encodeURIComponent(articleLink)}', '${encodeURIComponent(articleTitle)}')">
+        <div class="article-preview-link" data-url="${encodeURIComponent(articleLink)}" data-title="${encodeURIComponent(articleTitle)}" style="padding:0.5rem 1.25rem;background:rgba(0,191,165,0.05);border-top:1px solid var(--border);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;cursor:pointer;">
           <span style="font-size:0.72rem;font-weight:600;color:var(--neuro-teal, #00BFA5);">📰 Source:</span>
           <span style="font-size:0.75rem;color:var(--text-secondary);flex:1;">${escapeHtml(articleTitle)}</span>
           <span style="font-size:0.7rem;color:var(--neuro-teal);white-space:nowrap;">👁️ Read Article</span>
