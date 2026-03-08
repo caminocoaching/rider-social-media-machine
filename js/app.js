@@ -461,24 +461,32 @@ function renderPosts() {
           </div>
           <div class="post-card-header-right">
             <span class="schedule-info">${date.dayName} ${date.dateString}</span>
-            <label class="done-toggle" style="display:inline-flex;align-items:center;gap:0.35rem;margin-left:0.75rem;cursor:pointer;font-size:0.78rem;color:var(--text-muted);">
-              <input type="checkbox" id="done-check-${i}" onchange="window.appActions.markDone(${i}, this.checked)" style="accent-color:var(--neuro-teal, #00BFA5);width:16px;height:16px;cursor:pointer;">
-              <span id="done-label-${i}">Done</span>
-            </label>
+            <span id="post-status-${i}" style="font-size:0.72rem;font-weight:600;margin-left:0.5rem;"></span>
           </div>
         </div>
 
-        ${hasDualPlatform ? `
+        <!-- Platform Tabs (always show both FB + IG) -->
         <div class="platform-tabs" id="platform-tabs-${i}">
           <button class="platform-tab active" data-platform="fb" onclick="window.appActions.switchPlatform(${i}, 'fb')">📘 Facebook</button>
           <button class="platform-tab" data-platform="ig" onclick="window.appActions.switchPlatform(${i}, 'ig')">📷 Instagram</button>
         </div>
-        <div class="post-content platform-fb" id="post-content-${i}" data-fb="${encodeURIComponent(fbContent)}" data-ig="${encodeURIComponent(igContent)}">${escapeHtml(fbContent)}</div>
-        ` : `
-        <div class="post-content" id="post-content-${i}">${escapeHtml(post.content || '')}</div>
-        `}
 
-        <!-- Done Panels (hidden until checkbox ticked) -->
+        <!-- Read-only view (visible by default) -->
+        <div class="post-content" id="post-content-${i}" data-fb="${encodeURIComponent(fbContent || post.content || '')}" data-ig="${encodeURIComponent(igContent || '')}" data-platform="fb">${escapeHtml(fbContent || post.content || '')}</div>
+
+        <!-- Editable textareas (hidden until Edit clicked) -->
+        <div id="edit-area-${i}" style="display:none;padding:0;">
+          <div id="edit-fb-wrap-${i}" style="padding:0.5rem 1rem;">
+            <label style="font-size:0.7rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:0.25rem;">📘 Facebook</label>
+            <textarea id="edit-fb-${i}" style="width:100%;min-height:220px;background:var(--card);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;padding:0.75rem;font-size:0.82rem;line-height:1.6;font-family:var(--font);resize:vertical;">${escapeHtml(fbContent || post.content || '')}</textarea>
+          </div>
+          <div id="edit-ig-wrap-${i}" style="padding:0.5rem 1rem;border-top:1px solid var(--border);">
+            <label style="font-size:0.7rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:0.25rem;">📷 Instagram</label>
+            <textarea id="edit-ig-${i}" style="width:100%;min-height:160px;background:var(--card);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;padding:0.75rem;font-size:0.82rem;line-height:1.6;font-family:var(--font);resize:vertical;">${escapeHtml(igContent || '')}</textarea>
+          </div>
+        </div>
+
+        <!-- Confirmed Panels (hidden until Confirm clicked) -->
         <div id="done-panels-${i}" style="display:none;">
 
           <!-- 📧 EMAIL HTML PANEL -->
@@ -486,11 +494,11 @@ function renderPosts() {
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
               <span style="font-weight:700;font-size:0.82rem;color:var(--gold, #DAA520);">📧 Email HTML</span>
               <div style="display:flex;gap:0.3rem;">
-                <button class="post-action-btn" id="copy-email-html-${i}" onclick="window.appActions.copyEmailHTML(${i})" style="font-size:0.72rem;color:var(--gold);">📋 Copy HTML</button>
-                <button class="post-action-btn" id="preview-email-${i}" onclick="window.appActions.previewEmail(${i})" style="font-size:0.72rem;color:var(--gold);">👁️ Preview</button>
+                <button class="post-action-btn" onclick="window.appActions.copyEmailHTML(${i})" style="font-size:0.72rem;color:var(--gold);">📋 Copy HTML</button>
+                <button class="post-action-btn" onclick="window.appActions.previewEmail(${i})" style="font-size:0.72rem;color:var(--gold);">👁️ Preview</button>
               </div>
             </div>
-            <div id="email-html-container-${i}" style="background:#0D1117;border:1px solid rgba(218,165,32,0.15);border-radius:6px;padding:0.5rem;max-height:150px;overflow-y:auto;">
+            <div style="background:#0D1117;border:1px solid rgba(218,165,32,0.15);border-radius:6px;padding:0.5rem;max-height:150px;overflow-y:auto;">
               <pre id="email-html-code-${i}" style="white-space:pre-wrap;font-size:0.68rem;line-height:1.4;color:var(--text-muted);font-family:monospace;margin:0;">Generating email...</pre>
             </div>
           </div>
@@ -499,7 +507,7 @@ function renderPosts() {
           <div style="padding:1rem 1.25rem;border-top:1px solid var(--border);background:rgba(0,191,165,0.04);">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
               <span style="font-weight:700;font-size:0.82rem;color:var(--neuro-teal, #00BFA5);">🎬 Video Script (clean TXT)</span>
-              <button class="post-action-btn" id="copy-video-txt-${i}" onclick="window.appActions.copyVideoTXT(${i})" style="font-size:0.72rem;color:var(--neuro-teal);">📋 Copy Script</button>
+              <button class="post-action-btn" onclick="window.appActions.copyVideoTXT(${i})" style="font-size:0.72rem;color:var(--neuro-teal);">📋 Copy Script</button>
             </div>
             <div style="background:rgba(0,191,165,0.06);border:1px solid rgba(0,191,165,0.15);border-radius:6px;padding:0.75rem;max-height:200px;overflow-y:auto;">
               <pre id="video-txt-${i}" style="white-space:pre-wrap;font-size:0.78rem;line-height:1.6;color:var(--text-primary);font-family:var(--font);margin:0;">Generating video script...</pre>
@@ -515,8 +523,8 @@ function renderPosts() {
             <button class="post-action-btn" onclick="window.appActions.copyPost(${i})">📋 Copy</button>
             <button class="post-action-btn" onclick="window.appActions.downloadPost(${i})">💾 .txt</button>
             <button class="post-action-btn" onclick="window.appActions.regenPost(${i})">🔄 Regen</button>
-            <button class="post-action-btn" onclick="window.appActions.generateEmailForPost(${i})" style="color:var(--gold);">📧 Email</button>
-            <button class="post-action-btn" onclick="window.appActions.generateVideoForPost(${i})" style="color:var(--neuro-teal, #00BFA5);">🎬 Video</button>
+            <button class="post-action-btn" id="edit-btn-${i}" onclick="window.appActions.editPost(${i})" style="color:var(--gold);">✏️ Edit</button>
+            <button class="post-action-btn" id="confirm-btn-${i}" onclick="window.appActions.confirmPost(${i})" style="color:var(--green, #2EA043);font-weight:700;display:none;">✅ Confirm</button>
           </div>
         </div>
       </div>
@@ -527,26 +535,68 @@ function renderPosts() {
 
 // ─── Post Actions ─────────────────────────────────────────────
 window.appActions = {
-    // ─── MARK DONE: Generate Email HTML + Clean Video Script ─────
-    async markDone(index, checked) {
-        const donePanels = document.getElementById(`done-panels-${index}`);
-        const doneLabel = document.getElementById(`done-label-${index}`);
+
+    // ─── EDIT: Show textareas for FB + IG editing ─────────────────
+    editPost(index) {
+        const readOnly = document.getElementById(`post-content-${index}`);
+        const editArea = document.getElementById(`edit-area-${index}`);
+        const editBtn = document.getElementById(`edit-btn-${index}`);
+        const confirmBtn = document.getElementById(`confirm-btn-${index}`);
+        const postStatus = document.getElementById(`post-status-${index}`);
         const postCard = document.getElementById(`post-card-${index}`);
 
-        if (!checked) {
-            if (donePanels) donePanels.style.display = 'none';
-            if (doneLabel) { doneLabel.textContent = 'Done'; doneLabel.style.color = ''; }
-            if (postCard) postCard.style.borderLeft = '';
-            return;
+        if (readOnly) readOnly.style.display = 'none';
+        if (editArea) editArea.style.display = 'block';
+        if (editBtn) editBtn.style.display = 'none';
+        if (confirmBtn) confirmBtn.style.display = 'inline-flex';
+        if (postStatus) { postStatus.textContent = '✏️ Editing'; postStatus.style.color = 'var(--gold)'; }
+        if (postCard) postCard.style.borderLeft = '3px solid var(--gold, #DAA520)';
+
+        showToast('Edit both Facebook and Instagram versions, then click ✅ Confirm', 'info');
+    },
+
+    // ─── CONFIRM: Save edits → generate Email HTML + Video Script ──
+    async confirmPost(index) {
+        const editFB = document.getElementById(`edit-fb-${index}`);
+        const editIG = document.getElementById(`edit-ig-${index}`);
+        const readOnly = document.getElementById(`post-content-${index}`);
+        const editArea = document.getElementById(`edit-area-${index}`);
+        const editBtn = document.getElementById(`edit-btn-${index}`);
+        const confirmBtn = document.getElementById(`confirm-btn-${index}`);
+        const postStatus = document.getElementById(`post-status-${index}`);
+        const postCard = document.getElementById(`post-card-${index}`);
+        const donePanels = document.getElementById(`done-panels-${index}`);
+
+        // 1. Save edited content
+        const fbText = editFB?.value || '';
+        const igText = editIG?.value || '';
+
+        // Rebuild the combined content with markers
+        const combinedContent = `=== FACEBOOK POST ===\n\n${fbText}\n\n=== INSTAGRAM CAPTION ===\n\n${igText}`;
+        state.posts[index].content = combinedContent;
+
+        // Update the read-only view with FB content (default)
+        if (readOnly) {
+            readOnly.textContent = fbText;
+            readOnly.dataset.fb = encodeURIComponent(fbText);
+            readOnly.dataset.ig = encodeURIComponent(igText);
+            readOnly.dataset.platform = 'fb';
+            readOnly.style.display = 'block';
         }
 
-        // Show panels immediately with loading state
-        if (donePanels) donePanels.style.display = 'block';
-        if (doneLabel) { doneLabel.textContent = '⏳ Generating...'; doneLabel.style.color = 'var(--neuro-teal)'; }
+        // Hide edit area, swap buttons
+        if (editArea) editArea.style.display = 'none';
+        if (editBtn) editBtn.style.display = 'none';
+        if (confirmBtn) confirmBtn.style.display = 'none';
+        if (postStatus) { postStatus.textContent = '⏳ Generating...'; postStatus.style.color = 'var(--neuro-teal)'; }
         if (postCard) postCard.style.borderLeft = '3px solid var(--neuro-teal, #00BFA5)';
+        if (donePanels) donePanels.style.display = 'block';
 
+        saveSession();
+        showToast(`Post ${index + 1} confirmed — generating email + video...`, 'info');
+
+        // 2. Generate Email HTML + Video Script in parallel
         const post = state.posts[index];
-        if (!post) return;
         const settings = loadSettings();
         if (!settings.claudeApiKey) { showToast('Claude API key needed.', 'error'); return; }
 
@@ -556,12 +606,11 @@ window.appActions = {
 
         setStatus(`⏳ Generating email + video for post ${index + 1}...`, true);
 
-        // Generate both in parallel
         const [emailResult, videoResult] = await Promise.allSettled([
-            // 1) Email HTML
+            // Email HTML
             (async () => {
                 const emailData = await generateEmail({
-                    postContent: post.content,
+                    postContent: fbText,
                     topic: post.topic || state.topics[index],
                     pillar: post.pillar,
                     cta: post.cta,
@@ -569,7 +618,7 @@ window.appActions = {
                 });
                 return { emailData, emailHTML: renderEmailHTML(emailData, post.pillar) };
             })(),
-            // 2) Video Script
+            // Video Script
             (async () => {
                 const script = await generateVideoScript({
                     topic,
@@ -584,13 +633,13 @@ window.appActions = {
                     emotionalHook: story.emotionalHook || '',
                     mechanism: story.mechanism || '',
                     racingRelevance: story.racingRelevance || '',
-                    postContent: post.content || ''
+                    postContent: fbText
                 });
                 return script;
             })()
         ]);
 
-        // Handle Email Result
+        // Handle Email
         const emailCodeEl = document.getElementById(`email-html-code-${index}`);
         if (emailResult.status === 'fulfilled') {
             const { emailData, emailHTML } = emailResult.value;
@@ -599,12 +648,11 @@ window.appActions = {
             state.doneData[index].emailHTML = emailHTML;
             state.doneData[index].emailData = emailData;
             if (emailCodeEl) emailCodeEl.textContent = emailHTML;
-            showToast(`📧 Email HTML ready for post ${index + 1}`, 'success');
         } else {
-            if (emailCodeEl) emailCodeEl.textContent = `Error: ${emailResult.reason?.message || 'Failed to generate email'}`;
+            if (emailCodeEl) emailCodeEl.textContent = `Error: ${emailResult.reason?.message || 'Failed'}`;
         }
 
-        // Handle Video Result
+        // Handle Video
         const videoTxtEl = document.getElementById(`video-txt-${index}`);
         if (videoResult.status === 'fulfilled') {
             const fullScript = videoResult.value;
@@ -620,34 +668,35 @@ window.appActions = {
             state.doneData[index].videoScript = fullScript;
             state.doneData[index].cleanVideoTXT = cleanTXT;
             if (videoTxtEl) videoTxtEl.textContent = cleanTXT;
-            showToast(`🎬 Video script ready for post ${index + 1}`, 'success');
         } else {
-            if (videoTxtEl) videoTxtEl.textContent = `Error: ${videoResult.reason?.message || 'Failed to generate video script'}`;
+            if (videoTxtEl) videoTxtEl.textContent = `Error: ${videoResult.reason?.message || 'Failed'}`;
         }
 
-        if (doneLabel) { doneLabel.textContent = '✅ Done'; doneLabel.style.color = 'var(--green, #2EA043)'; }
+        // Final state
+        if (postStatus) { postStatus.textContent = '✅ Confirmed'; postStatus.style.color = 'var(--green, #2EA043)'; }
         setStatus('Ready');
+        showToast(`✅ Post ${index + 1} confirmed — email + video ready!`, 'success');
     },
 
     // Copy email HTML
     copyEmailHTML(index) {
         const html = state.doneData?.[index]?.emailHTML;
         if (html) { copyToClipboard(html); showToast('Email HTML copied — paste into GHL!', 'success'); }
-        else { showToast('Tick Done first to generate the email.', 'info'); }
+        else { showToast('Confirm the post first to generate the email.', 'info'); }
     },
 
     // Preview email in new window
     previewEmail(index) {
         const html = state.doneData?.[index]?.emailHTML;
         if (html) { const w = window.open('', '_blank', 'width=640,height=800'); w.document.write(html); w.document.close(); }
-        else { showToast('Tick Done first to generate the email.', 'info'); }
+        else { showToast('Confirm the post first to generate the email.', 'info'); }
     },
 
     // Copy clean video narration TXT
     copyVideoTXT(index) {
         const txt = state.doneData?.[index]?.cleanVideoTXT;
         if (txt) { copyToClipboard(txt); showToast('Clean video script copied — paste into HeyGen!', 'success'); }
-        else { showToast('Tick Done first to generate the video script.', 'info'); }
+        else { showToast('Confirm the post first to generate the video script.', 'info'); }
     },
 
     switchPlatform(index, platform) {
