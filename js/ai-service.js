@@ -328,7 +328,7 @@ CTA DELIVERY: ${scheduleDay.ctaType === 'direct-link' ? 'Direct link in CTA (Fac
 ${vf ? `VISUAL FORMAT: ${vf.name} — ${vf.description}\nIMAGE NOTE: ${scheduleDay.visualNote}` : ''}`
         : '';
 
-    const prompt = `Write a FACEBOOK VIDEO CAPTION and an INSTAGRAM VIDEO CAPTION for Craig Muirhead / Camino Coaching. These captions accompany a short-form video (45-60s reel). The VIDEO does the teaching. The CAPTION hooks attention, adds context, and drives the CTA trigger word.
+    const prompt = `Write a single VIDEO CAPTION for Craig Muirhead / Camino Coaching. This caption accompanies a short-form video (45-60s reel) posted to BOTH Facebook and Instagram. The VIDEO does the teaching. The CAPTION hooks attention, adds context, and drives the CTA trigger word.
 
 CONTENT PILLAR: ${pillar.name} — ${pillar.description}
 ${pillar.dataPoints ? `DATA POINTS: ${pillar.dataPoints}` : ''}
@@ -374,10 +374,11 @@ VIDEO CAPTION STRUCTURE:
 1. HOOK LINE: One punchy line that makes a rider stop scrolling. Reference the source article or a dramatic stat.
 2. CONTEXT (1-2 sentences): What the video covers. Tease the revelation without giving it away.
 3. ENGAGEMENT QUESTION: One question that drives comments ("Has this happened to you?")
-4. CTA (after ·· separator): "Oh, by the way" or "Completely unrelated" or "PS". Trigger word included. "With or without you" energy.
+4. CTA (after ·· separator): "Oh, by the way" or "Completely unrelated" or "PS". Comment trigger word "${cta.triggerWord || 'MINDSET'}" included. "With or without you" energy.
+5. HASHTAGS: 3-5 niche hashtags on a new line at the very end.
 
 RULES:
-- These are VIDEO CAPTIONS, not standalone posts. Keep them concise. The video does the heavy lifting.
+- This is a VIDEO CAPTION, not a standalone post. Keep it concise (100-200 words). The video does the heavy lifting.
 - Use MOTORCYCLE language: rider, corner, apex, lean angle, braking zone, turn-in, body position, throttle control, session, qualifying, grid, paddock, the bike, leathers, lid.
 - UK English spelling throughout (colour, analyse, programme, tyre, favourite)
 - WOW not HOW: Tease the revelation. NEVER give the specific fix.
@@ -386,24 +387,9 @@ RULES:
 - NEVER use ** or bullet symbols
 - No emojis in value content. Occasional use in CTA is acceptable.
 - NEVER use generic coaching language: "mindset shift", "unlock your potential", "be your best self"
+- CTA uses comment keyword (ManyChat delivery).
 
-FACEBOOK VIDEO CAPTION:
-- 100-200 words. The video is the content. The caption hooks + drives the CTA.
-- Optimise for SHARES.
-- Direct link in CTA is fine on Facebook.
-
-INSTAGRAM VIDEO CAPTION:
-- 80-150 words. Even shorter and punchier.
-- Optimise for SAVES.
-- CTA uses comment keyword only (ManyChat delivery). No direct links.
-- Include 3-5 niche hashtags at the end (#MotoGP #RiderMindset #RaceDay #MentalPerformance #FlowState)
-
-Format your response as:
-=== FACEBOOK POST ===
-[Facebook video caption here]
-
-=== INSTAGRAM CAPTION ===
-[Instagram video caption here]`;
+Return ONLY the caption text. No headers, no labels, no "=== CAPTION ===". Just the raw caption text ready to paste.`;
 
     return await callClaude(prompt, apiKey, false);
 }

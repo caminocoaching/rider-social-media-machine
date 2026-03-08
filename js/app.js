@@ -927,25 +927,18 @@ window.appActions = {
                 ${articleLink ? `<span style="font-size:0.68rem;color:var(--neuro-teal);">👁️ Read</span>` : ''}
             </div>` : ''}
 
-            <!-- Platform Tabs -->
-            <div style="display:flex;gap:0;border-bottom:1px solid var(--border);">
-                <button class="platform-tab active" data-platform="fb" onclick="window.appActions.switchInlinePlatform(${index}, 'fb')" style="flex:1;padding:0.4rem;font-size:0.72rem;background:none;border:none;border-bottom:2px solid var(--neuro-teal);color:var(--text-primary);cursor:pointer;">📘 FB Caption</button>
-                <button class="platform-tab" data-platform="ig" onclick="window.appActions.switchInlinePlatform(${index}, 'ig')" style="flex:1;padding:0.4rem;font-size:0.72rem;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);cursor:pointer;">📷 IG Caption</button>
+            <!-- Caption Header -->
+            <div style="padding:0.4rem 1rem 0;display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-size:0.72rem;font-weight:700;color:var(--neuro-teal);">📝 Video Caption</span>
+                <span style="font-size:0.68rem;color:var(--text-muted);">(FB + IG — delete hashtags for FB if needed)</span>
             </div>
 
-            <!-- Read-only Content -->
-            <div id="inline-post-content-${index}" data-fb="${encodeURIComponent(fbContent)}" data-ig="${encodeURIComponent(igContent)}" style="padding:0.75rem 1rem;font-size:0.82rem;line-height:1.6;color:var(--text-primary);white-space:pre-wrap;max-height:300px;overflow-y:auto;">${escapeHtml(fbContent || post.content || '')}</div>
+            <!-- Read-only Caption -->
+            <div id="inline-post-content-${index}" style="padding:0.5rem 1rem 0.75rem;font-size:0.82rem;line-height:1.6;color:var(--text-primary);white-space:pre-wrap;max-height:300px;overflow-y:auto;">${escapeHtml(post.content || '')}</div>
 
-            <!-- Edit Textareas (hidden until Edit clicked) -->
-            <div id="inline-edit-area-${index}" style="display:none;">
-                <div style="padding:0.5rem 1rem;">
-                    <label style="font-size:0.7rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:0.25rem;">📘 FB Video Caption</label>
-                    <textarea id="inline-edit-fb-${index}" style="width:100%;min-height:120px;background:var(--bg);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;padding:0.5rem;font-size:0.8rem;line-height:1.5;resize:vertical;font-family:var(--font);">${escapeHtml(fbContent)}</textarea>
-                </div>
-                <div style="padding:0 1rem 0.5rem;">
-                    <label style="font-size:0.7rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:0.25rem;">📷 IG Video Caption</label>
-                    <textarea id="inline-edit-ig-${index}" style="width:100%;min-height:100px;background:var(--bg);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;padding:0.5rem;font-size:0.8rem;line-height:1.5;resize:vertical;font-family:var(--font);">${escapeHtml(igContent)}</textarea>
-                </div>
+            <!-- Edit Textarea (hidden until Edit clicked) -->
+            <div id="inline-edit-area-${index}" style="display:none;padding:0.5rem 1rem;">
+                <textarea id="inline-edit-caption-${index}" style="width:100%;min-height:140px;background:var(--bg);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;padding:0.5rem;font-size:0.8rem;line-height:1.5;resize:vertical;font-family:var(--font);">${escapeHtml(post.content || '')}</textarea>
             </div>
 
             <!-- Action Bar -->
@@ -972,23 +965,34 @@ window.appActions = {
                             <button class="post-action-btn" onclick="window.appActions.previewInlineEmail(${index})" style="font-size:0.7rem;">👁️ Preview</button>
                         </div>
                     </div>
-                    <pre id="inline-email-code-${index}" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:0.5rem;font-size:0.7rem;max-height:150px;overflow-y:auto;white-space:pre-wrap;color:var(--text-secondary);">${isConfirmed ? escapeHtml(state.doneData[index]?.emailHTML || 'Loading...') : 'Will be generated on confirm...'}</pre>
+                    <pre id="inline-email-code-${index}" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:0.5rem;font-size:0.7rem;max-height:150px;overflow-y:auto;white-space:pre-wrap;color:var(--text-secondary);">${isConfirmed ? escapeHtml(state.doneData[index]?.emailHTML || 'Loading...') : 'Generating on confirm...'}</pre>
                 </div>
 
-                <!-- Video Script (Clean TXT) + Source URL -->
+                <!-- Video Script (45-60s) -->
                 <div style="border-top:1px solid var(--border);padding:0.75rem 1rem;">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
-                        <span style="font-size:0.78rem;font-weight:700;color:var(--gold);">🎬 Video Script (clean TXT)</span>
+                        <span style="font-size:0.78rem;font-weight:700;color:var(--gold);">🎬 Video Script (45-60s)</span>
                         <button class="post-action-btn" onclick="window.appActions.copyInlineVideo(${index})" style="font-size:0.7rem;">📋 Copy Script</button>
                     </div>
-                    <pre id="inline-video-txt-${index}" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:0.5rem;font-size:0.78rem;max-height:200px;overflow-y:auto;white-space:pre-wrap;color:var(--text-primary);line-height:1.5;">${isConfirmed ? escapeHtml(state.doneData[index]?.cleanVideoTXT || 'Loading...') : 'Will be generated on confirm...'}</pre>
-                    ${articleLink ? `
-                    <div style="margin-top:0.5rem;padding:0.4rem 0.6rem;background:rgba(0,191,165,0.05);border-radius:4px;border:1px solid rgba(0,191,165,0.1);display:flex;align-items:center;gap:0.5rem;">
-                        <span style="font-size:0.68rem;color:var(--neuro-teal);font-weight:600;">🔗 Source for Manus:</span>
-                        <span style="font-size:0.68rem;color:var(--text-secondary);flex:1;word-break:break-all;">${escapeHtml(articleLink)}</span>
-                        <button class="post-action-btn" onclick="navigator.clipboard.writeText('${escapeHtml(articleLink)}');window.showToast('Source URL copied!','success')" style="font-size:0.66rem;">📋</button>
-                    </div>` : ''}
+                    <pre id="inline-video-txt-${index}" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:0.5rem;font-size:0.78rem;max-height:200px;overflow-y:auto;white-space:pre-wrap;color:var(--text-primary);line-height:1.5;">${isConfirmed ? escapeHtml(state.doneData[index]?.cleanVideoTXT || 'Loading...') : 'Generating on confirm...'}</pre>
                 </div>
+
+                <!-- Shorts Script (sub-30s) -->
+                <div style="border-top:1px solid var(--border);padding:0.75rem 1rem;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+                        <span style="font-size:0.78rem;font-weight:700;color:#FF6B6B;">⚡ Shorts Script (sub-30s)</span>
+                        <button class="post-action-btn" onclick="window.appActions.copyInlineShorts(${index})" style="font-size:0.7rem;">📋 Copy Shorts</button>
+                    </div>
+                    <pre id="inline-shorts-txt-${index}" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:0.5rem;font-size:0.78rem;max-height:150px;overflow-y:auto;white-space:pre-wrap;color:var(--text-primary);line-height:1.5;">${isConfirmed ? escapeHtml(state.doneData[index]?.shortsTXT || 'Loading...') : 'Generating on confirm...'}</pre>
+                </div>
+
+                <!-- Source URL for Manus -->
+                ${articleLink ? `
+                <div style="border-top:1px solid var(--border);padding:0.5rem 1rem;display:flex;align-items:center;gap:0.5rem;">
+                    <span style="font-size:0.68rem;color:var(--neuro-teal);font-weight:600;">🔗 Source for Manus:</span>
+                    <span style="font-size:0.68rem;color:var(--text-secondary);flex:1;word-break:break-all;">${escapeHtml(articleLink)}</span>
+                    <button class="post-action-btn" onclick="navigator.clipboard.writeText('${escapeHtml(articleLink)}');window.showToast('Source URL copied!','success')" style="font-size:0.66rem;">📋</button>
+                </div>` : ''}
             </div>
         `;
 
@@ -1023,7 +1027,7 @@ window.appActions = {
         if (post) { copyToClipboard(post.content); showToast('Post copied!', 'success'); }
     },
 
-    // Edit: show textareas, hide read-only
+    // Edit: show textarea, hide read-only
     inlineEdit(index) {
         const readOnly = document.getElementById(`inline-post-content-${index}`);
         const editArea = document.getElementById(`inline-edit-area-${index}`);
@@ -1037,13 +1041,12 @@ window.appActions = {
         if (confirmBtn) confirmBtn.style.display = 'inline-flex';
         if (status) { status.textContent = '✏️ Editing'; status.style.color = 'var(--gold)'; }
 
-        showToast('Edit both FB and IG versions, then click ✅ Confirm', 'info');
+        showToast('Edit the caption, then click ✅ Confirm', 'info');
     },
 
-    // Confirm: save edits → generate Email HTML + Video Script
+    // Confirm: save edits → generate Email + Video Script + Shorts Script
     async inlineConfirm(index) {
-        const editFB = document.getElementById(`inline-edit-fb-${index}`);
-        const editIG = document.getElementById(`inline-edit-ig-${index}`);
+        const editCaption = document.getElementById(`inline-edit-caption-${index}`);
         const readOnly = document.getElementById(`inline-post-content-${index}`);
         const editArea = document.getElementById(`inline-edit-area-${index}`);
         const editBtn = document.getElementById(`inline-edit-btn-${index}`);
@@ -1053,18 +1056,11 @@ window.appActions = {
         const inlineDiv = document.getElementById(`inline-post-${index}`);
 
         // Save the edited content
-        const fbText = editFB?.value || '';
-        const igText = editIG?.value || '';
-        const combined = `=== FACEBOOK POST ===\n\n${fbText}\n\n=== INSTAGRAM CAPTION ===\n\n${igText}`;
-        state.posts[index].content = combined;
+        const captionText = editCaption?.value || state.posts[index]?.content || '';
+        state.posts[index].content = captionText;
 
         // Update read-only view
-        if (readOnly) {
-            readOnly.textContent = fbText;
-            readOnly.dataset.fb = encodeURIComponent(fbText);
-            readOnly.dataset.ig = encodeURIComponent(igText);
-            readOnly.style.display = 'block';
-        }
+        if (readOnly) { readOnly.textContent = captionText; readOnly.style.display = 'block'; }
 
         // Hide edit, show generating state
         if (editArea) editArea.style.display = 'none';
@@ -1076,7 +1072,7 @@ window.appActions = {
 
         saveSession();
 
-        // Generate Email + Video in parallel
+        // Generate Email + Video + Shorts in parallel
         const post = state.posts[index];
         const settings = loadSettings();
         if (!settings.claudeApiKey) { showToast('Claude API key needed.', 'error'); return; }
@@ -1085,12 +1081,13 @@ window.appActions = {
         const story = state.stories[index] || state.topics[index] || {};
         const topic = post.topic?.headline || post.topic || state.topics[index]?.headline || 'Rider mental performance';
 
-        setStatus(`⏳ Generating email + video for story ${index + 1}...`, true);
+        setStatus(`⏳ Generating email + video + shorts for story ${index + 1}...`, true);
 
-        const [emailResult, videoResult] = await Promise.allSettled([
+        const [emailResult, videoResult, shortsResult] = await Promise.allSettled([
+            // Email HTML
             (async () => {
                 const emailData = await generateEmail({
-                    postContent: fbText,
+                    postContent: captionText,
                     topic: post.topic || state.topics[index],
                     pillar: post.pillar,
                     cta: post.cta,
@@ -1098,6 +1095,7 @@ window.appActions = {
                 });
                 return { emailData, emailHTML: renderEmailHTML(emailData, post.pillar) };
             })(),
+            // Main video script (45-60s)
             (async () => {
                 return await generateVideoScript({
                     topic,
@@ -1112,16 +1110,40 @@ window.appActions = {
                     emotionalHook: story.emotionalHook || '',
                     mechanism: story.mechanism || '',
                     racingRelevance: story.racingRelevance || '',
-                    postContent: fbText
+                    postContent: captionText
                 });
+            })(),
+            // Shorts script (sub-30s)
+            (async () => {
+                return await callClaude(`Write a sub-30 second SHORT-FORM video script for Craig Muirhead / Camino Coaching. This is a punchy, fast-paced vertical reel for Facebook and Instagram.
+
+TOPIC: ${topic}
+${story.sourceArticle ? `SOURCE: ${story.sourceArticle}` : ''}
+${story.mechanism ? `MECHANISM: ${story.mechanism}` : ''}
+
+STRUCTURE (must fit under 30 seconds when spoken aloud):
+1. HOOK (3-5 seconds): One shocking line that stops the scroll. Stat, question, or provocative statement.
+2. REVEAL (10-15 seconds): The ONE key insight. No fluff. Motorcycle-specific language.
+3. CTA (5 seconds): "Comment MINDSET below" or direct engagement prompt.
+
+RULES:
+- Under 80 words total (must be speakable in under 30 seconds)
+- Motorcycle racing language: rider, corner, apex, braking zone, the bike, track, session
+- UK English spelling
+- No section labels or timings in the output
+- Just the clean narration text, ready to paste into HeyGen
+- WOW not HOW: reveal the problem, never the fix
+
+Return ONLY the clean script text, no headers.`, settings.claudeApiKey, false);
             })()
         ]);
 
-        // Handle Email
+        // Handle results
         if (!state.doneData) state.doneData = {};
         if (!state.doneData[index]) state.doneData[index] = {};
         state.doneData[index].confirmed = true;
 
+        // Email
         const emailCodeEl = document.getElementById(`inline-email-code-${index}`);
         if (emailResult.status === 'fulfilled') {
             const { emailData, emailHTML } = emailResult.value;
@@ -1132,7 +1154,7 @@ window.appActions = {
             if (emailCodeEl) emailCodeEl.textContent = `Error: ${emailResult.reason?.message || 'Failed'}`;
         }
 
-        // Handle Video
+        // Video (45-60s)
         const videoTxtEl = document.getElementById(`inline-video-txt-${index}`);
         if (videoResult.status === 'fulfilled') {
             const fullScript = videoResult.value;
@@ -1150,30 +1172,44 @@ window.appActions = {
             if (videoTxtEl) videoTxtEl.textContent = `Error: ${videoResult.reason?.message || 'Failed'}`;
         }
 
+        // Shorts (sub-30s)
+        const shortsTxtEl = document.getElementById(`inline-shorts-txt-${index}`);
+        if (shortsResult.status === 'fulfilled') {
+            const shortsText = shortsResult.value.trim();
+            state.doneData[index].shortsTXT = shortsText;
+            if (shortsTxtEl) shortsTxtEl.textContent = shortsText;
+        } else {
+            if (shortsTxtEl) shortsTxtEl.textContent = `Error: ${shortsResult.reason?.message || 'Failed'}`;
+        }
+
         saveSession();
         if (status) { status.textContent = '✅ Confirmed'; status.style.color = 'var(--green)'; }
         setStatus('Ready');
-        showToast(`✅ Story ${index + 1} confirmed — email + video ready!`, 'success');
+        showToast(`✅ Story ${index + 1} confirmed — email + video + shorts ready!`, 'success');
     },
 
-    // Copy email HTML from inline panel
+    // Copy handlers
     copyInlineEmail(index) {
         const html = state.doneData?.[index]?.emailHTML;
         if (html) { copyToClipboard(html); showToast('Email HTML copied — paste into GHL!', 'success'); }
         else { showToast('Confirm the post first.', 'info'); }
     },
 
-    // Preview email from inline panel
     previewInlineEmail(index) {
         const html = state.doneData?.[index]?.emailHTML;
         if (html) { const w = window.open('', '_blank', 'width=640,height=800'); w.document.write(html); w.document.close(); }
         else { showToast('Confirm the post first.', 'info'); }
     },
 
-    // Copy clean video script from inline panel
     copyInlineVideo(index) {
         const txt = state.doneData?.[index]?.cleanVideoTXT;
-        if (txt) { copyToClipboard(txt); showToast('Clean video script copied — paste into HeyGen!', 'success'); }
+        if (txt) { copyToClipboard(txt); showToast('Video script copied — send to HeyGen!', 'success'); }
+        else { showToast('Confirm the post first.', 'info'); }
+    },
+
+    copyInlineShorts(index) {
+        const txt = state.doneData?.[index]?.shortsTXT;
+        if (txt) { copyToClipboard(txt); showToast('Shorts script copied — send to HeyGen!', 'success'); }
         else { showToast('Confirm the post first.', 'info'); }
     },
 
