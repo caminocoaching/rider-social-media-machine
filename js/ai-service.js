@@ -277,6 +277,9 @@ RULES:
 - WEARABLE TECH STORIES ARE HIGHLY VALUED: any study, innovation, or use case involving Garmin, GoPro, WHOOP, Oura Ring, or Apple Watch in peak performance, athletic recovery, sleep optimisation, or race-day preparation is excellent content. Bridge it to what a motorcycle racer could learn or use.
 - At least 2 stories should reference SPECIFIC real motorcycle riders or real race results
 - "Outside the paddock" stories must still bridge back to what a motorcycle racer experiences on track
+- NO YOUTUBE — do NOT use YouTube videos as sources. Only use written articles from news sites, blogs, and publications.
+
+CRITICAL URL RULE: The "articleUrl" MUST be a real, working URL from the Google Search results you received. Do NOT invent, guess, or fabricate any URL. If you cannot find a real URL for a story, set articleUrl to an empty string "".
 
 Return a JSON array with 7 objects:
 [
@@ -284,7 +287,7 @@ Return a JSON array with 7 objects:
     "pillarId": "${pillars[0]?.id || 'outside-the-paddock'}",
     "headline": "Compelling headline connecting the story to rider mental performance",
     "sourceArticle": "Article title — Publication",
-    "articleUrl": "URL",
+    "articleUrl": "REAL URL from search results only",
     "talkingPoints": ["Point 1", "Point 2", "Point 3"],
     "emotionalHook": "What should the motorcycle racer feel?",
     "mechanism": "Neuroscience mechanism referenced",
@@ -719,6 +722,24 @@ async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
         }
     }
 
+    // Extract grounding URLs from Gemini's search metadata
+    const groundingUrls = [];
+    try {
+        const groundingMeta = data.candidates?.[0]?.groundingMetadata;
+        if (groundingMeta?.groundingChunks) {
+            for (const chunk of groundingMeta.groundingChunks) {
+                if (chunk.web?.uri) groundingUrls.push(chunk.web.uri);
+            }
+        }
+        if (groundingMeta?.searchEntryPoint?.renderedContent) {
+            const urlMatches = groundingMeta.searchEntryPoint.renderedContent.match(/https?:\/\/[^\s"'<>]+/g);
+            if (urlMatches) groundingUrls.push(...urlMatches);
+        }
+        console.log('[Gemini] Grounding URLs found:', groundingUrls.length, groundingUrls.slice(0, 5));
+    } catch (e) {
+        console.log('[Gemini] No grounding metadata available');
+    }
+
     // Strip markdown code fences if present
     content = content.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
 
@@ -734,7 +755,42 @@ async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
     if (parseJson) {
         try {
             const jsonMatch = content.match(/\[[\s\S]*\]/);
-            return jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(content);
+            let parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(content);
+
+            // Validate and fix article URLs against grounding URLs
+            if (Array.isArray(parsed)) {
+                parsed = parsed.map(item => {
+                    // Strip YouTube URLs entirely
+                    if (item.articleUrl && (item.articleUrl.includes('youtube.com') || item.articleUrl.includes('youtu.be'))) {
+                        console.log(`[Gemini] Removed YouTube URL: ${item.articleUrl}`);
+                        item.articleUrl = '';
+                    }
+                    // Validate against grounding URLs
+                    if (item.articleUrl && groundingUrls.length > 0 && !groundingUrls.some(gu => {
+                        try { return item.articleUrl.includes(new URL(gu).hostname.replace('www.', '')); } catch { return false; }
+                    })) {
+                        // URL domain doesn't match any grounding result — likely hallucinated
+                        // Try to find a grounding URL that matches the source article text
+                        const sourceText = (item.sourceArticle || '').toLowerCase();
+                        const match = groundingUrls.find(gu => {
+                            try {
+                                const domain = new URL(gu).hostname.replace('www.', '');
+                                return sourceText.includes(domain.split('.')[0]);
+                            } catch { return false; }
+                        });
+                        if (match) {
+                            console.log(`[Gemini] Fixed URL for "${item.sourceArticle}": ${item.articleUrl} → ${match}`);
+                            item.articleUrl = match;
+                        } else {
+                            console.log(`[Gemini] Removed unverified URL for "${item.sourceArticle}": ${item.articleUrl}`);
+                            item.articleUrl = '';
+                        }
+                    }
+                    return item;
+                });
+            }
+
+            return parsed;
         } catch (e) {
             console.error('[Gemini] JSON parse failed. Content:', content.substring(0, 500));
             throw new Error('Failed to parse Gemini response as JSON. Try again.');
