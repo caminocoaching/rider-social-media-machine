@@ -929,8 +929,8 @@ window.appActions = {
 
             <!-- Platform Tabs -->
             <div style="display:flex;gap:0;border-bottom:1px solid var(--border);">
-                <button class="platform-tab active" data-platform="fb" onclick="window.appActions.switchInlinePlatform(${index}, 'fb')" style="flex:1;padding:0.4rem;font-size:0.72rem;background:none;border:none;border-bottom:2px solid var(--neuro-teal);color:var(--text-primary);cursor:pointer;">📘 Facebook</button>
-                <button class="platform-tab" data-platform="ig" onclick="window.appActions.switchInlinePlatform(${index}, 'ig')" style="flex:1;padding:0.4rem;font-size:0.72rem;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);cursor:pointer;">📷 Instagram</button>
+                <button class="platform-tab active" data-platform="fb" onclick="window.appActions.switchInlinePlatform(${index}, 'fb')" style="flex:1;padding:0.4rem;font-size:0.72rem;background:none;border:none;border-bottom:2px solid var(--neuro-teal);color:var(--text-primary);cursor:pointer;">📘 FB Caption</button>
+                <button class="platform-tab" data-platform="ig" onclick="window.appActions.switchInlinePlatform(${index}, 'ig')" style="flex:1;padding:0.4rem;font-size:0.72rem;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);cursor:pointer;">📷 IG Caption</button>
             </div>
 
             <!-- Read-only Content -->
@@ -939,12 +939,12 @@ window.appActions = {
             <!-- Edit Textareas (hidden until Edit clicked) -->
             <div id="inline-edit-area-${index}" style="display:none;">
                 <div style="padding:0.5rem 1rem;">
-                    <label style="font-size:0.7rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:0.25rem;">📘 Facebook</label>
-                    <textarea id="inline-edit-fb-${index}" style="width:100%;min-height:180px;background:var(--bg);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;padding:0.5rem;font-size:0.8rem;line-height:1.5;resize:vertical;font-family:var(--font);">${escapeHtml(fbContent)}</textarea>
+                    <label style="font-size:0.7rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:0.25rem;">📘 FB Video Caption</label>
+                    <textarea id="inline-edit-fb-${index}" style="width:100%;min-height:120px;background:var(--bg);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;padding:0.5rem;font-size:0.8rem;line-height:1.5;resize:vertical;font-family:var(--font);">${escapeHtml(fbContent)}</textarea>
                 </div>
                 <div style="padding:0 1rem 0.5rem;">
-                    <label style="font-size:0.7rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:0.25rem;">📷 Instagram</label>
-                    <textarea id="inline-edit-ig-${index}" style="width:100%;min-height:140px;background:var(--bg);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;padding:0.5rem;font-size:0.8rem;line-height:1.5;resize:vertical;font-family:var(--font);">${escapeHtml(igContent)}</textarea>
+                    <label style="font-size:0.7rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:0.25rem;">📷 IG Video Caption</label>
+                    <textarea id="inline-edit-ig-${index}" style="width:100%;min-height:100px;background:var(--bg);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;padding:0.5rem;font-size:0.8rem;line-height:1.5;resize:vertical;font-family:var(--font);">${escapeHtml(igContent)}</textarea>
                 </div>
             </div>
 

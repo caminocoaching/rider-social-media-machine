@@ -328,7 +328,7 @@ CTA DELIVERY: ${scheduleDay.ctaType === 'direct-link' ? 'Direct link in CTA (Fac
 ${vf ? `VISUAL FORMAT: ${vf.name} — ${vf.description}\nIMAGE NOTE: ${scheduleDay.visualNote}` : ''}`
         : '';
 
-    const prompt = `Write a Facebook post AND an Instagram caption for Craig Muirhead / Camino Coaching using these parameters:
+    const prompt = `Write a FACEBOOK VIDEO CAPTION and an INSTAGRAM VIDEO CAPTION for Craig Muirhead / Camino Coaching. These captions accompany a short-form video (45-60s reel). The VIDEO does the teaching. The CAPTION hooks attention, adds context, and drives the CTA trigger word.
 
 CONTENT PILLAR: ${pillar.name} — ${pillar.description}
 ${pillar.dataPoints ? `DATA POINTS: ${pillar.dataPoints}` : ''}
@@ -364,59 +364,46 @@ OBJECTION-KILLING REVIEW OPTION (use naturally in CTA bridge section if relevant
 REVIEW AUTHORITY ANCHOR (can be added to CTA section for reinforcement):
 ${getReviewAuthorityLine()}
 
-CTA TO APPEND (after ·· separator, completely unrelated to post body):
+CTA TO APPEND (after ·· separator, completely unrelated to video topic):
 ${cta.ctaTemplate}
 
-CTA TRIGGER WORD: ${cta.triggerWord || 'REVIEW'}
+CTA TRIGGER WORD: ${cta.triggerWord || 'MINDSET'}
 ${campaignNote}
 
-THE 5-STEP WINNING FORMULA (follow this architecture):
-1. HOOK (First Line): Start with a specific data point, research finding, or dramatic racing scenario. This is the ONLY line that matters for reach.
-2. PROBLEM (Next 2-3 sentences): Ground it in a SPECIFIC racing scenario. Use turn numbers, session contexts (qualifying vs race), specific sensations (grip loss, braking hesitation). Never generic.
-3. NEUROSCIENCE (Core Teaching): Explain WHY this happens in the brain. Reference the mechanism. Use plain language. Cite data. WOW not HOW: reveal what the problem is, NEVER the specific fix.
-4. BRIDGE (Connection to Rider): Show how this pattern appears at every level. Reference real results or anonymised patterns. Make the reader feel seen.
-5. CTA (Separated): After ·· separator. "Oh, by the way" or "Completely unrelated" or "PS". Trigger word included. "With or without you" energy.
+VIDEO CAPTION STRUCTURE:
+1. HOOK LINE: One punchy line that makes a rider stop scrolling. Reference the source article or a dramatic stat.
+2. CONTEXT (1-2 sentences): What the video covers. Tease the revelation without giving it away.
+3. ENGAGEMENT QUESTION: One question that drives comments ("Has this happened to you?")
+4. CTA (after ·· separator): "Oh, by the way" or "Completely unrelated" or "PS". Trigger word included. "With or without you" energy.
 
-RULES (motorcycle racer Facebook / Instagram format):
-- Use MOTORCYCLE language throughout: rider, corner, apex, lean angle, braking zone, turn-in, body position, hanging off, throttle control, session, FP1, qualifying, grid, holding area, paddock, the bike, leathers, lid. NEVER use car racing language.
+RULES:
+- These are VIDEO CAPTIONS, not standalone posts. Keep them concise. The video does the heavy lifting.
+- Use MOTORCYCLE language: rider, corner, apex, lean angle, braking zone, turn-in, body position, throttle control, session, qualifying, grid, paddock, the bike, leathers, lid.
 - UK English spelling throughout (colour, analyse, programme, tyre, favourite)
-- WOW not HOW: Reveal the problem and why it happens. NEVER give the specific fix or methodology.
-- Every post must reference a specific racing scenario (turn number, session context, tyre condition, grid position)
+- WOW not HOW: Tease the revelation. NEVER give the specific fix.
 - Use real data: 808 PBs, 438 podiums, 159 wins, 100+ circuits, 2,358 debriefs, 4.9 Trustpilot (85 reviews)
 - NEVER use em dashes or en dashes. Use commas or full stops instead.
-- NEVER use ** or bullet symbols in the post body
-- No emojis in the value section. Occasional use in CTA is acceptable.
-- NEVER use generic coaching language: "mindset shift", "unlock your potential", "be your best self", "level up"
-- Short paragraphs (1-2 sentences), mobile-first formatting
-- End with an engagement question that drives comments ("When was the last time this happened to you?")
+- NEVER use ** or bullet symbols
+- No emojis in value content. Occasional use in CTA is acceptable.
+- NEVER use generic coaching language: "mindset shift", "unlock your potential", "be your best self"
 
-FACEBOOK VERSION:
-- 200-400 words value content + CTA
-- Long-form text. Optimise for SHARES (drives FB reach).
+FACEBOOK VIDEO CAPTION:
+- 100-200 words. The video is the content. The caption hooks + drives the CTA.
+- Optimise for SHARES.
 - Direct link in CTA is fine on Facebook.
 
-INSTAGRAM VERSION:
-- 100-200 words caption. Shorter, punchier, more direct.
-- Optimise for SAVES (drives IG reach).
+INSTAGRAM VIDEO CAPTION:
+- 80-150 words. Even shorter and punchier.
+- Optimise for SAVES.
 - CTA uses comment keyword only (ManyChat delivery). No direct links.
 - Include 3-5 niche hashtags at the end (#MotoGP #RiderMindset #RaceDay #MentalPerformance #FlowState)
 
-DEAD ZONE RULES (never create these):
-- No self-promotional announcements without value
-- No testimonial-only posts without a teaching hook
-- No sequence posts that assume the reader saw yesterday's content
-- No generic motivational content that could apply to any sport
-- No pure neuroscience explainers without a track-specific anchor
-
 Format your response as:
 === FACEBOOK POST ===
-[Facebook post text here]
+[Facebook video caption here]
 
 === INSTAGRAM CAPTION ===
-[Instagram caption here]
-
-=== IMAGE TEXT ===
-[Suggest 1-2 lines of text for the image (max 12 words). This is for a bold text or data card visual. Use the hook data point or most powerful stat from the post.]`;
+[Instagram video caption here]`;
 
     return await callClaude(prompt, apiKey, false);
 }
