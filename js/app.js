@@ -583,6 +583,13 @@ function renderPosts() {
 // ─── Post Actions ─────────────────────────────────────────────
 window.appActions = {
 
+    // ─── CLEAR SESSION ──────────────────────────────────────────
+    clearSession() {
+        if (!confirm('Clear all stories, posts, and generated content?\n\nYour API keys and settings will be kept.')) return;
+        clearSession();
+        location.reload();
+    },
+
     // ─── OPEN ARTICLE POPUP ──────────────────────────────────────
     openArticle(encodedUrl, encodedTitle) {
         if (!encodedUrl) { showToast('No article URL available.', 'info'); return; }

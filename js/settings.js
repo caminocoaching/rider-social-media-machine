@@ -81,7 +81,7 @@ export function renderSettingsPage() {
         <h1>⚙️ Settings</h1>
         <p class="page-subtitle">Configure your API keys, lead magnet links, and publishing preferences</p>
       </div>
-      <button onclick="if(confirm('Clear all stories, posts, and generated content? Your API keys and settings will be kept.')){localStorage.removeItem('riderSocialMedia_session');location.reload();}" style="background:none;border:1px solid rgba(255,107,107,0.4);color:#FF6B6B;cursor:pointer;padding:0.5rem 1rem;border-radius:8px;font-size:0.8rem;font-weight:600;white-space:nowrap;">
+      <button onclick="window.appActions.clearSession()" style="background:none;border:1px solid rgba(255,107,107,0.4);color:#FF6B6B;cursor:pointer;padding:0.5rem 1rem;border-radius:8px;font-size:0.8rem;font-weight:600;white-space:nowrap;">
         🗑️ Clear Session
       </button>
     </div>
