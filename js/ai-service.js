@@ -277,7 +277,7 @@ RULES:
 - WEARABLE TECH STORIES ARE HIGHLY VALUED: any study, innovation, or use case involving Garmin, GoPro, WHOOP, Oura Ring, or Apple Watch in peak performance, athletic recovery, sleep optimisation, or race-day preparation is excellent content. Bridge it to what a motorcycle racer could learn or use.
 - At least 2 stories should reference SPECIFIC real motorcycle riders or real race results
 - "Outside the paddock" stories must still bridge back to what a motorcycle racer experiences on track
-- NO YOUTUBE — do NOT use YouTube videos as sources. Only use written articles from news sites, blogs, and publications.
+- NO YOUTUBE — do NOT use YouTube videos as sources. Only use written articles from news sites, blogs, and publications. If a source is from youtube.com, skip it entirely and find a different article.
 - BANNED HEADLINE WORDS: Never use "unlock", "unleash", "inner genius", "secrets", "transform", "level up", "game-changer", "supercharge", "master your mindset", "hidden power". These are generic clickbait. Write headlines that a club racer would actually click on.
 - No em dashes or en dashes in headlines. Use commas or colons instead.
 
@@ -736,24 +736,33 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
 
             // Fix article URLs — replace fake/redirect/YouTube URLs with real grounding URLs
             if (Array.isArray(parsed)) {
+                // First, filter YouTube out of grounding chunks
+                const cleanChunks = groundingChunks.filter(gc =>
+                    !gc.uri.includes('youtube.com') && !gc.uri.includes('youtu.be')
+                );
+
                 parsed = parsed.map((item, idx) => {
                     const url = item.articleUrl || '';
+                    const source = (item.sourceArticle || '').toLowerCase();
                     const isFake = !url || url.includes('grounding-api-redirect') || url.includes('googleapis.com');
-                    const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
+                    const isYouTube = url.includes('youtube.com') || url.includes('youtu.be') ||
+                        source.includes('youtube') || source.includes('youtu.be');
 
                     if (isYouTube) {
-                        console.log(`[Gemini] Stripped YouTube URL: ${url}`);
+                        console.log(`[Gemini] Stripped YouTube from story ${idx + 1}: ${url || source}`);
                         item.articleUrl = '';
+                        // Clean YouTube references from source article text
+                        if (source.includes('youtube')) {
+                            item.sourceArticle = (item.sourceArticle || '').replace(/\s*[-—]\s*YouTube$/i, '').trim();
+                        }
                     }
 
                     if (isFake || isYouTube || !url) {
                         // Try to match a grounding chunk by source publication name
                         const sourceText = (item.sourceArticle || '').toLowerCase();
-                        const headlineText = (item.headline || '').toLowerCase();
 
-                        // Find best match from grounding chunks (not YouTube)
-                        const match = groundingChunks.find(gc => {
-                            if (gc.uri.includes('youtube.com') || gc.uri.includes('youtu.be')) return false;
+                        // Find best match from clean (non-YouTube) grounding chunks
+                        const match = cleanChunks.find(gc => {
                             try {
                                 const domain = new URL(gc.uri).hostname.replace('www.', '').split('.')[0];
                                 return sourceText.includes(domain) || gc.title.includes(domain);
@@ -763,11 +772,9 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
                         if (match) {
                             console.log(`[Gemini] Mapped story ${idx + 1} "${item.sourceArticle}" → ${match.uri}`);
                             item.articleUrl = match.uri;
-                        } else if (groundingChunks.length > idx) {
-                            // Fallback: use the grounding chunk at the same index
-                            const fallback = groundingChunks.filter(gc =>
-                                !gc.uri.includes('youtube.com') && !gc.uri.includes('youtu.be')
-                            )[idx];
+                        } else if (cleanChunks.length > idx) {
+                            // Fallback: use the non-YouTube chunk at the same index
+                            const fallback = cleanChunks[idx];
                             if (fallback) {
                                 console.log(`[Gemini] Fallback URL for story ${idx + 1}: ${fallback.uri}`);
                                 item.articleUrl = fallback.uri;
