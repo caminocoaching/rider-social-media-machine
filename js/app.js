@@ -894,6 +894,11 @@ function showVideoModal(script, postIndex, chemData, settings) {
     const manusBriefRaw = (manusBriefMatch?.[1] || '').trim();
 
     // Build a clean Manus prompt with context
+    // Include source article info from the story
+    const story = state.stories[postIndex] || {};
+    const articleTitle = story.sourceArticle || story.source || '';
+    const articleLink = story.articleUrl || story.sourceUrl || '';
+
     const manusPrompt = `CREATE A SLIDE DECK FOR A 45-60 SECOND VIDEO
 
 BRAND: Camino Coaching — Motorcycle Racer Mental Performance
@@ -903,17 +908,20 @@ FORMAT: 16:9 landscape, 7-8 slides
 FONT: Inter or similar modern sans-serif
 EXPORT: PowerPoint (.pptx)
 
+${articleTitle ? `SOURCE ARTICLE: ${articleTitle}` : ''}
+${articleLink ? `ARTICLE URL: ${articleLink}` : ''}
+${articleTitle ? `\nIMPORTANT: The video is based on this article. Slide 1 (Hook) should reference the article's subject or finding. Include the source name on Slide 2 or as a subtitle on Slide 1 for third-party authority.\n` : ''}
 NEUROCHEMISTRY FOCUS: ${chemData.icon} ${chemData.name}
 
 SLIDE CONTENT:
 ${manusBriefRaw}
 
 DESIGN NOTES:
-- Slide 1 (Hook): Large bold text, dark background, teal accent. This is the scroll-stopper.
+- Slide 1 (Hook): Large bold text, dark background, teal accent. This is the scroll-stopper.${articleTitle ? ` Reference the source article.` : ''}
 - Slide 3 (The Chemical): Show the chemical name in teal (#00BFA5) with a simple icon or molecule graphic.
 - Slide 5 (The Data): One BIG number (e.g. "0.3-0.5s") centred, with a short label below.
-- Slide 7 (CTA): Include "Comment REVIEW" or "Free Rider Mindset Quiz" with the Camino Coaching logo.
-- Slide 8 (End Card): Camino Coaching logo, "4.9 Trustpilot · 120 five-star reviews", website URL.
+- Slide 7 (CTA): Include "Comment MINDSET" or "Free Rider Mindset Quiz" with the Camino Coaching logo.
+- Slide 8 (End Card): Camino Coaching logo, "4.9/5 Trustpilot · 85 five-star reviews", website URL.
 - Keep text minimal on each slide — the avatar narrates the detail.
 - No stock photos of cars or generic business imagery. Motorcycle racing imagery only if needed.`;
 
