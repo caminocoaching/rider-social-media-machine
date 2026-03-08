@@ -383,10 +383,10 @@ function renderStoryCards() {
         <div class="story-card-body">
           <h3 class="story-headline">${escapeHtml(story.headline || story.topic || '')}</h3>
           ${articleTitle ? `
-          <div class="article-preview-link" data-url="${encodeURIComponent(articleUrl)}" data-title="${encodeURIComponent(articleTitle)}" style="margin:0.4rem 0;padding:0.4rem 0.6rem;background:rgba(0,191,165,0.06);border-radius:4px;border-left:2px solid var(--neuro-teal, #00BFA5);cursor:pointer;">
+          <div class="article-preview-link" ${articleUrl ? `data-url="${encodeURIComponent(articleUrl)}" data-title="${encodeURIComponent(articleTitle)}"` : ''} style="margin:0.4rem 0;padding:0.4rem 0.6rem;background:rgba(0,191,165,0.06);border-radius:4px;border-left:2px solid var(--neuro-teal, #00BFA5);${articleUrl ? 'cursor:pointer;' : ''}">
             <span style="font-size:0.72rem;color:var(--neuro-teal);font-weight:600;">📰 </span>
             <span style="font-size:0.72rem;color:var(--text-secondary);">${escapeHtml(articleTitle)}</span>
-            <span style="font-size:0.68rem;color:var(--neuro-teal);margin-left:0.4rem;">👁️ Read</span>
+            ${articleUrl ? `<span style="font-size:0.68rem;color:var(--neuro-teal);margin-left:0.4rem;">👁️ Read</span>` : `<span style="font-size:0.68rem;color:var(--text-muted);margin-left:0.4rem;">No link</span>`}
           </div>
           ` : ''}
           ${story.angle ? `<p class="story-angle">${escapeHtml(story.angle)}</p>` : ''}
@@ -932,7 +932,7 @@ Return ONLY the JSON array.`;
         setStatus(`Writing post for story ${index + 1}...`, true);
         try {
             const content = await generatePost({
-                topic: story.headline || story.topic,
+                topic: story,
                 pillar: story.pillar,
                 framework: story.framework,
                 cta: story.cta,
@@ -995,21 +995,10 @@ Return ONLY the JSON array.`;
         const existingPreview = document.getElementById(`inline-post-${index}`);
         if (existingPreview) existingPreview.remove();
 
-        // Parse FB/IG
-        const hasDual = (post.content || '').includes('=== FACEBOOK POST ===');
-        let fbContent = post.content || '';
-        let igContent = '';
-        if (hasDual) {
-            const fbMatch = post.content.match(/=== FACEBOOK POST ===([\s\S]*?)(?:=== INSTAGRAM CAPTION ===|$)/);
-            const igMatch = post.content.match(/=== INSTAGRAM CAPTION ===([\s\S]*?)(?:=== IMAGE TEXT ===|$)/);
-            fbContent = (fbMatch?.[1] || '').trim();
-            igContent = (igMatch?.[1] || '').trim();
-        }
-
         const story = state.stories[index] || {};
         const articleTitle = story.sourceArticle || story.source || '';
         const articleLink = story.articleUrl || story.sourceUrl || '';
-        const wordCount = (fbContent || post.content || '').split(/\s+/).filter(Boolean).length;
+        const wordCount = (post.content || '').split(/\s+/).filter(Boolean).length;
         const isConfirmed = state.doneData?.[index]?.confirmed;
 
         const div = document.createElement('div');
@@ -1019,10 +1008,10 @@ Return ONLY the JSON array.`;
         div.innerHTML = `
             <!-- Source Article Bar -->
             ${articleTitle ? `
-            <div class="article-preview-link" data-url="${encodeURIComponent(articleLink)}" data-title="${encodeURIComponent(articleTitle)}" style="padding:0.5rem 1rem;background:rgba(0,191,165,0.05);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
+            <div class="article-preview-link" ${articleLink ? `data-url="${encodeURIComponent(articleLink)}" data-title="${encodeURIComponent(articleTitle)}"` : ''} style="padding:0.5rem 1rem;background:rgba(0,191,165,0.05);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.5rem;${articleLink ? 'cursor:pointer;' : ''}">
                 <span style="font-size:0.72rem;font-weight:600;color:var(--neuro-teal);">📰</span>
                 <span style="font-size:0.72rem;color:var(--text-secondary);flex:1;">${escapeHtml(articleTitle)}</span>
-                ${articleLink ? `<span style="font-size:0.68rem;color:var(--neuro-teal);">👁️ Read</span>` : ''}
+                ${articleLink ? `<span style="font-size:0.68rem;color:var(--neuro-teal);">👁️ Read</span>` : '<span style="font-size:0.68rem;color:var(--text-muted);">No link</span>'}
             </div>` : ''}
 
             <!-- Caption Header -->
