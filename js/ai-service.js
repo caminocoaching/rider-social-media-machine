@@ -722,20 +722,22 @@ async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
         }
     }
 
-    // Extract grounding URLs from Gemini's search metadata
-    const groundingUrls = [];
+    // Extract REAL URLs from Gemini's grounding metadata
+    // Gemini returns grounding-api-redirect URLs in the text, but the REAL URLs are in groundingChunks
+    const groundingChunks = []; // { uri, title }
     try {
         const groundingMeta = data.candidates?.[0]?.groundingMetadata;
         if (groundingMeta?.groundingChunks) {
             for (const chunk of groundingMeta.groundingChunks) {
-                if (chunk.web?.uri) groundingUrls.push(chunk.web.uri);
+                if (chunk.web?.uri) {
+                    groundingChunks.push({
+                        uri: chunk.web.uri,
+                        title: (chunk.web.title || '').toLowerCase()
+                    });
+                }
             }
         }
-        if (groundingMeta?.searchEntryPoint?.renderedContent) {
-            const urlMatches = groundingMeta.searchEntryPoint.renderedContent.match(/https?:\/\/[^\s"'<>]+/g);
-            if (urlMatches) groundingUrls.push(...urlMatches);
-        }
-        console.log('[Gemini] Grounding URLs found:', groundingUrls.length, groundingUrls.slice(0, 5));
+        console.log('[Gemini] Grounding chunks found:', groundingChunks.length, groundingChunks.map(c => c.uri).slice(0, 5));
     } catch (e) {
         console.log('[Gemini] No grounding metadata available');
     }
@@ -757,35 +759,51 @@ async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
             const jsonMatch = content.match(/\[[\s\S]*\]/);
             let parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(content);
 
-            // Validate and fix article URLs against grounding URLs
+            // Fix article URLs — replace fake/redirect/YouTube URLs with real grounding URLs
             if (Array.isArray(parsed)) {
-                parsed = parsed.map(item => {
-                    // Strip YouTube URLs entirely
-                    if (item.articleUrl && (item.articleUrl.includes('youtube.com') || item.articleUrl.includes('youtu.be'))) {
-                        console.log(`[Gemini] Removed YouTube URL: ${item.articleUrl}`);
+                parsed = parsed.map((item, idx) => {
+                    const url = item.articleUrl || '';
+                    const isFake = !url || url.includes('grounding-api-redirect') || url.includes('googleapis.com');
+                    const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
+
+                    if (isYouTube) {
+                        console.log(`[Gemini] Stripped YouTube URL: ${url}`);
                         item.articleUrl = '';
                     }
-                    // Validate against grounding URLs
-                    if (item.articleUrl && groundingUrls.length > 0 && !groundingUrls.some(gu => {
-                        try { return item.articleUrl.includes(new URL(gu).hostname.replace('www.', '')); } catch { return false; }
-                    })) {
-                        // URL domain doesn't match any grounding result — likely hallucinated
-                        // Try to find a grounding URL that matches the source article text
+
+                    if (isFake || isYouTube || !url) {
+                        // Try to match a grounding chunk by source publication name
                         const sourceText = (item.sourceArticle || '').toLowerCase();
-                        const match = groundingUrls.find(gu => {
+                        const headlineText = (item.headline || '').toLowerCase();
+
+                        // Find best match from grounding chunks (not YouTube)
+                        const match = groundingChunks.find(gc => {
+                            if (gc.uri.includes('youtube.com') || gc.uri.includes('youtu.be')) return false;
                             try {
-                                const domain = new URL(gu).hostname.replace('www.', '');
-                                return sourceText.includes(domain.split('.')[0]);
+                                const domain = new URL(gc.uri).hostname.replace('www.', '').split('.')[0];
+                                return sourceText.includes(domain) || gc.title.includes(domain);
                             } catch { return false; }
                         });
+
                         if (match) {
-                            console.log(`[Gemini] Fixed URL for "${item.sourceArticle}": ${item.articleUrl} → ${match}`);
-                            item.articleUrl = match;
+                            console.log(`[Gemini] Mapped story ${idx + 1} "${item.sourceArticle}" → ${match.uri}`);
+                            item.articleUrl = match.uri;
+                        } else if (groundingChunks.length > idx) {
+                            // Fallback: use the grounding chunk at the same index
+                            const fallback = groundingChunks.filter(gc =>
+                                !gc.uri.includes('youtube.com') && !gc.uri.includes('youtu.be')
+                            )[idx];
+                            if (fallback) {
+                                console.log(`[Gemini] Fallback URL for story ${idx + 1}: ${fallback.uri}`);
+                                item.articleUrl = fallback.uri;
+                            } else {
+                                item.articleUrl = '';
+                            }
                         } else {
-                            console.log(`[Gemini] Removed unverified URL for "${item.sourceArticle}": ${item.articleUrl}`);
                             item.articleUrl = '';
                         }
                     }
+
                     return item;
                 });
             }
