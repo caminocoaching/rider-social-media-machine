@@ -340,9 +340,12 @@ export function renderSettingsPage() {
       </div>
     </div>
 
-    <div class="settings-actions">
+    <div class="settings-actions" style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;">
       <button class="btn btn-primary btn-lg" id="save-settings-btn">
         <span class="btn-icon-left">💾</span> Save Settings
+      </button>
+      <button class="btn btn-lg" id="clear-session-btn" style="background:none;border:1px solid rgba(255,107,107,0.3);color:#FF6B6B;cursor:pointer;padding:0.6rem 1.2rem;border-radius:8px;font-size:0.85rem;">
+        🗑️ Clear Session Data
       </button>
       <span class="save-status" id="save-status"></span>
     </div>
@@ -362,6 +365,20 @@ function attachSettingsListeners(settings) {
       setTimeout(() => status.classList.remove('visible'), 2000);
       showToast('Settings saved successfully', 'success');
     }
+  });
+
+  document.getElementById('clear-session-btn')?.addEventListener('click', () => {
+    if (!confirm('Clear all stories, posts, and generated content?\n\nYour API keys and settings will be kept.')) return;
+    // Keep settings, clear everything else
+    const settingsBackup = localStorage.getItem('smm_settings');
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key !== 'smm_settings') keysToRemove.push(key);
+    }
+    keysToRemove.forEach(k => localStorage.removeItem(k));
+    showToast('Session cleared! Reloading...', 'success');
+    setTimeout(() => location.reload(), 500);
   });
 
   document.querySelectorAll('.toggle-visibility').forEach(btn => {
