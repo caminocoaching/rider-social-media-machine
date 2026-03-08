@@ -742,46 +742,50 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
                 );
 
                 parsed = parsed.map((item, idx) => {
-                    const url = item.articleUrl || '';
+                    let url = item.articleUrl || '';
                     const source = (item.sourceArticle || '').toLowerCase();
                     const isFake = !url || url.includes('grounding-api-redirect') || url.includes('googleapis.com');
                     const isYouTube = url.includes('youtube.com') || url.includes('youtu.be') ||
                         source.includes('youtube') || source.includes('youtu.be');
+                    const isValidUrl = url.startsWith('http://') || url.startsWith('https://');
 
                     if (isYouTube) {
                         console.log(`[Gemini] Stripped YouTube from story ${idx + 1}: ${url || source}`);
                         item.articleUrl = '';
-                        // Clean YouTube references from source article text
+                        url = '';
                         if (source.includes('youtube')) {
                             item.sourceArticle = (item.sourceArticle || '').replace(/\s*[-—]\s*YouTube$/i, '').trim();
                         }
                     }
 
-                    if (isFake || isYouTube || !url) {
-                        // Try to match a grounding chunk by source publication name
+                    if (isFake || isYouTube || !isValidUrl) {
+                        // Try to match by domain name from source text
                         const sourceText = (item.sourceArticle || '').toLowerCase();
+                        const headlineWords = (item.headline || '').toLowerCase().split(/\s+/).filter(w => w.length > 4);
 
-                        // Find best match from clean (non-YouTube) grounding chunks
-                        const match = cleanChunks.find(gc => {
+                        // Strategy 1: Match by publication domain in sourceArticle
+                        let match = cleanChunks.find(gc => {
                             try {
                                 const domain = new URL(gc.uri).hostname.replace('www.', '').split('.')[0];
-                                return sourceText.includes(domain) || gc.title.includes(domain);
+                                return sourceText.includes(domain);
                             } catch { return false; }
                         });
 
+                        // Strategy 2: Match by title keywords (at least 2 significant words match)
+                        if (!match) {
+                            match = cleanChunks.find(gc => {
+                                const chunkTitle = gc.title.toLowerCase();
+                                const matchCount = headlineWords.filter(w => chunkTitle.includes(w)).length;
+                                return matchCount >= 2;
+                            });
+                        }
+
                         if (match) {
-                            console.log(`[Gemini] Mapped story ${idx + 1} "${item.sourceArticle}" → ${match.uri}`);
+                            console.log(`[Gemini] Matched story ${idx + 1} "${item.sourceArticle}" → ${match.uri}`);
                             item.articleUrl = match.uri;
-                        } else if (cleanChunks.length > idx) {
-                            // Fallback: use the non-YouTube chunk at the same index
-                            const fallback = cleanChunks[idx];
-                            if (fallback) {
-                                console.log(`[Gemini] Fallback URL for story ${idx + 1}: ${fallback.uri}`);
-                                item.articleUrl = fallback.uri;
-                            } else {
-                                item.articleUrl = '';
-                            }
                         } else {
+                            // No match found — leave empty. Better no link than a wrong link.
+                            console.log(`[Gemini] No URL match for story ${idx + 1} "${item.sourceArticle}" — leaving empty`);
                             item.articleUrl = '';
                         }
                     }
