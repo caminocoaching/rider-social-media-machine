@@ -889,12 +889,11 @@ window.appActions = {
         } finally { setStatus('Ready'); }
     },
 
-    // Render single post inline below story card
+    // Render single post inline below story card — full workflow
     renderInlinePost(index, card) {
         const post = state.posts[index];
         if (!post) return;
 
-        // Remove existing inline preview
         const existingPreview = document.getElementById(`inline-post-${index}`);
         if (existingPreview) existingPreview.remove();
 
@@ -909,23 +908,23 @@ window.appActions = {
             igContent = (igMatch?.[1] || '').trim();
         }
 
-        const chem = state.stories[index]?.chemical || {};
         const story = state.stories[index] || {};
         const articleTitle = story.sourceArticle || story.source || '';
         const articleLink = story.articleUrl || story.sourceUrl || '';
         const wordCount = (fbContent || post.content || '').split(/\s+/).filter(Boolean).length;
+        const isConfirmed = state.doneData?.[index]?.confirmed;
 
-        const inlineDiv = document.createElement('div');
-        inlineDiv.id = `inline-post-${index}`;
-        inlineDiv.style.cssText = 'margin:0.5rem 0 1rem;border:1px solid rgba(0,191,165,0.2);border-radius:8px;background:var(--card);overflow:hidden;';
+        const div = document.createElement('div');
+        div.id = `inline-post-${index}`;
+        div.style.cssText = `margin:0.5rem 0 1rem;border:1px solid ${isConfirmed ? 'rgba(0,191,165,0.3)' : 'rgba(0,191,165,0.2)'};border-radius:8px;background:var(--card);overflow:hidden;${isConfirmed ? 'border-left:3px solid var(--neuro-teal);' : ''}`;
 
-        inlineDiv.innerHTML = `
-            <!-- Source Article -->
+        div.innerHTML = `
+            <!-- Source Article Bar -->
             ${articleTitle ? `
-            <div style="padding:0.5rem 1rem;background:rgba(0,191,165,0.05);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.5rem;cursor:pointer;" onclick="window.appActions.openArticle('${encodeURIComponent(articleLink)}', '${encodeURIComponent(articleTitle)}')">
+            <div class="article-preview-link" data-url="${encodeURIComponent(articleLink)}" data-title="${encodeURIComponent(articleTitle)}" style="padding:0.5rem 1rem;background:rgba(0,191,165,0.05);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
                 <span style="font-size:0.72rem;font-weight:600;color:var(--neuro-teal);">📰</span>
                 <span style="font-size:0.72rem;color:var(--text-secondary);flex:1;">${escapeHtml(articleTitle)}</span>
-                <span style="font-size:0.68rem;color:var(--neuro-teal);">👁️ Read</span>
+                ${articleLink ? `<span style="font-size:0.68rem;color:var(--neuro-teal);">👁️ Read</span>` : ''}
             </div>` : ''}
 
             <!-- Platform Tabs -->
@@ -934,20 +933,66 @@ window.appActions = {
                 <button class="platform-tab" data-platform="ig" onclick="window.appActions.switchInlinePlatform(${index}, 'ig')" style="flex:1;padding:0.4rem;font-size:0.72rem;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);cursor:pointer;">📷 Instagram</button>
             </div>
 
-            <!-- Content -->
+            <!-- Read-only Content -->
             <div id="inline-post-content-${index}" data-fb="${encodeURIComponent(fbContent)}" data-ig="${encodeURIComponent(igContent)}" style="padding:0.75rem 1rem;font-size:0.82rem;line-height:1.6;color:var(--text-primary);white-space:pre-wrap;max-height:300px;overflow-y:auto;">${escapeHtml(fbContent || post.content || '')}</div>
 
-            <!-- Actions -->
-            <div style="padding:0.5rem 1rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+            <!-- Edit Textareas (hidden until Edit clicked) -->
+            <div id="inline-edit-area-${index}" style="display:none;">
+                <div style="padding:0.5rem 1rem;">
+                    <label style="font-size:0.7rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:0.25rem;">📘 Facebook</label>
+                    <textarea id="inline-edit-fb-${index}" style="width:100%;min-height:180px;background:var(--bg);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;padding:0.5rem;font-size:0.8rem;line-height:1.5;resize:vertical;font-family:var(--font);">${escapeHtml(fbContent)}</textarea>
+                </div>
+                <div style="padding:0 1rem 0.5rem;">
+                    <label style="font-size:0.7rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:0.25rem;">📷 Instagram</label>
+                    <textarea id="inline-edit-ig-${index}" style="width:100%;min-height:140px;background:var(--bg);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;padding:0.5rem;font-size:0.8rem;line-height:1.5;resize:vertical;font-family:var(--font);">${escapeHtml(igContent)}</textarea>
+                </div>
+            </div>
+
+            <!-- Action Bar -->
+            <div id="inline-actions-${index}" style="padding:0.5rem 1rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
                 <span style="font-size:0.7rem;color:var(--text-muted);">${wordCount} words</span>
-                <div style="display:flex;gap:0.3rem;">
+                <div style="display:flex;gap:0.3rem;align-items:center;">
+                    <span id="inline-status-${index}" style="font-size:0.7rem;font-weight:600;margin-right:0.3rem;"></span>
+                    ${isConfirmed ? '' : `
+                    <button id="inline-edit-btn-${index}" class="post-action-btn" onclick="window.appActions.inlineEdit(${index})" style="font-size:0.72rem;color:var(--gold);">✏️ Edit</button>
+                    <button id="inline-confirm-btn-${index}" class="post-action-btn" onclick="window.appActions.inlineConfirm(${index})" style="font-size:0.72rem;color:var(--neuro-teal);display:none;">✅ Confirm</button>
+                    `}
                     <button class="post-action-btn" onclick="window.appActions.copyInlinePost(${index})" style="font-size:0.72rem;">📋 Copy</button>
-                    <button class="post-action-btn" onclick="window.appActions.editInlinePost(${index})" style="font-size:0.72rem;color:var(--gold);">✏️ Edit</button>
+                </div>
+            </div>
+
+            <!-- Generated Output Panels (shown after Confirm) -->
+            <div id="inline-output-${index}" style="display:${isConfirmed ? 'block' : 'none'};">
+                <!-- Email HTML -->
+                <div style="border-top:1px solid var(--border);padding:0.75rem 1rem;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+                        <span style="font-size:0.78rem;font-weight:700;color:var(--neuro-teal);">📧 Email HTML</span>
+                        <div style="display:flex;gap:0.3rem;">
+                            <button class="post-action-btn" onclick="window.appActions.copyInlineEmail(${index})" style="font-size:0.7rem;">📋 Copy HTML</button>
+                            <button class="post-action-btn" onclick="window.appActions.previewInlineEmail(${index})" style="font-size:0.7rem;">👁️ Preview</button>
+                        </div>
+                    </div>
+                    <pre id="inline-email-code-${index}" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:0.5rem;font-size:0.7rem;max-height:150px;overflow-y:auto;white-space:pre-wrap;color:var(--text-secondary);">${isConfirmed ? escapeHtml(state.doneData[index]?.emailHTML || 'Loading...') : 'Will be generated on confirm...'}</pre>
+                </div>
+
+                <!-- Video Script (Clean TXT) + Source URL -->
+                <div style="border-top:1px solid var(--border);padding:0.75rem 1rem;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+                        <span style="font-size:0.78rem;font-weight:700;color:var(--gold);">🎬 Video Script (clean TXT)</span>
+                        <button class="post-action-btn" onclick="window.appActions.copyInlineVideo(${index})" style="font-size:0.7rem;">📋 Copy Script</button>
+                    </div>
+                    <pre id="inline-video-txt-${index}" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:0.5rem;font-size:0.78rem;max-height:200px;overflow-y:auto;white-space:pre-wrap;color:var(--text-primary);line-height:1.5;">${isConfirmed ? escapeHtml(state.doneData[index]?.cleanVideoTXT || 'Loading...') : 'Will be generated on confirm...'}</pre>
+                    ${articleLink ? `
+                    <div style="margin-top:0.5rem;padding:0.4rem 0.6rem;background:rgba(0,191,165,0.05);border-radius:4px;border:1px solid rgba(0,191,165,0.1);display:flex;align-items:center;gap:0.5rem;">
+                        <span style="font-size:0.68rem;color:var(--neuro-teal);font-weight:600;">🔗 Source for Manus:</span>
+                        <span style="font-size:0.68rem;color:var(--text-secondary);flex:1;word-break:break-all;">${escapeHtml(articleLink)}</span>
+                        <button class="post-action-btn" onclick="navigator.clipboard.writeText('${escapeHtml(articleLink)}');window.showToast('Source URL copied!','success')" style="font-size:0.66rem;">📋</button>
+                    </div>` : ''}
                 </div>
             </div>
         `;
 
-        card.after(inlineDiv);
+        card.after(div);
     },
 
     toggleInlinePost(index) {
@@ -957,13 +1002,13 @@ window.appActions = {
         if (card) this.renderInlinePost(index, card);
     },
 
+    // Switch FB/IG tab (read-only view)
     switchInlinePlatform(index, platform) {
         const container = document.getElementById(`inline-post-content-${index}`);
         if (!container) return;
         const content = platform === 'ig' ? decodeURIComponent(container.dataset.ig) : decodeURIComponent(container.dataset.fb);
         container.textContent = content;
 
-        // Update tab styles
         const parent = container.parentElement;
         parent.querySelectorAll('.platform-tab').forEach(t => {
             const isActive = t.dataset.platform === platform;
@@ -972,20 +1017,164 @@ window.appActions = {
         });
     },
 
+    // Copy the full post content
     copyInlinePost(index) {
         const post = state.posts[index];
         if (post) { copyToClipboard(post.content); showToast('Post copied!', 'success'); }
     },
 
-    editInlinePost(index) {
-        // Jump to full posts view with this post ready to edit
-        renderPosts();
-        showContainer('posts-container');
-        setTimeout(() => {
-            const postCard = document.getElementById(`post-card-${index}`);
-            if (postCard) postCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            this.editPost(index);
-        }, 200);
+    // Edit: show textareas, hide read-only
+    inlineEdit(index) {
+        const readOnly = document.getElementById(`inline-post-content-${index}`);
+        const editArea = document.getElementById(`inline-edit-area-${index}`);
+        const editBtn = document.getElementById(`inline-edit-btn-${index}`);
+        const confirmBtn = document.getElementById(`inline-confirm-btn-${index}`);
+        const status = document.getElementById(`inline-status-${index}`);
+
+        if (readOnly) readOnly.style.display = 'none';
+        if (editArea) editArea.style.display = 'block';
+        if (editBtn) editBtn.style.display = 'none';
+        if (confirmBtn) confirmBtn.style.display = 'inline-flex';
+        if (status) { status.textContent = '✏️ Editing'; status.style.color = 'var(--gold)'; }
+
+        showToast('Edit both FB and IG versions, then click ✅ Confirm', 'info');
+    },
+
+    // Confirm: save edits → generate Email HTML + Video Script
+    async inlineConfirm(index) {
+        const editFB = document.getElementById(`inline-edit-fb-${index}`);
+        const editIG = document.getElementById(`inline-edit-ig-${index}`);
+        const readOnly = document.getElementById(`inline-post-content-${index}`);
+        const editArea = document.getElementById(`inline-edit-area-${index}`);
+        const editBtn = document.getElementById(`inline-edit-btn-${index}`);
+        const confirmBtn = document.getElementById(`inline-confirm-btn-${index}`);
+        const status = document.getElementById(`inline-status-${index}`);
+        const outputPanel = document.getElementById(`inline-output-${index}`);
+        const inlineDiv = document.getElementById(`inline-post-${index}`);
+
+        // Save the edited content
+        const fbText = editFB?.value || '';
+        const igText = editIG?.value || '';
+        const combined = `=== FACEBOOK POST ===\n\n${fbText}\n\n=== INSTAGRAM CAPTION ===\n\n${igText}`;
+        state.posts[index].content = combined;
+
+        // Update read-only view
+        if (readOnly) {
+            readOnly.textContent = fbText;
+            readOnly.dataset.fb = encodeURIComponent(fbText);
+            readOnly.dataset.ig = encodeURIComponent(igText);
+            readOnly.style.display = 'block';
+        }
+
+        // Hide edit, show generating state
+        if (editArea) editArea.style.display = 'none';
+        if (editBtn) editBtn.style.display = 'none';
+        if (confirmBtn) confirmBtn.style.display = 'none';
+        if (status) { status.textContent = '⏳ Generating...'; status.style.color = 'var(--neuro-teal)'; }
+        if (outputPanel) outputPanel.style.display = 'block';
+        if (inlineDiv) inlineDiv.style.borderLeft = '3px solid var(--neuro-teal)';
+
+        saveSession();
+
+        // Generate Email + Video in parallel
+        const post = state.posts[index];
+        const settings = loadSettings();
+        if (!settings.claudeApiKey) { showToast('Claude API key needed.', 'error'); return; }
+
+        const chemData = CHEM_DATA[post.pillar?.id] || { id: 'dopamine', icon: '🧪', name: 'Dopamine' };
+        const story = state.stories[index] || state.topics[index] || {};
+        const topic = post.topic?.headline || post.topic || state.topics[index]?.headline || 'Rider mental performance';
+
+        setStatus(`⏳ Generating email + video for story ${index + 1}...`, true);
+
+        const [emailResult, videoResult] = await Promise.allSettled([
+            (async () => {
+                const emailData = await generateEmail({
+                    postContent: fbText,
+                    topic: post.topic || state.topics[index],
+                    pillar: post.pillar,
+                    cta: post.cta,
+                    apiKey: settings.claudeApiKey
+                });
+                return { emailData, emailHTML: renderEmailHTML(emailData, post.pillar) };
+            })(),
+            (async () => {
+                return await generateVideoScript({
+                    topic,
+                    chemicalId: chemData.id,
+                    videoLength: '45-60s',
+                    platform: 'FB Reel + IG Reel',
+                    outputFormat: '9:16',
+                    apiKey: settings.claudeApiKey,
+                    sourceArticle: story.sourceArticle || story.source || '',
+                    articleUrl: story.articleUrl || story.sourceUrl || '',
+                    talkingPoints: story.talkingPoints || [],
+                    emotionalHook: story.emotionalHook || '',
+                    mechanism: story.mechanism || '',
+                    racingRelevance: story.racingRelevance || '',
+                    postContent: fbText
+                });
+            })()
+        ]);
+
+        // Handle Email
+        if (!state.doneData) state.doneData = {};
+        if (!state.doneData[index]) state.doneData[index] = {};
+        state.doneData[index].confirmed = true;
+
+        const emailCodeEl = document.getElementById(`inline-email-code-${index}`);
+        if (emailResult.status === 'fulfilled') {
+            const { emailData, emailHTML } = emailResult.value;
+            state.doneData[index].emailHTML = emailHTML;
+            state.doneData[index].emailData = emailData;
+            if (emailCodeEl) emailCodeEl.textContent = emailHTML;
+        } else {
+            if (emailCodeEl) emailCodeEl.textContent = `Error: ${emailResult.reason?.message || 'Failed'}`;
+        }
+
+        // Handle Video
+        const videoTxtEl = document.getElementById(`inline-video-txt-${index}`);
+        if (videoResult.status === 'fulfilled') {
+            const fullScript = videoResult.value;
+            const scriptMatch = fullScript.match(/=== VIDEO SCRIPT ===\s*([\s\S]*?)(?:=== SLIDE DECK|$)/i);
+            const rawNarration = (scriptMatch?.[1] || fullScript).trim();
+            const cleanTXT = rawNarration
+                .replace(/^(?:HOOK|SCENARIO|THE SCIENCE|THE COST|THE BRIDGE|CTA)\s*(?:\([^)]*\))?\s*:\s*/gim, '')
+                .replace(/\n{3,}/g, '\n\n')
+                .trim();
+
+            state.doneData[index].videoScript = fullScript;
+            state.doneData[index].cleanVideoTXT = cleanTXT;
+            if (videoTxtEl) videoTxtEl.textContent = cleanTXT;
+        } else {
+            if (videoTxtEl) videoTxtEl.textContent = `Error: ${videoResult.reason?.message || 'Failed'}`;
+        }
+
+        saveSession();
+        if (status) { status.textContent = '✅ Confirmed'; status.style.color = 'var(--green)'; }
+        setStatus('Ready');
+        showToast(`✅ Story ${index + 1} confirmed — email + video ready!`, 'success');
+    },
+
+    // Copy email HTML from inline panel
+    copyInlineEmail(index) {
+        const html = state.doneData?.[index]?.emailHTML;
+        if (html) { copyToClipboard(html); showToast('Email HTML copied — paste into GHL!', 'success'); }
+        else { showToast('Confirm the post first.', 'info'); }
+    },
+
+    // Preview email from inline panel
+    previewInlineEmail(index) {
+        const html = state.doneData?.[index]?.emailHTML;
+        if (html) { const w = window.open('', '_blank', 'width=640,height=800'); w.document.write(html); w.document.close(); }
+        else { showToast('Confirm the post first.', 'info'); }
+    },
+
+    // Copy clean video script from inline panel
+    copyInlineVideo(index) {
+        const txt = state.doneData?.[index]?.cleanVideoTXT;
+        if (txt) { copyToClipboard(txt); showToast('Clean video script copied — paste into HeyGen!', 'success'); }
+        else { showToast('Confirm the post first.', 'info'); }
     },
 
     async generateVideoForPost(index) {
