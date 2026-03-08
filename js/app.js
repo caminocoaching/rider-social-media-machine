@@ -403,35 +403,12 @@ function renderStoryCards() {
 
 // ─── Article Preview Popup ───────────────────────────────────────
 function openArticleModal(url, title) {
-    const existing = document.getElementById('article-modal');
-    if (existing) existing.remove();
-
     const decodedUrl = decodeURIComponent(url);
-    const decodedTitle = decodeURIComponent(title);
-
-    const modal = document.createElement('div');
-    modal.id = 'article-modal';
-    modal.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.85);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;';
-
-    modal.innerHTML = `
-        <div style="width:100%;max-width:900px;height:90vh;display:flex;flex-direction:column;background:var(--card, #0A1628);border-radius:12px;overflow:hidden;border:1px solid var(--border, #1E293B);">
-            <!-- Header -->
-            <div style="padding:0.75rem 1.25rem;background:rgba(0,191,165,0.08);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;flex-shrink:0;">
-                <span style="font-size:0.82rem;font-weight:700;color:var(--neuro-teal, #00BFA5);">📰 Source Article</span>
-                <span style="font-size:0.78rem;color:var(--text-secondary);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(decodedTitle)}</span>
-                <a href="${escapeHtml(decodedUrl)}" target="_blank" rel="noopener" style="font-size:0.72rem;color:var(--neuro-teal);text-decoration:none;white-space:nowrap;padding:0.3rem 0.6rem;background:rgba(0,191,165,0.1);border-radius:4px;border:1px solid rgba(0,191,165,0.2);">Open in new tab ↗</a>
-                <button onclick="document.getElementById('article-modal').remove()" style="background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;padding:0.2rem 0.5rem;">✕</button>
-            </div>
-            <!-- Article iframe -->
-            <iframe src="${escapeHtml(decodedUrl)}" style="flex:1;width:100%;border:none;background:#fff;" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
-        </div>
-    `;
-
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) modal.remove();
-    });
-
-    document.body.appendChild(modal);
+    // Open in a popup window — iframes get blocked by most news sites
+    const w = 900, h = 700;
+    const left = (screen.width - w) / 2;
+    const top = (screen.height - h) / 2;
+    window.open(decodedUrl, '_blank', `width=${w},height=${h},left=${left},top=${top},scrollbars=yes,resizable=yes`);
 }
 
 
