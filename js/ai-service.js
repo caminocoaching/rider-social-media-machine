@@ -297,17 +297,11 @@ RULES:
 - BANNED HEADLINE WORDS: Never use "unlock", "unleash", "inner genius", "secrets", "transform", "level up", "game-changer", "supercharge", "master your mindset", "hidden power"
 - No em dashes or en dashes in headlines. Use commas or colons instead.
 
-=== CRITICAL URL RULES (READ CAREFULLY) ===
+=== URL AND TITLE ACCURACY ===
 
-1. ARTICLE TITLE: The "sourceArticle" field MUST be the EXACT title as it appears on the source website. Do NOT rewrite, paraphrase, or invent titles. Copy word-for-word from the search result.
-
-2. ARTICLE URL: The "articleUrl" MUST be copied directly from the Google Search results you received. You searched the web — every article you found HAS a URL in the search results. Copy it exactly.
-
-3. NEVER FABRICATE URLs: Do NOT generate "simulated" or "plausible" URLs. Do NOT construct URLs based on "academic trends" or guess URL patterns. If you write a URL like "https://www.nature.com/articles/s41598-026-..." that you made up, that is WRONG. Only use URLs that appeared in your actual search results.
-
-4. NEVER write "(Simulated URL)" or similar disclaimers. Every URL must be a real, clickable link from your search.
-
-5. If you genuinely cannot find the URL for a specific article in your search results, set articleUrl to "" (empty string). Do NOT invent one.
+- Use the accurate article title from the source. Do not invent or heavily paraphrase titles.
+- Provide the real URL from your search results. Do not fabricate or simulate URLs.
+- If no URL is available for a story, use an empty string "" for articleUrl.
 
 Return a JSON array with 7 objects:
 [
@@ -751,6 +745,16 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
         const blockReason = data.candidates?.[0]?.finishReason;
         const safetyRatings = data.candidates?.[0]?.safetyRatings;
         console.error('[Gemini] No content. Finish reason:', blockReason, 'Safety:', safetyRatings);
+
+        // Auto-retry on RECITATION block (Gemini thinks response is too close to copyrighted text)
+        if (blockReason === 'RECITATION' && !prompt.includes('[RETRY]')) {
+            console.warn('[Gemini] RECITATION block — retrying with softer prompt...');
+            const retryPrompt = prompt.replace(/copy.*?word.for.word/gi, 'use the accurate title')
+                .replace(/EXACT/g, 'accurate')
+                .replace(/never fabricat/gi, 'do not fabricat') + '\n\n[RETRY] Summarise your findings in your own words. Do not quote large blocks of text from articles.';
+            return callGeminiWithSearch(retryPrompt, apiKey, parseJson);
+        }
+
         throw new Error(`No content from Gemini (reason: ${blockReason || 'unknown'}). Try again.`);
     }
 
