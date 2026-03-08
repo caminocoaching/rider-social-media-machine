@@ -18,7 +18,7 @@ import {
 import {
     generateTopics, generatePost, generatePosts, regeneratePost, generateImagePrompt,
     generateVideoScript, storeUsedArticles, storeUsedHooks,
-    generateEmail, renderEmailHTML, callClaude
+    generateEmail, renderEmailHTML, callClaude, callGeminiWithSearch
 } from './ai-service.js';
 
 import {
@@ -392,6 +392,9 @@ function renderStoryCards() {
           ${story.angle ? `<p class="story-angle">${escapeHtml(story.angle)}</p>` : ''}
         </div>
         <div class="story-card-actions">
+          <button class="story-generate-btn" onclick="window.appActions.regenerateStory(${i})" style="font-size:0.7rem;padding:0.3rem 0.6rem;background:none;border:1px solid var(--border);color:var(--text-muted);" title="Find a different story for this slot">
+            🔄 Swap
+          </button>
           <button class="story-generate-btn" onclick="window.appActions.generateStory(${i})">
             Generate →
           </button>
@@ -814,6 +817,101 @@ window.appActions = {
             showToast(`Email generated for post ${index + 1}!`, 'success');
         } catch (err) {
             showToast(`Email error: ${err.message}`, 'error');
+        } finally { setStatus('Ready'); }
+    },
+
+    // Regenerate a single story without affecting the rest
+    async regenerateStory(index) {
+        const settings = loadSettings();
+        if (!settings.geminiApiKey) { showToast('Gemini API key needed.', 'error'); return; }
+
+        const card = document.querySelector(`.story-card[data-index="${index}"]`);
+        if (card) {
+            card.querySelector('.story-card-actions').innerHTML = `
+                <span style="color:var(--neuro-teal);font-size:0.75rem;font-weight:600;">🔄 Finding new story...</span>
+            `;
+            card.style.opacity = '0.6';
+        }
+
+        const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        const daySlots = [
+            'Outside the Paddock — a fascinating story from tennis, rugby, cycling, Olympic sport, combat sport, neuroscience, or tech. NOT car racing. Must bridge back to motorcycle racing mental performance.',
+            'Client Transformation — a motorcycle racer comeback or breakthrough story.',
+            'Neuroscience Teach — brain science applied to riding a motorcycle on track.',
+            'Provocative Hook — ONE uncomfortable truth about racing psychology.',
+            'Timely Race Reaction — react to REAL recent MotoGP, WorldSBK, BSB, or MotoAmerica results.',
+            'Achievement/Tech Spotlight — performance technology, wearable tech, biometric studies connected to motorcycle racing.',
+            'Proof & Celebration — inspiring motorcycle racer wins, championship stats, or mental performance breakthroughs.'
+        ];
+
+        const existingHeadlines = state.stories.map(s => s.headline || s.topic || '').filter(Boolean);
+
+        setStatus(`🔄 Finding replacement story for ${dayNames[index]}...`, true);
+
+        try {
+            const prompt = `Search the web for 1 NEW story from the last 7-30 days for a motorcycle racing mental performance coach's social media.
+
+SLOT: ${dayNames[index]}: ${daySlots[index]}
+
+DO NOT use any of these stories (already in use):
+${existingHeadlines.map((h, i) => `- ${h}`).join('\n')}
+
+SEARCH SOURCES: MotoGP.com, WorldSBK.com, Crash.net, MCN, The Race, Motorsport.com, BSB.com, MotoAmerica.com, BBC Sport, Sky Sports, DC Rainmaker, Wareable.
+NO YOUTUBE — only written articles.
+NO CAR RACING.
+
+CRITICAL URL RULE: The "articleUrl" MUST be a real, working URL from the Google Search results you received. Do NOT invent URLs. If you cannot find one, set articleUrl to "".
+
+Return a JSON array with exactly 1 object:
+[{
+    "headline": "Compelling headline",
+    "sourceArticle": "Article title — Publication",
+    "articleUrl": "REAL URL from search results",
+    "talkingPoints": ["Point 1", "Point 2", "Point 3"],
+    "emotionalHook": "What should the rider feel?",
+    "mechanism": "Neuroscience mechanism",
+    "racingRelevance": "Connection to motorcycle racing",
+    "contentBrief": "Type of post"
+}]
+
+Return ONLY the JSON array.`;
+
+            const result = await callGeminiWithSearch(prompt, settings.geminiApiKey, true);
+            const newStory = Array.isArray(result) ? result[0] : result;
+
+            if (newStory) {
+                // Preserve the pillar/framework/cta from the old story
+                const oldStory = state.stories[index];
+                state.stories[index] = {
+                    ...newStory,
+                    pillar: oldStory.pillar,
+                    framework: oldStory.framework,
+                    cta: oldStory.cta,
+                    chemical: oldStory.chemical,
+                    postType: oldStory.postType,
+                    angle: newStory.emotionalHook || newStory.racingRelevance || ''
+                };
+
+                // Clear any generated post for this slot
+                if (state.posts[index]) state.posts[index] = null;
+                const inlinePost = document.getElementById(`inline-post-${index}`);
+                if (inlinePost) inlinePost.remove();
+
+                saveSession();
+                renderStoryCards();
+                showToast(`🔄 Story ${index + 1} swapped!`, 'success');
+            } else {
+                showToast('Could not find a replacement story. Try again.', 'error');
+            }
+        } catch (err) {
+            showToast(`Error: ${err.message}`, 'error');
+            if (card) {
+                card.style.opacity = '1';
+                card.querySelector('.story-card-actions').innerHTML = `
+                    <button class="story-generate-btn" onclick="window.appActions.regenerateStory(${index})" style="font-size:0.7rem;padding:0.3rem 0.6rem;background:none;border:1px solid var(--border);color:var(--text-muted);">🔄 Swap</button>
+                    <button class="story-generate-btn" onclick="window.appActions.generateStory(${index})">Generate →</button>
+                `;
+            }
         } finally { setStatus('Ready'); }
     },
 

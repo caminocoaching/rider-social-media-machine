@@ -278,6 +278,8 @@ RULES:
 - At least 2 stories should reference SPECIFIC real motorcycle riders or real race results
 - "Outside the paddock" stories must still bridge back to what a motorcycle racer experiences on track
 - NO YOUTUBE — do NOT use YouTube videos as sources. Only use written articles from news sites, blogs, and publications.
+- BANNED HEADLINE WORDS: Never use "unlock", "unleash", "inner genius", "secrets", "transform", "level up", "game-changer", "supercharge", "master your mindset", "hidden power". These are generic clickbait. Write headlines that a club racer would actually click on.
+- No em dashes or en dashes in headlines. Use commas or colons instead.
 
 CRITICAL URL RULE: The "articleUrl" MUST be a real, working URL from the Google Search results you received. Do NOT invent, guess, or fabricate any URL. If you cannot find a real URL for a story, set articleUrl to an empty string "".
 
@@ -657,7 +659,7 @@ export async function callClaude(prompt, apiKey, parseJson = true) {
 }
 
 // ─── Gemini API Call with Google Search Grounding — Research ────
-async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
+export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
     if (!apiKey) {
         throw new Error('Gemini API key not configured. Go to Settings to add your key.');
     }
