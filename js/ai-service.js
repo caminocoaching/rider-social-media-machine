@@ -736,10 +736,12 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
 
             // Fix article URLs — replace fake/redirect/YouTube URLs with real grounding URLs
             if (Array.isArray(parsed)) {
-                // First, filter YouTube out of grounding chunks
+                // Filter YouTube out of grounding chunks
                 const cleanChunks = groundingChunks.filter(gc =>
                     !gc.uri.includes('youtube.com') && !gc.uri.includes('youtu.be')
                 );
+                // Track which chunks have been used (prevent 2 stories sharing same URL)
+                const usedChunkIndices = new Set();
 
                 parsed = parsed.map((item, idx) => {
                     let url = item.articleUrl || '';
@@ -758,36 +760,65 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
                         }
                     }
 
-                    if (isFake || isYouTube || !isValidUrl) {
-                        // Try to match by domain name from source text
-                        const sourceText = (item.sourceArticle || '').toLowerCase();
-                        const headlineWords = (item.headline || '').toLowerCase().split(/\s+/).filter(w => w.length > 4);
+                    // If URL looks valid and real, keep it
+                    if (isValidUrl && !isFake && !isYouTube) return item;
 
-                        // Strategy 1: Match by publication domain in sourceArticle
-                        let match = cleanChunks.find(gc => {
-                            try {
-                                const domain = new URL(gc.uri).hostname.replace('www.', '').split('.')[0];
-                                return sourceText.includes(domain);
-                            } catch { return false; }
-                        });
+                    // Need to find a URL from grounding chunks
+                    const sourceText = (item.sourceArticle || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
+                    const headlineText = (item.headline || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
+                    const sourceWords = sourceText.split(/\s+/).filter(w => w.length > 3);
+                    const headlineWords = headlineText.split(/\s+/).filter(w => w.length > 3);
 
-                        // Strategy 2: Match by title keywords (at least 2 significant words match)
-                        if (!match) {
-                            match = cleanChunks.find(gc => {
-                                const chunkTitle = gc.title.toLowerCase();
-                                const matchCount = headlineWords.filter(w => chunkTitle.includes(w)).length;
-                                return matchCount >= 2;
-                            });
+                    let bestMatch = null;
+                    let bestScore = 0;
+
+                    cleanChunks.forEach((gc, ci) => {
+                        if (usedChunkIndices.has(ci)) return;
+                        let score = 0;
+                        try {
+                            const hostname = new URL(gc.uri).hostname.replace('www.', '');
+                            const domain = hostname.split('.')[0]; // e.g. "cyclingweekly"
+                            const chunkTitle = (gc.title || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
+                            const chunkWords = chunkTitle.split(/\s+/).filter(w => w.length > 3);
+                            const urlPath = new URL(gc.uri).pathname.toLowerCase();
+
+                            // Strategy 1: Full domain name in sourceArticle (e.g. "motogp" in "MotoGP.com")
+                            if (sourceText.includes(domain)) score += 10;
+
+                            // Strategy 2: Domain contained within sourceArticle words (e.g. "cycling" and "weekly" both in source)
+                            if (domain.length > 6) {
+                                const domainParts = domain.match(/.{3,}/g) || [];
+                                const partMatches = domainParts.filter(p => sourceText.includes(p)).length;
+                                if (partMatches > 0) score += partMatches * 3;
+                            }
+
+                            // Strategy 3: Source article title words matching chunk title
+                            const sourceTitleOverlap = sourceWords.filter(w => chunkWords.includes(w)).length;
+                            score += sourceTitleOverlap * 2;
+
+                            // Strategy 4: Headline words matching chunk title
+                            const headlineTitleOverlap = headlineWords.filter(w => chunkWords.includes(w)).length;
+                            score += headlineTitleOverlap * 1.5;
+
+                            // Strategy 5: Headline words in URL path
+                            const pathOverlap = headlineWords.filter(w => urlPath.includes(w)).length;
+                            score += pathOverlap * 1;
+
+                        } catch { /* skip malformed URLs */ }
+
+                        if (score > bestScore) {
+                            bestScore = score;
+                            bestMatch = { gc, ci };
                         }
+                    });
 
-                        if (match) {
-                            console.log(`[Gemini] Matched story ${idx + 1} "${item.sourceArticle}" → ${match.uri}`);
-                            item.articleUrl = match.uri;
-                        } else {
-                            // No match found — leave empty. Better no link than a wrong link.
-                            console.log(`[Gemini] No URL match for story ${idx + 1} "${item.sourceArticle}" — leaving empty`);
-                            item.articleUrl = '';
-                        }
+                    if (bestMatch && bestScore >= 3) {
+                        console.log(`[Gemini] Matched story ${idx + 1} (score:${bestScore}) "${item.sourceArticle}" → ${bestMatch.gc.uri}`);
+                        item.articleUrl = bestMatch.gc.uri;
+                        usedChunkIndices.add(bestMatch.ci);
+                    } else {
+                        console.log(`[Gemini] No confident match for story ${idx + 1} "${item.sourceArticle}" (best score: ${bestScore}) — leaving empty`);
+                        item.articleUrl = '';
                     }
 
                     return item;
