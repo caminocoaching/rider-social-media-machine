@@ -602,7 +602,7 @@ function buildDeduplicationContext() {
 }
 
 // ─── Claude API Call (Anthropic) — Content Writing ──────────────────
-async function callClaude(prompt, apiKey, parseJson = true) {
+export async function callClaude(prompt, apiKey, parseJson = true) {
     if (!apiKey) {
         throw new Error('Claude API key not configured. Go to Settings to add your key.');
     }

@@ -18,7 +18,7 @@ import {
 import {
     generateTopics, generatePost, generatePosts, regeneratePost, generateImagePrompt,
     generateVideoScript, storeUsedArticles, storeUsedHooks,
-    generateEmail, renderEmailHTML
+    generateEmail, renderEmailHTML, callClaude
 } from './ai-service.js';
 
 import {
