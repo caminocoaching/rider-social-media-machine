@@ -17,7 +17,7 @@ import {
 
 import {
     generateTopics, generatePost, generatePosts, regeneratePost, generateImagePrompt,
-    generateVideoScript, storeUsedArticles, storeUsedHooks,
+    generateVideoScript, generateShortsScript, storeUsedArticles, storeUsedHooks,
     generateEmail, renderEmailHTML, callClaude, callGeminiWithSearch
 } from './ai-service.js';
 
@@ -642,12 +642,16 @@ function renderPosts() {
             </div>
           </div>
 
-          <!-- ⚡ SHORTS SCRIPT PANEL -->
+          <!-- ⚡ SHORTS SCRIPT PANEL (30s Playbook) -->
           <div style="padding:1rem 1.25rem;border-top:1px solid var(--border);background:rgba(255,107,107,0.04);">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
-              <span style="font-weight:700;font-size:0.82rem;color:#FF6B6B;">⚡ Shorts Script (sub-30s)</span>
-              <button class="post-action-btn" onclick="window.appActions.copyShortsTXT && window.appActions.copyShortsTXT(${i})" style="font-size:0.72rem;color:#FF6B6B;">📋 Copy Shorts</button>
+              <span style="font-weight:700;font-size:0.82rem;color:#FF6B6B;">⚡ Shorts Script (30s Playbook)</span>
+              <div style="display:flex;gap:0.35rem;">
+                <button class="post-action-btn" onclick="window.appActions.copyShortsTXT && window.appActions.copyShortsTXT(${i})" style="font-size:0.72rem;color:#FF6B6B;">📋 Copy Script</button>
+                <button class="post-action-btn" onclick="window.appActions.copyShortsBrief && window.appActions.copyShortsBrief(${i})" style="font-size:0.72rem;color:var(--text-muted);">📊 Full Brief</button>
+              </div>
             </div>
+            <div style="font-size:0.6rem;color:var(--text-muted);margin-bottom:0.35rem;">4 slides · 75-85 words · Loop-engineered · 1.5s hook window</div>
             <div style="background:rgba(255,107,107,0.06);border:1px solid rgba(255,107,107,0.15);border-radius:6px;padding:0.75rem;max-height:150px;overflow-y:auto;">
               <pre id="shorts-txt-${i}" style="white-space:pre-wrap;font-size:0.78rem;line-height:1.6;color:var(--text-primary);font-family:var(--font);margin:0;">${isConfirmed ? escapeHtml(state.doneData[i]?.shortsTXT || 'Loading...') : 'Generating shorts script...'}</pre>
             </div>
@@ -777,7 +781,7 @@ window.appActions = {
 
         setStatus(`⏳ Generating email + video for post ${index + 1}...`, true);
 
-        const [emailResult, videoResult] = await Promise.allSettled([
+        const [emailResult, videoResult, shortsResult] = await Promise.allSettled([
             // Email HTML
             (async () => {
                 const emailData = await generateEmail({
@@ -789,7 +793,7 @@ window.appActions = {
                 });
                 return { emailData, emailHTML: renderEmailHTML(emailData, post.pillar) };
             })(),
-            // Video Script
+            // Video Script (45-60s)
             (async () => {
                 const script = await generateVideoScript({
                     topic,
@@ -807,6 +811,21 @@ window.appActions = {
                     postContent: fbText
                 });
                 return script;
+            })(),
+            // Shorts Script (30s — Playbook-compliant)
+            (async () => {
+                return await generateShortsScript({
+                    topic,
+                    chemicalId: chemData.id,
+                    sourceArticle: story.sourceArticle || story.source || '',
+                    articleUrl: story.articleUrl || story.sourceUrl || '',
+                    mechanism: story.mechanism || '',
+                    racingRelevance: story.racingRelevance || '',
+                    killerDataPoint: story.killerDataPoint || '',
+                    talkingPoints: story.talkingPoints || [],
+                    postContent: fbText,
+                    apiKey: settings.claudeApiKey
+                });
             })()
         ]);
 
@@ -843,10 +862,31 @@ window.appActions = {
             if (videoTxtEl) videoTxtEl.textContent = `Error: ${videoResult.reason?.message || 'Failed'}`;
         }
 
+        // Handle Shorts
+        const shortsTxtEl = document.getElementById(`shorts-txt-${index}`);
+        if (shortsResult.status === 'fulfilled') {
+            const fullShorts = shortsResult.value;
+            // Extract just the narration from the structured output
+            const shortsScriptMatch = fullShorts.match(/=== SHORTS SCRIPT[^=]*===\s*([\s\S]*?)(?:=== SHORTS SLIDE|$)/i);
+            const rawShorts = (shortsScriptMatch?.[1] || fullShorts).trim();
+            const cleanShorts = rawShorts
+                .replace(/^(?:HOOK|THE INSIGHT|THE PROOF|CTA)\s*(?:\([^)]*\))?\s*(?:\|\s*Slide\s*\d+\s*)?:\s*/gim, '')
+                .replace(/\n{3,}/g, '\n\n')
+                .trim();
+
+            if (!state.doneData) state.doneData = {};
+            if (!state.doneData[index]) state.doneData[index] = {};
+            state.doneData[index].shortsScript = fullShorts;
+            state.doneData[index].shortsTXT = cleanShorts;
+            if (shortsTxtEl) shortsTxtEl.textContent = cleanShorts;
+        } else {
+            if (shortsTxtEl) shortsTxtEl.textContent = `Error: ${shortsResult.reason?.message || 'Failed'}`;
+        }
+
         // Final state
         if (postStatus) { postStatus.textContent = '✅ Confirmed'; postStatus.style.color = 'var(--green, #2EA043)'; }
         setStatus('Ready');
-        showToast(`✅ Post ${index + 1} confirmed — email + video ready!`, 'success');
+        showToast(`✅ Post ${index + 1} confirmed — email + video + shorts ready!`, 'success');
     },
 
     // Copy email HTML
@@ -868,6 +908,20 @@ window.appActions = {
         const txt = state.doneData?.[index]?.cleanVideoTXT;
         if (txt) { copyToClipboard(txt); showToast('Clean video script copied — paste into HeyGen!', 'success'); }
         else { showToast('Confirm the post first to generate the video script.', 'info'); }
+    },
+
+    // Copy clean shorts narration (ready for HeyGen)
+    copyShortsTXT(index) {
+        const txt = state.doneData?.[index]?.shortsTXT;
+        if (txt) { copyToClipboard(txt); showToast('Shorts script copied — paste into HeyGen!', 'success'); }
+        else { showToast('Confirm the post first to generate the shorts script.', 'info'); }
+    },
+
+    // Copy full shorts brief (includes Manus slide deck brief + loop engineering)
+    copyShortsBrief(index) {
+        const full = state.doneData?.[index]?.shortsScript;
+        if (full) { copyToClipboard(full); showToast('Full shorts brief copied — includes Manus slides!', 'success'); }
+        else { showToast('Confirm the post first.', 'info'); }
     },
 
     switchPlatform(index, platform) {
@@ -1329,28 +1383,20 @@ Return ONLY the JSON array.`;
                     postContent: captionText
                 });
             })(),
-            // Shorts script (sub-30s)
+            // Shorts script (30s — Playbook-compliant)
             (async () => {
-                return await callClaude(`Write a sub-30 second SHORT-FORM video script for Craig Muirhead / Camino Coaching. This is a punchy, fast-paced vertical reel for Facebook and Instagram.
-
-TOPIC: ${topic}
-${story.sourceArticle ? `SOURCE: ${story.sourceArticle}` : ''}
-${story.mechanism ? `MECHANISM: ${story.mechanism}` : ''}
-
-STRUCTURE (must fit under 30 seconds when spoken aloud):
-1. HOOK (3-5 seconds): One shocking line that stops the scroll. Stat, question, or provocative statement.
-2. REVEAL (10-15 seconds): The ONE key insight. No fluff. Motorcycle-specific language.
-3. CTA (5 seconds): "Comment MINDSET below" or direct engagement prompt.
-
-RULES:
-- Under 80 words total (must be speakable in under 30 seconds)
-- Motorcycle racing language: rider, corner, apex, braking zone, the bike, track, session
-- UK English spelling
-- No section labels or timings in the output
-- Just the clean narration text, ready to paste into HeyGen
-- WOW not HOW: reveal the problem, never the fix
-
-Return ONLY the clean script text, no headers.`, settings.claudeApiKey, false);
+                return await generateShortsScript({
+                    topic,
+                    chemicalId: chemData.id,
+                    sourceArticle: story.sourceArticle || story.source || '',
+                    articleUrl: story.articleUrl || story.sourceUrl || '',
+                    mechanism: story.mechanism || '',
+                    racingRelevance: story.racingRelevance || '',
+                    killerDataPoint: story.killerDataPoint || '',
+                    talkingPoints: story.talkingPoints || [],
+                    postContent: captionText,
+                    apiKey: settings.claudeApiKey
+                });
             })()
         ]);
 
@@ -1388,12 +1434,20 @@ Return ONLY the clean script text, no headers.`, settings.claudeApiKey, false);
             if (videoTxtEl) videoTxtEl.textContent = `Error: ${videoResult.reason?.message || 'Failed'}`;
         }
 
-        // Shorts (sub-30s)
+        // Shorts (30s — Playbook-compliant)
         const shortsTxtEl = document.getElementById(`inline-shorts-txt-${index}`);
         if (shortsResult.status === 'fulfilled') {
-            const shortsText = shortsResult.value.trim();
-            state.doneData[index].shortsTXT = shortsText;
-            if (shortsTxtEl) shortsTxtEl.textContent = shortsText;
+            const fullShorts = shortsResult.value;
+            const shortsScriptMatch = fullShorts.match(/=== SHORTS SCRIPT[^=]*===\s*([\s\S]*?)(?:=== SHORTS SLIDE|$)/i);
+            const rawShorts = (shortsScriptMatch?.[1] || fullShorts).trim();
+            const cleanShorts = rawShorts
+                .replace(/^(?:HOOK|THE INSIGHT|THE PROOF|CTA)\s*(?:\([^)]*\))?\s*(?:\|\s*Slide\s*\d+\s*)?:\s*/gim, '')
+                .replace(/\n{3,}/g, '\n\n')
+                .trim();
+
+            state.doneData[index].shortsScript = fullShorts;
+            state.doneData[index].shortsTXT = cleanShorts;
+            if (shortsTxtEl) shortsTxtEl.textContent = cleanShorts;
         } else {
             if (shortsTxtEl) shortsTxtEl.textContent = `Error: ${shortsResult.reason?.message || 'Failed'}`;
         }

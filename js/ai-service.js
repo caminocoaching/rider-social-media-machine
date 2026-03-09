@@ -579,6 +579,102 @@ Slide 8 — End Card (Optional): [Camino Coaching logo. Review count.]
     return await callClaude(prompt, apiKey, false);
 }
 
+
+// ─── Generate 30-Second Shorts Script (Playbook-Compliant) ────────
+// Follows the Camino Coaching 30-Second Shorts Playbook exactly:
+// 4 slides, 75-85 words, 1.5s hook window, loop-engineered, one idea only.
+export async function generateShortsScript({ topic, chemicalId, sourceArticle = '', articleUrl = '', mechanism = '', racingRelevance = '', killerDataPoint = '', talkingPoints = [], postContent = '', apiKey }) {
+
+    const chemContext = buildVideoScriptContext(chemicalId, topic);
+
+    const prompt = `You are Craig Muirhead's SHORT-FORM video strategist. Write a 30-SECOND Shorts script for YouTube Shorts + Instagram Reels + Facebook Reels.
+
+=== THE 30-SECOND SHORTS PLAYBOOK (FOLLOW EXACTLY) ===
+
+RULE 1 — YOU HAVE 1.5 SECONDS, NOT 3:
+The first frame and first spoken word must create a reason to stay before the viewer's thumb finishes its scroll motion. Voice starts at 0.0 seconds. No intro. No greeting. No "in this video." The hook text (Slide 1) must be readable in under 1 second: 5-7 words maximum.
+
+RULE 2 — TEXT ON SCREEN IS MANDATORY:
+Over 60% watch sound-off. Every word spoken must appear as burned-in captions. Two layers: the slide content (key point/data) + captions of narration.
+
+RULE 3 — ONE IDEA PER VIDEO:
+A 30-second Short holds exactly ONE idea. Not two. Not "one idea with a bonus tip." One. Compress to 4 slides and 3 sections.
+
+RULE 4 — SLIDE CHANGES EVERY 3-5 SECONDS:
+4 slides in 30 seconds. Each on screen 5-8 seconds. Add visual micro-changes within slides where possible.
+
+RULE 5 — DESIGN FOR THE LOOP:
+End with a statement that connects back to the opening. The viewer's brain loops back. This is the most powerful algorithm signal.
+
+RULE 6 — CTA MUST BE EFFORTLESS:
+"Comment MINDSET for the free quiz." Six words. That is the entire CTA. No explaining the quiz. No sales pitch.
+
+=== SOURCE MATERIAL ===
+TOPIC: ${typeof topic === 'string' ? topic : topic?.headline || topic}
+${sourceArticle ? `ARTICLE: ${sourceArticle}` : ''}
+${articleUrl ? `URL: ${articleUrl}` : ''}
+${mechanism ? `BRAIN CHEMICAL: ${mechanism}` : ''}
+${killerDataPoint ? `KILLER DATA POINT: "${killerDataPoint}"` : ''}
+${racingRelevance ? `RACING RELEVANCE: ${racingRelevance}` : ''}
+${talkingPoints.length > 0 ? `KEY POINTS: ${talkingPoints.join(' | ')}` : ''}
+${postContent ? `RELATED POST (for angle — do NOT copy):\n${postContent.substring(0, 400)}` : ''}
+
+${chemContext}
+
+=== HOOK FORMULAS (pick ONE) ===
+- The Shock Stat: "63% of crashes happen within 3 laps of a personal best."
+- The Impossible Claim: "Your brain makes you brake 5 metres earlier and you don't even know it."
+- The Named Authority: "Simone Biles said her therapist was as crucial as her coach."
+- The Direct Challenge: "You've never trained the 75% of performance that happens in your head."
+- The Specific Question: "Where are your eyes 0.3 seconds before you hit the braking marker?"
+
+=== WHAT KILLS THE HOOK (NEVER DO THESE) ===
+- Any introduction or greeting
+- "In this video I'm going to talk about..."
+- Logo animations or brand intros
+- Starting with context instead of the payoff
+- Generic statements like "Mental performance matters"
+
+=== OUTPUT FORMAT ===
+Generate TWO things: the clean narration script AND the 4-slide Manus brief.
+
+=== SHORTS SCRIPT (30 SECONDS) ===
+HOOK (0-5s) | Slide 1:
+[One sentence. Maximum 12 words spoken. 5-7 words on screen. Voice starts at 0.0 seconds. No pause. No intro.]
+
+THE INSIGHT (5-18s) | Slide 2:
+[The article reference + the chemical explanation. 3-4 sentences maximum. Approximately 35-40 words. Name the source. Name the chemical. One sentence explaining why it matters to the rider.]
+
+THE PROOF (18-25s) | Slide 3:
+[One data point from Craig's debrief data OR from the article. 1-2 sentences. Approximately 15-20 words. Big number on screen.]
+
+CTA (25-30s) | Slide 4:
+[One sentence. 6-8 words maximum. "Comment MINDSET for the free quiz."]
+
+=== SHORTS SLIDE BRIEF (FOR MANUS — 4 SLIDES ONLY) ===
+Slide 1 — Hook: [5-7 words. Bold. Text already visible on first frame. No fade-in.]
+Slide 2 — The Insight: [Chemical name in teal/amber. One line describing the finding. Background: dark with racing imagery.]
+Slide 3 — The Proof: [One big number or stat. Large text. Teal accent.]
+Slide 4 — CTA: ["Comment MINDSET" in teal. Small: "Free Rider Mindset Quiz." Dark background for smooth loop.]
+
+=== LOOP ENGINEERING ===
+[One sentence explaining how the ending connects back to the opening to trigger replay.]
+
+RULES:
+- TOTAL WORD COUNT: 75-85 words for the narration. No more. Read it aloud and time it.
+- UK English spelling (colour, analyse, programme, tyre, favourite)
+- Motorcycle language: rider, corner, apex, lean angle, braking zone, turn-in, throttle, session, FP1, qualifying, grid, paddock, the bike
+- NEVER use car racing language
+- Numbers written in full text for voice (e.g., "six hundred and ninety nine" not "699")
+- WOW not HOW: reveal the chemical and what it does, NEVER the fix
+- Warm, direct, confident tone — paddock insider talking to a mate
+- Audio pacing: FAST for hook (0-5s), SLOWER for insight (5-18s), DIRECT for CTA (25-30s)
+
+Return the full formatted output with both sections.`;
+
+    return await callClaude(prompt, apiKey, false);
+}
+
 // ─── Content Deduplication Storage ────────────────────────────────────────
 const DEDUP_ARTICLES_KEY = 'rider-social-media-used-articles';
 const DEDUP_HOOKS_KEY = 'rider-social-media-used-hooks';
