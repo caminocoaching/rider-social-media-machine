@@ -27,6 +27,8 @@ import {
     getChemical, buildVideoScriptContext, buildWowHowInstruction
 } from './neurochemistry.js';
 
+import { addLogEntry } from './settings.js';
+
 // ─── Master System Prompt (Motorcycle Racers FB/IG) ──────────
 // Source: AI_Content_Engine_Rider_Audience.docx — Data-Driven Operational Brief
 const SYSTEM_PROMPT = `You are Craig Muirhead's Facebook & Instagram content strategist. You generate daily social media posts for motorcycle racers that deliver genuine value and include an unrelated CTA to one of the lead magnets.
@@ -728,6 +730,9 @@ export async function callClaude(prompt, apiKey, parseJson = true) {
         throw new Error('Claude API key not configured. Go to Settings to add your key.');
     }
 
+    const promptPreview = prompt.substring(0, 120).replace(/\n/g, ' ');
+    addLogEntry('api', `Claude → ${parseJson ? 'JSON' : 'text'} | ${promptPreview}...`);
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -747,13 +752,20 @@ export async function callClaude(prompt, apiKey, parseJson = true) {
 
     if (!response.ok) {
         const error = await response.json().catch(() => ({}));
-        throw new Error(error.error?.message || `Claude API error: ${response.status}`);
+        const errMsg = error.error?.message || `Claude API error: ${response.status}`;
+        addLogEntry('error', `Claude API ${response.status}: ${errMsg}`);
+        throw new Error(errMsg);
     }
 
     const data = await response.json();
     const content = data.content?.[0]?.text?.trim();
+    const tokensIn = data.usage?.input_tokens || '?';
+    const tokensOut = data.usage?.output_tokens || '?';
+
+    addLogEntry('success', `Claude ✓ ${tokensIn}→${tokensOut} tokens | model: claude-sonnet-4`);
 
     if (!content) {
+        addLogEntry('error', 'Claude returned empty content');
         throw new Error('No content returned from Claude API.');
     }
 
@@ -770,6 +782,7 @@ export async function callClaude(prompt, apiKey, parseJson = true) {
             // Try raw parse
             return JSON.parse(content);
         } catch (e) {
+            addLogEntry('error', 'Claude JSON parse failed', content.substring(0, 500));
             throw new Error('Failed to parse Claude response as JSON. Please try again.');
         }
     }
@@ -784,6 +797,9 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
     }
 
     const dedupPrompt = prompt + buildDeduplicationContext();
+
+    const promptPreview = prompt.substring(0, 120).replace(/\n/g, ' ');
+    addLogEntry('api', `Gemini → search grounding | ${promptPreview}...`);
 
     const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
@@ -803,7 +819,9 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
 
     if (!response.ok) {
         const error = await response.json().catch(() => ({}));
-        throw new Error(error.error?.message || `Gemini API error: ${response.status}`);
+        const errMsg = error.error?.message || `Gemini API error: ${response.status}`;
+        addLogEntry('error', `Gemini API ${response.status}: ${errMsg}`);
+        throw new Error(errMsg);
     }
 
     const data = await response.json();
@@ -830,6 +848,7 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
         }
         console.log('[Gemini] Grounding chunks found:', groundingChunks.length);
         groundingChunks.forEach((c, i) => console.log(`  [${i}] ${c.uri} — "${c.title}"`));
+        addLogEntry('success', `Gemini ✓ ${groundingChunks.length} grounding sources found`);
     } catch (e) {
         console.warn('[Gemini] Error reading grounding metadata:', e);
     }

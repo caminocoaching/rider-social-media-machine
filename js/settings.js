@@ -1,9 +1,115 @@
 // ═══════════════════════════════════════════════════════════════
 // 🏍️ MOTORCYCLE RACER SOCIAL MEDIA MACHINE — Settings Manager
-// LocalStorage persistence for API keys, preferences
+// LocalStorage persistence for API keys, preferences + Activity Log
 // ═══════════════════════════════════════════════════════════════
 
 const STORAGE_KEY = 'rider-social-media-machine-settings';
+const LOG_KEY = 'rider-social-media-machine-log';
+const MAX_LOG_ENTRIES = 200;
+
+// ─── Activity Log System ──────────────────────────────────────
+const LOG_LEVELS = {
+  info: { icon: 'ℹ️', color: '#58A6FF', bg: 'rgba(88,166,255,0.08)' },
+  success: { icon: '✅', color: '#2EA043', bg: 'rgba(46,160,67,0.08)' },
+  warn: { icon: '⚠️', color: '#DAA520', bg: 'rgba(218,165,32,0.08)' },
+  error: { icon: '❌', color: '#FF6B6B', bg: 'rgba(255,107,107,0.08)' },
+  api: { icon: '🔌', color: '#00BFA5', bg: 'rgba(0,191,165,0.08)' }
+};
+
+function getLogEntries() {
+  try { return JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); }
+  catch { return []; }
+}
+
+function saveLogEntries(entries) {
+  try { localStorage.setItem(LOG_KEY, JSON.stringify(entries.slice(-MAX_LOG_ENTRIES))); }
+  catch { /* storage full — silently fail */ }
+}
+
+export function addLogEntry(level, message, details = null) {
+  const entries = getLogEntries();
+  entries.push({
+    ts: new Date().toISOString(),
+    level,
+    message: String(message).substring(0, 500),
+    details: details ? String(details).substring(0, 2000) : null
+  });
+  saveLogEntries(entries);
+  // Live-update the log panel if visible
+  const logList = document.getElementById('activity-log-list');
+  if (logList) renderLogEntries(logList);
+}
+
+export function clearLog() {
+  localStorage.removeItem(LOG_KEY);
+  const logList = document.getElementById('activity-log-list');
+  if (logList) renderLogEntries(logList);
+}
+
+function renderLogEntries(container) {
+  const entries = getLogEntries();
+  if (entries.length === 0) {
+    container.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:0.8rem;">No log entries yet. Activity will appear here as you use the app.</div>`;
+    return;
+  }
+  // Show newest first
+  container.innerHTML = entries.slice().reverse().map((entry, i) => {
+    const lvl = LOG_LEVELS[entry.level] || LOG_LEVELS.info;
+    const time = new Date(entry.ts);
+    const timeStr = time.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const dateStr = time.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+    return `<div style="padding:0.45rem 0.65rem;background:${lvl.bg};border-left:3px solid ${lvl.color};border-radius:0 4px 4px 0;display:flex;gap:0.5rem;align-items:flex-start;font-size:0.72rem;${i > 0 ? 'margin-top:0.3rem;' : ''}">
+      <span style="flex-shrink:0;">${lvl.icon}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;justify-content:space-between;gap:0.5rem;">
+          <span style="color:${lvl.color};font-weight:600;text-transform:uppercase;font-size:0.6rem;letter-spacing:0.5px;">${entry.level}</span>
+          <span style="color:var(--text-muted);font-size:0.6rem;white-space:nowrap;">${dateStr} ${timeStr}</span>
+        </div>
+        <div style="color:var(--text-primary);margin-top:0.15rem;word-break:break-word;">${escapeLogHtml(entry.message)}</div>
+        ${entry.details ? `<details style="margin-top:0.25rem;"><summary style="cursor:pointer;color:var(--text-muted);font-size:0.65rem;">Details</summary><pre style="margin-top:0.25rem;padding:0.4rem;background:rgba(0,0,0,0.3);border-radius:4px;font-size:0.65rem;color:var(--text-secondary);white-space:pre-wrap;word-break:break-all;max-height:150px;overflow-y:auto;">${escapeLogHtml(entry.details)}</pre></details>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function escapeLogHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ─── Global Error Interceptors ────────────────────────────────
+// Capture console.error and console.warn
+const _originalError = console.error;
+const _originalWarn = console.warn;
+
+console.error = function (...args) {
+  _originalError.apply(console, args);
+  const message = args.map(a => (a instanceof Error) ? a.message : String(a)).join(' ');
+  const details = args.find(a => a instanceof Error)?.stack || null;
+  addLogEntry('error', message, details);
+};
+
+console.warn = function (...args) {
+  _originalWarn.apply(console, args);
+  const message = args.map(a => String(a)).join(' ');
+  addLogEntry('warn', message);
+};
+
+// Capture unhandled errors
+window.addEventListener('error', (event) => {
+  addLogEntry('error', `Unhandled: ${event.message}`, `${event.filename}:${event.lineno}:${event.colno}\n${event.error?.stack || ''}`);
+});
+
+// Capture unhandled promise rejections
+window.addEventListener('unhandledrejection', (event) => {
+  const reason = event.reason;
+  const message = reason instanceof Error ? reason.message : String(reason);
+  const details = reason instanceof Error ? reason.stack : null;
+  addLogEntry('error', `Promise rejection: ${message}`, details);
+});
+
+// Log app startup
+addLogEntry('info', 'App loaded — Rider Social Media Machine');
+
 
 const DEFAULT_SETTINGS = {
   geminiApiKey: '',
@@ -345,6 +451,32 @@ export function renderSettingsPage() {
       </div>
     </div>
 
+    <!-- Activity Log Panel -->
+    <div class="settings-card full-width" style="margin-top:1.5rem;">
+      <div class="settings-card-header" style="display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <span class="settings-icon">📋</span>
+          <h2>Activity Log</h2>
+          <span id="log-count" style="font-size:0.65rem;padding:0.15rem 0.5rem;background:rgba(88,166,255,0.1);color:#58A6FF;border-radius:10px;font-weight:600;"></span>
+        </div>
+        <div style="display:flex;gap:0.35rem;">
+          <button class="btn-sm" id="log-copy-btn" style="font-size:0.68rem;cursor:pointer;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text-secondary);padding:0.3rem 0.6rem;border-radius:5px;">📋 Copy</button>
+          <button class="btn-sm" id="log-export-btn" style="font-size:0.68rem;cursor:pointer;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text-secondary);padding:0.3rem 0.6rem;border-radius:5px;">💾 Export</button>
+          <button class="btn-sm" id="log-clear-btn" style="font-size:0.68rem;cursor:pointer;background:rgba(255,107,107,0.08);border:1px solid rgba(255,107,107,0.2);color:#FF6B6B;padding:0.3rem 0.6rem;border-radius:5px;">🗑️ Clear</button>
+        </div>
+      </div>
+      <div class="settings-card-body">
+        <div style="display:flex;gap:0.35rem;margin-bottom:0.5rem;flex-wrap:wrap;">
+          <button class="log-filter-btn active" data-filter="all" style="font-size:0.62rem;padding:0.2rem 0.5rem;border-radius:4px;cursor:pointer;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:var(--text-secondary);">All</button>
+          <button class="log-filter-btn" data-filter="error" style="font-size:0.62rem;padding:0.2rem 0.5rem;border-radius:4px;cursor:pointer;background:rgba(255,107,107,0.08);border:1px solid rgba(255,107,107,0.2);color:#FF6B6B;">❌ Errors</button>
+          <button class="log-filter-btn" data-filter="warn" style="font-size:0.62rem;padding:0.2rem 0.5rem;border-radius:4px;cursor:pointer;background:rgba(218,165,32,0.08);border:1px solid rgba(218,165,32,0.2);color:#DAA520;">⚠️ Warnings</button>
+          <button class="log-filter-btn" data-filter="api" style="font-size:0.62rem;padding:0.2rem 0.5rem;border-radius:4px;cursor:pointer;background:rgba(0,191,165,0.08);border:1px solid rgba(0,191,165,0.2);color:#00BFA5;">🔌 API</button>
+          <button class="log-filter-btn" data-filter="success" style="font-size:0.62rem;padding:0.2rem 0.5rem;border-radius:4px;cursor:pointer;background:rgba(46,160,67,0.08);border:1px solid rgba(46,160,67,0.2);color:#2EA043;">✅ Success</button>
+        </div>
+        <div id="activity-log-list" style="max-height:400px;overflow-y:auto;border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:0.5rem;background:#0D1117;"></div>
+      </div>
+    </div>
+
     <div class="settings-actions">
       <button class="btn btn-primary btn-lg" id="save-settings-btn">
         <span class="btn-icon-left">💾</span> Save Settings
@@ -427,6 +559,84 @@ function attachSettingsListeners(settings) {
   document.querySelectorAll('.remove-group').forEach(btn => {
     btn.addEventListener('click', () => {
       btn.closest('.group-item').remove();
+    });
+  });
+
+  // ─── Activity Log Listeners ───────────────────────────────────
+  const logList = document.getElementById('activity-log-list');
+  if (logList) {
+    renderLogEntries(logList);
+    const entries = getLogEntries();
+    const countEl = document.getElementById('log-count');
+    if (countEl) {
+      const errorCount = entries.filter(e => e.level === 'error').length;
+      countEl.textContent = errorCount > 0 ? `${entries.length} entries · ${errorCount} errors` : `${entries.length} entries`;
+      if (errorCount > 0) { countEl.style.background = 'rgba(255,107,107,0.15)'; countEl.style.color = '#FF6B6B'; }
+    }
+  }
+
+  document.getElementById('log-clear-btn')?.addEventListener('click', () => {
+    if (!confirm('Clear all log entries?')) return;
+    clearLog();
+    const countEl = document.getElementById('log-count');
+    if (countEl) { countEl.textContent = '0 entries'; countEl.style.background = 'rgba(88,166,255,0.1)'; countEl.style.color = '#58A6FF'; }
+    showToast('Activity log cleared', 'success');
+  });
+
+  document.getElementById('log-copy-btn')?.addEventListener('click', () => {
+    const entries = getLogEntries();
+    const text = entries.map(e => {
+      const t = new Date(e.ts).toLocaleString('en-GB');
+      return `[${t}] [${e.level.toUpperCase()}] ${e.message}${e.details ? '\n  → ' + e.details.split('\n')[0] : ''}`;
+    }).join('\n');
+    navigator.clipboard.writeText(text).then(() => showToast('Log copied to clipboard', 'success'));
+  });
+
+  document.getElementById('log-export-btn')?.addEventListener('click', () => {
+    const entries = getLogEntries();
+    const text = entries.map(e => {
+      const t = new Date(e.ts).toLocaleString('en-GB');
+      return `[${t}] [${e.level.toUpperCase()}] ${e.message}${e.details ? '\n  Details: ' + e.details : ''}`;
+    }).join('\n\n');
+    const blob = new Blob([text], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `rider-smm-log-${new Date().toISOString().slice(0, 10)}.txt`;
+    a.click();
+    showToast('Log exported as .txt file', 'success');
+  });
+
+  // Filter buttons
+  document.querySelectorAll('.log-filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.log-filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      const logList = document.getElementById('activity-log-list');
+      if (!logList) return;
+      const entries = getLogEntries();
+      const filtered = filter === 'all' ? entries : entries.filter(e => e.level === filter);
+      if (filtered.length === 0) {
+        logList.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:0.8rem;">No ${filter} entries found.</div>`;
+        return;
+      }
+      logList.innerHTML = filtered.slice().reverse().map((entry, i) => {
+        const lvl = LOG_LEVELS[entry.level] || LOG_LEVELS.info;
+        const time = new Date(entry.ts);
+        const timeStr = time.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const dateStr = time.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+        return `<div style="padding:0.45rem 0.65rem;background:${lvl.bg};border-left:3px solid ${lvl.color};border-radius:0 4px 4px 0;display:flex;gap:0.5rem;align-items:flex-start;font-size:0.72rem;${i > 0 ? 'margin-top:0.3rem;' : ''}">
+          <span style="flex-shrink:0;">${lvl.icon}</span>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;justify-content:space-between;gap:0.5rem;">
+              <span style="color:${lvl.color};font-weight:600;text-transform:uppercase;font-size:0.6rem;letter-spacing:0.5px;">${entry.level}</span>
+              <span style="color:var(--text-muted);font-size:0.6rem;white-space:nowrap;">${dateStr} ${timeStr}</span>
+            </div>
+            <div style="color:var(--text-primary);margin-top:0.15rem;word-break:break-word;">${escapeLogHtml(entry.message)}</div>
+            ${entry.details ? `<details style="margin-top:0.25rem;"><summary style="cursor:pointer;color:var(--text-muted);font-size:0.65rem;">Details</summary><pre style="margin-top:0.25rem;padding:0.4rem;background:rgba(0,0,0,0.3);border-radius:4px;font-size:0.65rem;color:var(--text-secondary);white-space:pre-wrap;word-break:break-all;max-height:150px;overflow-y:auto;">${escapeLogHtml(entry.details)}</pre></details>` : ''}
+          </div>
+        </div>`;
+      }).join('');
     });
   });
 }
