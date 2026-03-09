@@ -1011,7 +1011,7 @@ OUTPUT FORMAT (return as JSON):
   "problem": "The problem/neuroscience angle (2-3 sentences, include a data point or stat)",
   "bridge": "The 'what if' bridge — teases the solution without giving it away (1-2 sentences)",
   "ctaText": "CTA button text (max 5 words, action-oriented)",
-  "ctaUrl": "${cta?.url || 'https://improve-rider.scoreapp.com'}",
+  "ctaUrl": "${cta?.url || 'https://caminocoaching.co.uk/rider-mindset'}",
   "signoff": "Short sign-off line before the name (1 sentence, personal)"
 }
 
@@ -1036,7 +1036,7 @@ export function renderEmailHTML(emailData, pillar) {
         problem = '',
         bridge = '',
         ctaText = 'Take the Free Review',
-        ctaUrl = 'https://improve-rider.scoreapp.com',
+        ctaUrl = 'https://caminocoaching.co.uk/rider-mindset',
         signoff = 'Speak soon'
     } = emailData;
 
