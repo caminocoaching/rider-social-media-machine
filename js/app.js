@@ -162,6 +162,99 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// ─── Parse Video Script into Slide Sections ───────────────────
+// Parses 45-60s video script into { label, timing, content } per slide
+function parseVideoSlides(rawScript) {
+    if (!rawScript) return [];
+
+    // Extract just the narration section
+    const scriptMatch = rawScript.match(/=== VIDEO SCRIPT ===\s*([\s\S]*?)(?:=== SLIDE DECK|$)/i);
+    const narration = (scriptMatch?.[1] || rawScript).trim();
+
+    const slidePatterns = [
+        { label: 'Hook', icon: '🎯', timing: '0-5s', slide: 1, regex: /(?:^|\n)\s*HOOK\s*(?:\([^)]*\))?\s*:\s*([\s\S]*?)(?=\n\s*(?:SCENARIO|THE SCIENCE|THE COST|THE BRIDGE|CTA)\s*(?:\(|:)|$)/i },
+        { label: 'Scenario', icon: '🎬', timing: '5-15s', slide: 2, regex: /(?:^|\n)\s*SCENARIO\s*(?:\([^)]*\))?\s*:\s*([\s\S]*?)(?=\n\s*(?:THE SCIENCE|THE COST|THE BRIDGE|CTA)\s*(?:\(|:)|$)/i },
+        { label: 'The Science', icon: '🧪', timing: '15-35s', slide: 3, regex: /(?:^|\n)\s*THE SCIENCE\s*(?:\([^)]*\))?\s*:\s*([\s\S]*?)(?=\n\s*(?:THE COST|THE BRIDGE|CTA)\s*(?:\(|:)|$)/i },
+        { label: 'The Cost', icon: '📊', timing: '35-45s', slide: 4, regex: /(?:^|\n)\s*THE COST\s*(?:\([^)]*\))?\s*:\s*([\s\S]*?)(?=\n\s*(?:THE BRIDGE|CTA)\s*(?:\(|:)|$)/i },
+        { label: 'The Bridge', icon: '🌉', timing: '45-55s', slide: 5, regex: /(?:^|\n)\s*THE BRIDGE\s*(?:\([^)]*\))?\s*:\s*([\s\S]*?)(?=\n\s*CTA\s*(?:\(|:)|$)/i },
+        { label: 'CTA', icon: '📢', timing: '55-60s', slide: 6, regex: /(?:^|\n)\s*CTA\s*(?:\([^)]*\))?\s*:\s*([\s\S]*?)$/i }
+    ];
+
+    const slides = [];
+    for (const p of slidePatterns) {
+        const match = narration.match(p.regex);
+        if (match && match[1]?.trim()) {
+            slides.push({
+                label: p.label,
+                icon: p.icon,
+                timing: p.timing,
+                slide: p.slide,
+                content: match[1].replace(/^\[|\]$/g, '').trim()
+            });
+        }
+    }
+
+    return slides;
+}
+
+// Parse 30s Shorts script into slide sections
+function parseShortsSlides(rawScript) {
+    if (!rawScript) return [];
+
+    const scriptMatch = rawScript.match(/=== SHORTS SCRIPT[^=]*===\s*([\s\S]*?)(?:=== SHORTS SLIDE|$)/i);
+    const narration = (scriptMatch?.[1] || rawScript).trim();
+
+    const slidePatterns = [
+        { label: 'Hook', icon: '🎯', timing: '0-5s', slide: 1, regex: /(?:^|\n)\s*HOOK\s*(?:\([^)]*\))?\s*(?:\|\s*Slide\s*\d+\s*)?\s*:\s*([\s\S]*?)(?=\n\s*(?:THE INSIGHT|THE PROOF|CTA)\s*(?:\(|\|)|$)/i },
+        { label: 'The Insight', icon: '🧪', timing: '5-18s', slide: 2, regex: /(?:^|\n)\s*THE INSIGHT\s*(?:\([^)]*\))?\s*(?:\|\s*Slide\s*\d+\s*)?\s*:\s*([\s\S]*?)(?=\n\s*(?:THE PROOF|CTA)\s*(?:\(|\|)|$)/i },
+        { label: 'The Proof', icon: '📊', timing: '18-25s', slide: 3, regex: /(?:^|\n)\s*THE PROOF\s*(?:\([^)]*\))?\s*(?:\|\s*Slide\s*\d+\s*)?\s*:\s*([\s\S]*?)(?=\n\s*CTA\s*(?:\(|\|)|$)/i },
+        { label: 'CTA', icon: '📢', timing: '25-30s', slide: 4, regex: /(?:^|\n)\s*CTA\s*(?:\([^)]*\))?\s*(?:\|\s*Slide\s*\d+\s*)?\s*:\s*([\s\S]*?)$/i }
+    ];
+
+    const slides = [];
+    for (const p of slidePatterns) {
+        const match = narration.match(p.regex);
+        if (match && match[1]?.trim()) {
+            // Strip "On screen:" and "Voice:" prefixes, keep just the voice text
+            let content = match[1].trim();
+            const voiceMatch = content.match(/Voice:\s*([\s\S]*?)(?=\n\s*On screen:|$)/i);
+            if (voiceMatch) {
+                content = voiceMatch[1].trim();
+            } else {
+                content = content.replace(/^On screen:.*$/gim, '').replace(/^Voice:\s*/gim, '').trim();
+            }
+            slides.push({
+                label: p.label,
+                icon: p.icon,
+                timing: p.timing,
+                slide: p.slide,
+                content: content.replace(/^\[|\]$/g, '').trim()
+            });
+        }
+    }
+
+    return slides;
+}
+
+// Render slide boxes with individual copy buttons
+function renderSlideBoxes(slides, idPrefix, accentColor = '#00BFA5') {
+    if (!slides || slides.length === 0) return '<div style="color:var(--text-muted);font-size:0.75rem;padding:0.5rem;">Parsing slides...</div>';
+
+    return slides.map(s => `
+        <div class="slide-box" style="margin-bottom:0.5rem;border:1px solid ${accentColor}22;border-radius:6px;overflow:hidden;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:0.3rem 0.6rem;background:${accentColor}0D;">
+                <div style="display:flex;align-items:center;gap:0.35rem;">
+                    <span style="font-size:0.7rem;">${s.icon}</span>
+                    <span style="font-size:0.68rem;font-weight:700;color:${accentColor};">Slide ${s.slide}: ${s.label}</span>
+                    <span style="font-size:0.55rem;padding:0.1rem 0.35rem;background:${accentColor}15;color:${accentColor};border-radius:3px;font-weight:600;">${s.timing}</span>
+                </div>
+                <button class="post-action-btn" onclick="navigator.clipboard.writeText(this.closest('.slide-box').querySelector('.slide-content').textContent.trim());window.showToast('Slide ${s.slide} copied!','success');" style="font-size:0.62rem;color:${accentColor};padding:0.15rem 0.4rem;">📋 Copy</button>
+            </div>
+            <div class="slide-content" style="padding:0.5rem 0.6rem;font-size:0.78rem;line-height:1.55;color:var(--text-primary);white-space:pre-wrap;background:rgba(0,0,0,0.15);cursor:text;user-select:all;">${escapeHtml(s.content)}</div>
+        </div>
+    `).join('');
+}
+
 
 // ─── Toast System ─────────────────────────────────────────────
 function showToast(message, type = 'info') {
@@ -176,6 +269,7 @@ function showToast(message, type = 'info') {
         setTimeout(() => toast.remove(), 300);
     }, 4000);
 }
+window.showToast = showToast;
 
 
 // ─── Navigation (2 modes + settings) ──────────────────────────
@@ -631,30 +725,30 @@ function renderPosts() {
             </div>
           </div>
 
-          <!-- 🎬 CLEAN VIDEO SCRIPT PANEL -->
+          <!-- 🎬 VIDEO SCRIPT — SLIDE BY SLIDE -->
           <div style="padding:1rem 1.25rem;border-top:1px solid var(--border);background:rgba(0,191,165,0.04);">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
-              <span style="font-weight:700;font-size:0.82rem;color:var(--neuro-teal, #00BFA5);">🎬 Video Script (45-60s)</span>
-              <button class="post-action-btn" onclick="window.appActions.copyVideoTXT(${i})" style="font-size:0.72rem;color:var(--neuro-teal);">📋 Copy Script</button>
+              <span style="font-weight:700;font-size:0.82rem;color:var(--neuro-teal, #00BFA5);">🎬 Video Script (45-60s) — Per Slide</span>
+              <div style="display:flex;gap:0.35rem;">
+                <button class="post-action-btn" onclick="window.appActions.copyVideoTXT(${i})" style="font-size:0.72rem;color:var(--neuro-teal);">📋 Copy All</button>
+                <button class="post-action-btn" onclick="window.appActions.copyFullVideoScript && window.appActions.copyFullVideoScript(${i})" style="font-size:0.72rem;color:var(--text-muted);">📊 Full Brief</button>
+              </div>
             </div>
-            <div style="background:rgba(0,191,165,0.06);border:1px solid rgba(0,191,165,0.15);border-radius:6px;padding:0.75rem;max-height:200px;overflow-y:auto;">
-              <pre id="video-txt-${i}" style="white-space:pre-wrap;font-size:0.78rem;line-height:1.6;color:var(--text-primary);font-family:var(--font);margin:0;">${isConfirmed ? escapeHtml(state.doneData[i]?.cleanVideoTXT || 'Loading...') : 'Generating video script...'}</pre>
-            </div>
+            <div style="font-size:0.6rem;color:var(--text-muted);margin-bottom:0.4rem;">6 slides · Copy each slide individually for HeyGen narration</div>
+            <div id="video-slides-${i}">${isConfirmed && state.doneData[i]?.videoSlides ? renderSlideBoxes(state.doneData[i].videoSlides, `vs-${i}`, '#00BFA5') : '<div style="color:var(--text-muted);font-size:0.75rem;padding:0.5rem;">Generating video script...</div>'}</div>
           </div>
 
-          <!-- ⚡ SHORTS SCRIPT PANEL (30s Playbook) -->
+          <!-- ⚡ SHORTS SCRIPT — SLIDE BY SLIDE (30s Playbook) -->
           <div style="padding:1rem 1.25rem;border-top:1px solid var(--border);background:rgba(255,107,107,0.04);">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
-              <span style="font-weight:700;font-size:0.82rem;color:#FF6B6B;">⚡ Shorts Script (30s Playbook)</span>
+              <span style="font-weight:700;font-size:0.82rem;color:#FF6B6B;">⚡ Shorts Script (30s Playbook) — Per Slide</span>
               <div style="display:flex;gap:0.35rem;">
-                <button class="post-action-btn" onclick="window.appActions.copyShortsTXT && window.appActions.copyShortsTXT(${i})" style="font-size:0.72rem;color:#FF6B6B;">📋 Copy Script</button>
+                <button class="post-action-btn" onclick="window.appActions.copyShortsTXT && window.appActions.copyShortsTXT(${i})" style="font-size:0.72rem;color:#FF6B6B;">📋 Copy All</button>
                 <button class="post-action-btn" onclick="window.appActions.copyShortsBrief && window.appActions.copyShortsBrief(${i})" style="font-size:0.72rem;color:var(--text-muted);">📊 Full Brief</button>
               </div>
             </div>
-            <div style="font-size:0.6rem;color:var(--text-muted);margin-bottom:0.35rem;">4 slides · 75-85 words · Loop-engineered · 1.5s hook window</div>
-            <div style="background:rgba(255,107,107,0.06);border:1px solid rgba(255,107,107,0.15);border-radius:6px;padding:0.75rem;max-height:150px;overflow-y:auto;">
-              <pre id="shorts-txt-${i}" style="white-space:pre-wrap;font-size:0.78rem;line-height:1.6;color:var(--text-primary);font-family:var(--font);margin:0;">${isConfirmed ? escapeHtml(state.doneData[i]?.shortsTXT || 'Loading...') : 'Generating shorts script...'}</pre>
-            </div>
+            <div style="font-size:0.6rem;color:var(--text-muted);margin-bottom:0.4rem;">4 slides · 75-85 words · Loop-engineered · 1.5s hook window</div>
+            <div id="shorts-slides-${i}">${isConfirmed && state.doneData[i]?.shortsSlides ? renderSlideBoxes(state.doneData[i].shortsSlides, `ss-${i}`, '#FF6B6B') : '<div style="color:var(--text-muted);font-size:0.75rem;padding:0.5rem;">Generating shorts script...</div>'}</div>
           </div>
 
           <!-- 🚀 LAUNCH LINKS -->
@@ -842,8 +936,8 @@ window.appActions = {
             if (emailCodeEl) emailCodeEl.textContent = `Error: ${emailResult.reason?.message || 'Failed'}`;
         }
 
-        // Handle Video
-        const videoTxtEl = document.getElementById(`video-txt-${index}`);
+        // Handle Video — parse into slides
+        const videoSlidesEl = document.getElementById(`video-slides-${index}`);
         if (videoResult.status === 'fulfilled') {
             const fullScript = videoResult.value;
             const scriptMatch = fullScript.match(/=== VIDEO SCRIPT ===\s*([\s\S]*?)(?:=== SLIDE DECK|$)/i);
@@ -857,16 +951,19 @@ window.appActions = {
             if (!state.doneData[index]) state.doneData[index] = {};
             state.doneData[index].videoScript = fullScript;
             state.doneData[index].cleanVideoTXT = cleanTXT;
-            if (videoTxtEl) videoTxtEl.textContent = cleanTXT;
+
+            // Parse into individual slides
+            const videoSlides = parseVideoSlides(fullScript);
+            state.doneData[index].videoSlides = videoSlides;
+            if (videoSlidesEl) videoSlidesEl.innerHTML = renderSlideBoxes(videoSlides, `vs-${index}`, '#00BFA5');
         } else {
-            if (videoTxtEl) videoTxtEl.textContent = `Error: ${videoResult.reason?.message || 'Failed'}`;
+            if (videoSlidesEl) videoSlidesEl.innerHTML = `<div style="color:#FF6B6B;font-size:0.75rem;padding:0.5rem;">Error: ${videoResult.reason?.message || 'Failed'}</div>`;
         }
 
-        // Handle Shorts
-        const shortsTxtEl = document.getElementById(`shorts-txt-${index}`);
+        // Handle Shorts — parse into slides
+        const shortsSlidesEl = document.getElementById(`shorts-slides-${index}`);
         if (shortsResult.status === 'fulfilled') {
             const fullShorts = shortsResult.value;
-            // Extract just the narration from the structured output
             const shortsScriptMatch = fullShorts.match(/=== SHORTS SCRIPT[^=]*===\s*([\s\S]*?)(?:=== SHORTS SLIDE|$)/i);
             const rawShorts = (shortsScriptMatch?.[1] || fullShorts).trim();
             const cleanShorts = rawShorts
@@ -878,9 +975,13 @@ window.appActions = {
             if (!state.doneData[index]) state.doneData[index] = {};
             state.doneData[index].shortsScript = fullShorts;
             state.doneData[index].shortsTXT = cleanShorts;
-            if (shortsTxtEl) shortsTxtEl.textContent = cleanShorts;
+
+            // Parse into individual slides
+            const shortsSlides = parseShortsSlides(fullShorts);
+            state.doneData[index].shortsSlides = shortsSlides;
+            if (shortsSlidesEl) shortsSlidesEl.innerHTML = renderSlideBoxes(shortsSlides, `ss-${index}`, '#FF6B6B');
         } else {
-            if (shortsTxtEl) shortsTxtEl.textContent = `Error: ${shortsResult.reason?.message || 'Failed'}`;
+            if (shortsSlidesEl) shortsSlidesEl.innerHTML = `<div style="color:#FF6B6B;font-size:0.75rem;padding:0.5rem;">Error: ${shortsResult.reason?.message || 'Failed'}</div>`;
         }
 
         // Final state
@@ -921,6 +1022,13 @@ window.appActions = {
     copyShortsBrief(index) {
         const full = state.doneData?.[index]?.shortsScript;
         if (full) { copyToClipboard(full); showToast('Full shorts brief copied — includes Manus slides!', 'success'); }
+        else { showToast('Confirm the post first.', 'info'); }
+    },
+
+    // Copy full video script (includes Manus slide deck brief + HeyGen notes)
+    copyFullVideoScript(index) {
+        const full = state.doneData?.[index]?.videoScript;
+        if (full) { copyToClipboard(full); showToast('Full video brief copied — includes Manus slides + HeyGen notes!', 'success'); }
         else { showToast('Confirm the post first.', 'info'); }
     },
 
@@ -1227,22 +1335,30 @@ Return ONLY the JSON array.`;
                     <pre id="inline-email-code-${index}" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:0.5rem;font-size:0.7rem;max-height:150px;overflow-y:auto;white-space:pre-wrap;color:var(--text-secondary);">${isConfirmed ? escapeHtml(state.doneData[index]?.emailHTML || 'Loading...') : 'Generating on confirm...'}</pre>
                 </div>
 
-                <!-- Video Script (45-60s) -->
+                <!-- Video Script (45-60s) — Per Slide -->
                 <div style="border-top:1px solid var(--border);padding:0.75rem 1rem;">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
-                        <span style="font-size:0.78rem;font-weight:700;color:var(--gold);">🎬 Video Script (45-60s)</span>
-                        <button class="post-action-btn" onclick="window.appActions.copyInlineVideo(${index})" style="font-size:0.7rem;">📋 Copy Script</button>
+                        <span style="font-size:0.78rem;font-weight:700;color:var(--gold);">🎬 Video Script (45-60s) — Per Slide</span>
+                        <div style="display:flex;gap:0.3rem;">
+                            <button class="post-action-btn" onclick="window.appActions.copyInlineVideo(${index})" style="font-size:0.7rem;">📋 Copy All</button>
+                            <button class="post-action-btn" onclick="window.appActions.copyFullVideoScript && window.appActions.copyFullVideoScript(${index})" style="font-size:0.65rem;color:var(--text-muted);">📊 Brief</button>
+                        </div>
                     </div>
-                    <pre id="inline-video-txt-${index}" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:0.5rem;font-size:0.78rem;max-height:200px;overflow-y:auto;white-space:pre-wrap;color:var(--text-primary);line-height:1.5;">${isConfirmed ? escapeHtml(state.doneData[index]?.cleanVideoTXT || 'Loading...') : 'Generating on confirm...'}</pre>
+                    <div style="font-size:0.58rem;color:var(--text-muted);margin-bottom:0.4rem;">6 slides · Copy each slide for HeyGen narration</div>
+                    <div id="inline-video-slides-${index}">${isConfirmed && state.doneData[index]?.videoSlides ? renderSlideBoxes(state.doneData[index].videoSlides, `ivs-${index}`, '#DAA520') : '<div style="color:var(--text-muted);font-size:0.75rem;padding:0.5rem;">Generating on confirm...</div>'}</div>
                 </div>
 
-                <!-- Shorts Script (sub-30s) -->
+                <!-- Shorts Script (30s Playbook) — Per Slide -->
                 <div style="border-top:1px solid var(--border);padding:0.75rem 1rem;">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
-                        <span style="font-size:0.78rem;font-weight:700;color:#FF6B6B;">⚡ Shorts Script (sub-30s)</span>
-                        <button class="post-action-btn" onclick="window.appActions.copyInlineShorts(${index})" style="font-size:0.7rem;">📋 Copy Shorts</button>
+                        <span style="font-size:0.78rem;font-weight:700;color:#FF6B6B;">⚡ Shorts (30s Playbook) — Per Slide</span>
+                        <div style="display:flex;gap:0.3rem;">
+                            <button class="post-action-btn" onclick="window.appActions.copyInlineShorts(${index})" style="font-size:0.7rem;">📋 Copy All</button>
+                            <button class="post-action-btn" onclick="window.appActions.copyShortsBrief && window.appActions.copyShortsBrief(${index})" style="font-size:0.65rem;color:var(--text-muted);">📊 Brief</button>
+                        </div>
                     </div>
-                    <pre id="inline-shorts-txt-${index}" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:0.5rem;font-size:0.78rem;max-height:150px;overflow-y:auto;white-space:pre-wrap;color:var(--text-primary);line-height:1.5;">${isConfirmed ? escapeHtml(state.doneData[index]?.shortsTXT || 'Loading...') : 'Generating on confirm...'}</pre>
+                    <div style="font-size:0.58rem;color:var(--text-muted);margin-bottom:0.4rem;">4 slides · 75-85 words · Loop-engineered</div>
+                    <div id="inline-shorts-slides-${index}">${isConfirmed && state.doneData[index]?.shortsSlides ? renderSlideBoxes(state.doneData[index].shortsSlides, `iss-${index}`, '#FF6B6B') : '<div style="color:var(--text-muted);font-size:0.75rem;padding:0.5rem;">Generating on confirm...</div>'}</div>
                 </div>
 
                 <!-- Quick Launch Links -->
@@ -1416,8 +1532,8 @@ Return ONLY the JSON array.`;
             if (emailCodeEl) emailCodeEl.textContent = `Error: ${emailResult.reason?.message || 'Failed'}`;
         }
 
-        // Video (45-60s)
-        const videoTxtEl = document.getElementById(`inline-video-txt-${index}`);
+        // Video (45-60s) — parse into slides
+        const videoSlidesEl = document.getElementById(`inline-video-slides-${index}`);
         if (videoResult.status === 'fulfilled') {
             const fullScript = videoResult.value;
             const scriptMatch = fullScript.match(/=== VIDEO SCRIPT ===\s*([\s\S]*?)(?:=== SLIDE DECK|$)/i);
@@ -1429,13 +1545,16 @@ Return ONLY the JSON array.`;
 
             state.doneData[index].videoScript = fullScript;
             state.doneData[index].cleanVideoTXT = cleanTXT;
-            if (videoTxtEl) videoTxtEl.textContent = cleanTXT;
+
+            const videoSlides = parseVideoSlides(fullScript);
+            state.doneData[index].videoSlides = videoSlides;
+            if (videoSlidesEl) videoSlidesEl.innerHTML = renderSlideBoxes(videoSlides, `ivs-${index}`, '#DAA520');
         } else {
-            if (videoTxtEl) videoTxtEl.textContent = `Error: ${videoResult.reason?.message || 'Failed'}`;
+            if (videoSlidesEl) videoSlidesEl.innerHTML = `<div style="color:#FF6B6B;font-size:0.75rem;">Error: ${videoResult.reason?.message || 'Failed'}</div>`;
         }
 
-        // Shorts (30s — Playbook-compliant)
-        const shortsTxtEl = document.getElementById(`inline-shorts-txt-${index}`);
+        // Shorts (30s) — parse into slides
+        const shortsSlidesEl = document.getElementById(`inline-shorts-slides-${index}`);
         if (shortsResult.status === 'fulfilled') {
             const fullShorts = shortsResult.value;
             const shortsScriptMatch = fullShorts.match(/=== SHORTS SCRIPT[^=]*===\s*([\s\S]*?)(?:=== SHORTS SLIDE|$)/i);
@@ -1447,9 +1566,12 @@ Return ONLY the JSON array.`;
 
             state.doneData[index].shortsScript = fullShorts;
             state.doneData[index].shortsTXT = cleanShorts;
-            if (shortsTxtEl) shortsTxtEl.textContent = cleanShorts;
+
+            const shortsSlides = parseShortsSlides(fullShorts);
+            state.doneData[index].shortsSlides = shortsSlides;
+            if (shortsSlidesEl) shortsSlidesEl.innerHTML = renderSlideBoxes(shortsSlides, `iss-${index}`, '#FF6B6B');
         } else {
-            if (shortsTxtEl) shortsTxtEl.textContent = `Error: ${shortsResult.reason?.message || 'Failed'}`;
+            if (shortsSlidesEl) shortsSlidesEl.innerHTML = `<div style="color:#FF6B6B;font-size:0.75rem;">Error: ${shortsResult.reason?.message || 'Failed'}</div>`;
         }
 
         saveSession();
