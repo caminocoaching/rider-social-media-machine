@@ -660,6 +660,7 @@ function renderPosts() {
               <a href="https://manus.im/app/project/9SDGQdQC5wMtzPWss5vc4K" target="_blank" rel="noopener" style="font-size:0.72rem;padding:0.25rem 0.6rem;background:rgba(0,191,165,0.12);color:var(--neuro-teal);border:1px solid rgba(0,191,165,0.3);border-radius:5px;text-decoration:none;font-weight:700;">🎨 Manus Slides</a>
               <a href="https://app.heygen.com/avatar/ppt-to-video" target="_blank" rel="noopener" style="font-size:0.72rem;padding:0.25rem 0.6rem;background:rgba(218,165,32,0.12);color:var(--gold);border:1px solid rgba(218,165,32,0.3);border-radius:5px;text-decoration:none;font-weight:700;">🎬 HeyGen Video</a>
               <a href="https://app.gohighlevel.com/v2/location/vdgR8teGuIgHPMPzbQkK/marketing/social-planner" target="_blank" rel="noopener" style="font-size:0.72rem;padding:0.25rem 0.6rem;background:rgba(46,160,67,0.12);color:var(--green);border:1px solid rgba(46,160,67,0.3);border-radius:5px;text-decoration:none;font-weight:700;">📱 GHL Planner</a>
+              <a href="https://app.usegoplus.com/location/C03hMrgoj4FLALDMqpWr/emails/create/69ae8a72a971f31b0e6df1c3/builder" target="_blank" rel="noopener" style="font-size:0.72rem;padding:0.25rem 0.6rem;background:rgba(139,92,246,0.12);color:#8B5CF6;border:1px solid rgba(139,92,246,0.3);border-radius:5px;text-decoration:none;font-weight:700;">📧 GHL Email</a>
             </div>
           </div>
 
@@ -1197,6 +1198,7 @@ Return ONLY the JSON array.`;
                         <a href="https://manus.im" target="_blank" rel="noopener" style="font-size:0.68rem;padding:0.2rem 0.5rem;background:rgba(0,191,165,0.1);color:var(--neuro-teal);border:1px solid rgba(0,191,165,0.25);border-radius:4px;text-decoration:none;font-weight:600;" title="Create slide deck in Manus">🎨 Manus</a>
                         <a href="https://app.heygen.com/avatar/ppt-to-video" target="_blank" rel="noopener" style="font-size:0.68rem;padding:0.2rem 0.5rem;background:rgba(218,165,32,0.1);color:var(--gold);border:1px solid rgba(218,165,32,0.25);border-radius:4px;text-decoration:none;font-weight:600;" title="Upload slides + script to HeyGen">🎬 HeyGen</a>
                         <a href="https://app.gohighlevel.com/v2/location/vdgR8teGuIgHPMPzbQkK/marketing/social-planner" target="_blank" rel="noopener" style="font-size:0.68rem;padding:0.2rem 0.5rem;background:rgba(46,160,67,0.1);color:var(--green);border:1px solid rgba(46,160,67,0.25);border-radius:4px;text-decoration:none;font-weight:600;" title="Schedule in GHL Social Planner">📱 GHL Planner</a>
+                        <a href="https://app.usegoplus.com/location/C03hMrgoj4FLALDMqpWr/emails/create/69ae8a72a971f31b0e6df1c3/builder" target="_blank" rel="noopener" style="font-size:0.68rem;padding:0.2rem 0.5rem;background:rgba(139,92,246,0.1);color:#8B5CF6;border:1px solid rgba(139,92,246,0.25);border-radius:4px;text-decoration:none;font-weight:600;" title="Build email in GHL">📧 GHL Email</a>
                     </div>
                 </div>
 
