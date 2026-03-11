@@ -958,13 +958,27 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
         throw new Error(`No content from Gemini (reason: ${blockReason || 'unknown'}). Try again.`);
     }
 
+    // Log finishReason for debugging truncation
+    const finishReason = data.candidates?.[0]?.finishReason;
+    if (finishReason && finishReason !== 'STOP') {
+        console.warn(`[Gemini] ⚠️ finishReason: ${finishReason} (response may be truncated)`);
+        addLogEntry('warn', `Gemini finishReason: ${finishReason} — response may be incomplete`);
+    }
+
     if (parseJson) {
         try {
             // Pre-clean: strip grounding-api-redirect URLs from raw JSON text before parsing
-            // These are useless to us and waste tokens, causing truncation
+            // Phase 1: Complete redirect URLs (with closing quote)
             content = content.replace(/"articleUrl"\s*:\s*"https?:\/\/vertexaisearch\.cloud\.google\.com\/grounding-api-redirect\/[^"]*"/g,
                 '"articleUrl": ""');
             content = content.replace(/"articleUrl"\s*:\s*"https?:\/\/[^"]*googleapis\.com[^"]*"/g,
+                '"articleUrl": ""');
+
+            // Phase 2: TRUNCATED redirect URLs (no closing quote — response was cut off mid-URL)
+            // This catches the exact bug: Gemini's response ends mid-URL, no closing ", regex fails
+            content = content.replace(/"articleUrl"\s*:\s*"https?:\/\/vertexaisearch\.cloud\.google\.com\/grounding-api-redirect\/[^"]*$/gm,
+                '"articleUrl": ""');
+            content = content.replace(/"articleUrl"\s*:\s*"https?:\/\/[^"]*googleapis\.com[^"]*$/gm,
                 '"articleUrl": ""');
 
             let parsed;
@@ -1020,6 +1034,56 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
                             }
                         }
                     }
+                }
+            }
+
+            // Approach 5: Nuclear option — strip ALL redirect URLs from content, then retry
+            if (!parsed) {
+                console.warn('[Gemini] All parse approaches failed — trying nuclear URL strip...');
+                let nuclear = content;
+                // Strip ANY vertexaisearch/googleapis URL anywhere in the content
+                nuclear = nuclear.replace(/https?:\/\/vertexaisearch[^\s"',\]}]*/g, '');
+                nuclear = nuclear.replace(/https?:\/\/[^\s"',\]]*googleapis\.com[^\s"',\]}]*/g, '');
+                // Fix empty string values that might have been left dangling
+                nuclear = nuclear.replace(/"articleUrl"\s*:\s*"?\s*$/gm, '"articleUrl": ""');
+                nuclear = nuclear.replace(/"articleUrl"\s*:\s*(?=")/g, '"articleUrl": ');
+
+                // Try all approaches again on nuclear-cleaned content
+                try { parsed = JSON.parse(nuclear); } catch { }
+                if (!parsed) {
+                    const arrStart = nuclear.indexOf('[');
+                    if (arrStart !== -1) {
+                        let depth = 0, arrEnd = -1;
+                        for (let i = arrStart; i < nuclear.length; i++) {
+                            if (nuclear[i] === '[') depth++;
+                            else if (nuclear[i] === ']') { depth--; if (depth === 0) { arrEnd = i; break; } }
+                        }
+                        if (arrEnd > arrStart) {
+                            try { parsed = JSON.parse(nuclear.substring(arrStart, arrEnd + 1)); } catch { }
+                        }
+                    }
+                }
+                if (!parsed) {
+                    const arrStart = nuclear.indexOf('[');
+                    if (arrStart !== -1) {
+                        let truncated = nuclear.substring(arrStart);
+                        const lastBrace = truncated.lastIndexOf('}');
+                        if (lastBrace !== -1) {
+                            truncated = truncated.substring(0, lastBrace + 1) + ']';
+                            try { parsed = JSON.parse(truncated); } catch { }
+                        }
+                        if (!parsed) {
+                            const lastComma = truncated?.lastIndexOf('},') ?? -1;
+                            if (lastComma !== -1) {
+                                truncated = truncated.substring(0, lastComma + 1) + ']';
+                                try { parsed = JSON.parse(truncated); } catch { }
+                            }
+                        }
+                    }
+                }
+                if (parsed) {
+                    console.warn(`[Gemini] Nuclear strip recovered ${Array.isArray(parsed) ? parsed.length : 1} items`);
+                    addLogEntry('warn', `Recovered ${Array.isArray(parsed) ? parsed.length : 1} stories after aggressive URL cleanup`);
                 }
             }
 
@@ -1301,7 +1365,10 @@ Return ONLY the JSON object, nothing else.`;
 
             return parsed;
         } catch (e) {
-            console.error('[Gemini] JSON parse failed. Content:', content.substring(0, 500));
+            console.error('[Gemini] JSON parse failed. Error:', e.message);
+            console.error('[Gemini] Content (first 1000 chars):', content.substring(0, 1000));
+            console.error('[Gemini] Content (last 500 chars):', content.substring(Math.max(0, content.length - 500)));
+            addLogEntry('error', `[Gemini] JSON parse failed. Content: ${content.substring(0, 500)}`);
             throw new Error('Failed to parse Gemini response as JSON. Try again.');
         }
     }
