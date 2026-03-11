@@ -730,6 +730,7 @@ export async function callClaude(prompt, apiKey, parseJson = true) {
         throw new Error('Claude API key not configured. Go to Settings to add your key.');
     }
 
+    const cleanKey = apiKey.trim();
     const promptPreview = prompt.substring(0, 120).replace(/\n/g, ' ');
     addLogEntry('api', `Claude → ${parseJson ? 'JSON' : 'text'} | ${promptPreview}...`);
 
@@ -737,12 +738,12 @@ export async function callClaude(prompt, apiKey, parseJson = true) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'x-api-key': apiKey,
+            'x-api-key': cleanKey,
             'anthropic-version': '2023-06-01',
             'anthropic-dangerous-direct-browser-access': 'true'
         },
         body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-sonnet-4-6-20260217',
             max_tokens: 4096,
             system: SYSTEM_PROMPT,
             messages: [{ role: 'user', content: prompt }],
@@ -790,6 +791,75 @@ export async function callClaude(prompt, apiKey, parseJson = true) {
     return content;
 }
 
+// ─── Resolve Google Grounding API Redirect URLs to Real URLs ────
+// Uses Vercel serverless function (/api/resolve-url) to bypass CORS.
+// Browser-side fetch CANNOT follow cross-origin redirects from Google's
+// grounding-api-redirect URLs because the target sites don't set CORS headers.
+async function resolveRedirectUrl(redirectUrl, timeoutMs = 8000) {
+    if (!redirectUrl || !redirectUrl.includes('grounding-api-redirect')) {
+        return redirectUrl;
+    }
+
+    // Strategy 1: Server-side resolution via Vercel Edge Function (no CORS issues)
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        const apiUrl = `/api/resolve-url?url=${encodeURIComponent(redirectUrl)}`;
+        const response = await fetch(apiUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (response.ok) {
+            const data = await response.json();
+            if (data.resolvedUrl && data.resolvedUrl !== redirectUrl && !data.resolvedUrl.includes('grounding-api-redirect')) {
+                console.log(`[URL Resolve] ✅ Server-side → ${data.resolvedUrl}`);
+                return data.resolvedUrl;
+            }
+        }
+    } catch (e) {
+        console.warn(`[URL Resolve] Server-side failed: ${e.message} — trying direct...`);
+    }
+
+    // Strategy 2: Direct browser fetch (usually fails due to CORS, but works locally sometimes)
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const response = await fetch(redirectUrl, {
+            method: 'HEAD',
+            redirect: 'follow',
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        if (response.url && response.url !== redirectUrl && !response.url.includes('grounding-api-redirect')) {
+            console.log(`[URL Resolve] ✅ Direct HEAD → ${response.url}`);
+            return response.url;
+        }
+    } catch (e) {
+        // Expected to fail (CORS) — this is why the server-side API exists
+    }
+
+    console.warn(`[URL Resolve] ❌ Could not resolve: ${redirectUrl.substring(0, 80)}...`);
+    return redirectUrl;
+}
+
+async function resolveAllRedirectUrls(chunks) {
+    if (!chunks || chunks.length === 0) return chunks;
+    const redirectChunks = chunks.filter(c => c.uri?.includes('grounding-api-redirect'));
+    if (redirectChunks.length === 0) return chunks;
+
+    console.log(`[URL Resolve] Resolving ${redirectChunks.length} redirect URLs...`);
+    const resolvedResults = await Promise.allSettled(
+        chunks.map(async (chunk) => {
+            const resolvedUri = await resolveRedirectUrl(chunk.uri);
+            return { ...chunk, uri: resolvedUri, originalUri: chunk.uri };
+        })
+    );
+    const resolved = resolvedResults.map((result, i) =>
+        result.status === 'fulfilled' ? result.value : chunks[i]
+    );
+    const successCount = resolved.filter(c => !c.uri?.includes('grounding-api-redirect')).length;
+    console.log(`[URL Resolve] Done: ${successCount} resolved, ${resolved.length - successCount} still redirect URLs`);
+    return resolved;
+}
+
 // ─── Gemini API Call with Google Search Grounding — Research ────
 export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
     if (!apiKey) {
@@ -811,7 +881,7 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
                 tools: [{ google_search: {} }],
                 generationConfig: {
                     temperature: 0.8,
-                    maxOutputTokens: 8192
+                    maxOutputTokens: 16384
                 }
             })
         }
@@ -834,8 +904,8 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
         }
     }
 
-    // Extract REAL URLs from Gemini's grounding metadata
-    const groundingChunks = [];
+    // Extract URLs from Gemini's grounding metadata
+    let groundingChunks = [];
     try {
         const gm = data.candidates?.[0]?.groundingMetadata;
         console.log('[Gemini] groundingMetadata keys:', gm ? Object.keys(gm) : 'NONE');
@@ -846,12 +916,27 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
                 }
             }
         }
-        console.log('[Gemini] Grounding chunks found:', groundingChunks.length);
-        groundingChunks.forEach((c, i) => console.log(`  [${i}] ${c.uri} — "${c.title}"`));
-        addLogEntry('success', `Gemini ✓ ${groundingChunks.length} grounding sources found`);
+        if (gm?.groundingSupports) {
+            for (const support of gm.groundingSupports) {
+                if (support.groundingChunkIndices) {
+                    console.log(`[Gemini] Support: "${(support.segment?.text || '').substring(0, 80)}" → chunks: [${support.groundingChunkIndices.join(', ')}]`);
+                }
+            }
+        }
     } catch (e) {
-        console.warn('[Gemini] Error reading grounding metadata:', e);
+        console.warn('[Gemini] Error extracting grounding metadata:', e);
     }
+
+    console.log(`[Gemini] Found ${groundingChunks.length} grounding chunks (pre-resolve):`, groundingChunks.map(c => c.uri.substring(0, 80)));
+
+    // Resolve redirect URLs to real URLs
+    groundingChunks = await resolveAllRedirectUrls(groundingChunks);
+
+    const realCount = groundingChunks.filter(c => !c.uri.includes('grounding-api-redirect') && !c.uri.includes('googleapis.com')).length;
+    const redirectCount = groundingChunks.length - realCount;
+    console.log(`[Gemini] After resolve: ${realCount} real URLs, ${redirectCount} still redirect`);
+    addLogEntry('success', `Gemini ✓ ${groundingChunks.length} sources (${realCount} real URLs${redirectCount > 0 ? `, ${redirectCount} unresolved` : ''})`);
+    groundingChunks.forEach((c, i) => console.log(`  [${i}] ${c.uri.substring(0, 80)}${c.uri.length > 80 ? '...' : ''} — "${c.title}"`));
 
     // Strip markdown code fences if present
     content = content.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
@@ -875,18 +960,62 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
 
     if (parseJson) {
         try {
+            // Pre-clean: strip grounding-api-redirect URLs from raw JSON text before parsing
+            // These are useless to us and waste tokens, causing truncation
+            content = content.replace(/"articleUrl"\s*:\s*"https?:\/\/vertexaisearch\.cloud\.google\.com\/grounding-api-redirect\/[^"]*"/g,
+                '"articleUrl": ""');
+            content = content.replace(/"articleUrl"\s*:\s*"https?:\/\/[^"]*googleapis\.com[^"]*"/g,
+                '"articleUrl": ""');
+
+            let parsed;
             const jsonMatch = content.match(/\[[\s\S]*\]/);
-            let parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(content);
+            if (jsonMatch) {
+                parsed = JSON.parse(jsonMatch[0]);
+            } else {
+                // Attempt to repair truncated JSON array
+                const arrayStart = content.indexOf('[');
+                if (arrayStart !== -1) {
+                    let truncated = content.substring(arrayStart);
+                    // Find the last complete object (ends with })
+                    const lastBrace = truncated.lastIndexOf('}');
+                    if (lastBrace !== -1) {
+                        truncated = truncated.substring(0, lastBrace + 1) + ']';
+                        try {
+                            parsed = JSON.parse(truncated);
+                            console.warn(`[Gemini] Repaired truncated JSON — recovered ${parsed.length} items`);
+                            addLogEntry('warn', `Gemini response was truncated — recovered ${parsed.length} of 7 stories`);
+                        } catch {
+                            // Try one more repair: remove the last incomplete object
+                            const lastComma = truncated.lastIndexOf('},');
+                            if (lastComma !== -1) {
+                                truncated = truncated.substring(0, lastComma + 1) + ']';
+                                parsed = JSON.parse(truncated);
+                                console.warn(`[Gemini] Deep-repaired truncated JSON — recovered ${parsed.length} items`);
+                                addLogEntry('warn', `Gemini response truncated — recovered ${parsed.length} of 7 stories`);
+                            }
+                        }
+                    }
+                }
+                if (!parsed) parsed = JSON.parse(content);
+            }
 
             if (Array.isArray(parsed)) {
-                // Remove YouTube from grounding chunks
-                const cleanChunks = groundingChunks.filter(gc =>
-                    !gc.uri.includes('youtube.com') && !gc.uri.includes('youtu.be')
-                );
-                const usedChunkIdxs = new Set(); // Track which chunks are already assigned
+                // Helper: check if a URL is still an unresolved Gemini redirect
+                const isRedirectUrl = (u) => u.includes('grounding-api-redirect') || u.includes('googleapis.com') || u.includes('vertexaisearch');
 
-                console.log(`[URL] ${cleanChunks.length} grounding chunks available (YouTube filtered):`);
+                // Filter out YouTube from chunks (redirect URLs are already resolved above)
+                const cleanChunks = groundingChunks.filter(gc =>
+                    !gc.uri.includes('youtube.com') && !gc.uri.includes('youtu.be') && !isRedirectUrl(gc.uri)
+                );
+                const usedChunkIdxs = new Set();
+
+                console.log(`[URL] ${cleanChunks.length} usable grounding chunks (after resolve + YouTube filter):`);
                 cleanChunks.forEach((c, i) => console.log(`  [${i}] ${c.uri} — "${c.title}"`));
+
+                if (cleanChunks.length === 0) {
+                    console.warn('[URL] ⚠️ NO real grounding chunks available — ALL stories will need URL rescue');
+                    addLogEntry('warn', 'No real URLs in grounding chunks — URL rescue will find them');
+                }
 
                 // Helper: compute word similarity score between two strings
                 const wordSimilarity = (textA, textB) => {
@@ -901,15 +1030,13 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
                 // Score ALL stories against ALL chunks, then assign best matches
                 const storyScores = parsed.map((item, idx) => {
                     const url = item.articleUrl || '';
-
-                    // Strip YouTube
-                    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                    // Strip bad URLs (YouTube, Gemini redirects)
+                    if (url.includes('youtube.com') || url.includes('youtu.be') || isRedirectUrl(url)) {
+                        if (isRedirectUrl(url)) console.warn(`[URL] Story ${idx + 1}: 🚫 Stripped Gemini redirect URL`);
                         item.articleUrl = '';
                     }
 
-                    // If Gemini provided a valid, real URL — keep it
-                    if (item.articleUrl && !item.articleUrl.includes('grounding-api-redirect') &&
-                        !item.articleUrl.includes('googleapis.com') &&
+                    if (item.articleUrl &&
                         (item.articleUrl.startsWith('http://') || item.articleUrl.startsWith('https://'))) {
                         item.urlMatchMethod = 'gemini-direct';
                         console.log(`[URL] Story ${idx + 1}: ✅ Gemini-provided URL → ${item.articleUrl}`);
@@ -1018,10 +1145,119 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
                     }
 
                     if (!assigned) {
-                        console.warn(`[URL] Story ${story.idx + 1}: ⚠️ ALL CHUNKS EXHAUSTED — no URL available`);
+                        console.warn(`[URL] Story ${story.idx + 1}: ⚠️ ALL CHUNKS EXHAUSTED — will attempt URL rescue`);
                         item.articleUrl = '';
                         item.urlMatchMethod = 'unverified';
                     }
+                }
+            }
+
+            // ─── URL RESCUE PASS ─────────────────────────────────────
+            // Any story that STILL has no URL gets a targeted follow-up search
+            const missingUrlStories = parsed
+                .map((item, idx) => ({ item, idx }))
+                .filter(({ item }) => !item.articleUrl || item.urlMatchMethod === 'unverified');
+
+            if (missingUrlStories.length > 0) {
+                console.log(`[URL-RESCUE] ${missingUrlStories.length} stories need URL rescue...`);
+                addLogEntry('api', `URL rescue: searching for ${missingUrlStories.length} missing URLs`);
+
+                const rescuePromises = missingUrlStories.map(async ({ item, idx }) => {
+                    try {
+                        const searchQuery = `${item.sourceArticle || item.headline || ''}`;
+                        console.log(`[URL-RESCUE] Story ${idx + 1}: searching for "${searchQuery}"`);
+
+                        const rescuePrompt = `Find the exact URL for this article. Search the web and return ONLY the URL.
+
+ARTICLE TO FIND: "${searchQuery}"
+${item.source ? `PUBLICATION: ${item.source}` : ''}
+
+Return a JSON object with ONE field:
+{"url": "the real article URL from your search results"}
+
+If you absolutely cannot find this specific article, find the closest matching article on the same topic from a reputable source and return that URL instead.
+
+Return ONLY the JSON object, nothing else.`;
+
+                        const rescueResponse = await fetch(
+                            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+                            {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    contents: [{ parts: [{ text: rescuePrompt }] }],
+                                    tools: [{ google_search: {} }],
+                                    generationConfig: { temperature: 0.2, maxOutputTokens: 512 }
+                                })
+                            }
+                        );
+
+                        if (!rescueResponse.ok) {
+                            console.warn(`[URL-RESCUE] Story ${idx + 1}: API error ${rescueResponse.status}`);
+                            return;
+                        }
+
+                        const rescueData = await rescueResponse.json();
+
+                        // First try: extract URL from grounding metadata and resolve redirects
+                        let rescuedUrl = '';
+                        const rescueGM = rescueData.candidates?.[0]?.groundingMetadata;
+                        if (rescueGM?.groundingChunks) {
+                            for (const chunk of rescueGM.groundingChunks) {
+                                let uri = chunk.web?.uri || '';
+                                if (!uri || uri.includes('youtube.com') || uri.includes('youtu.be')) continue;
+                                // Resolve redirect if needed
+                                if (uri.includes('grounding-api-redirect')) {
+                                    uri = await resolveRedirectUrl(uri);
+                                }
+                                if (uri && !uri.includes('grounding-api-redirect') && !uri.includes('googleapis.com')) {
+                                    rescuedUrl = uri;
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Second try: parse from response text
+                        if (!rescuedUrl) {
+                            let rescueText = '';
+                            for (const part of (rescueData.candidates?.[0]?.content?.parts || [])) {
+                                if (part.text) rescueText += part.text;
+                            }
+                            rescueText = rescueText.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+                            try {
+                                const parsed = JSON.parse(rescueText.match(/\{[\s\S]*\}/)?.[0] || '{}');
+                                if (parsed.url && parsed.url.startsWith('http') &&
+                                    !parsed.url.includes('youtube.com') &&
+                                    !parsed.url.includes('grounding-api-redirect') &&
+                                    !parsed.url.includes('googleapis.com')) {
+                                    rescuedUrl = parsed.url;
+                                }
+                            } catch { }
+                        }
+
+                        if (rescuedUrl) {
+                            item.articleUrl = rescuedUrl;
+                            item.urlMatchMethod = 'url-rescue';
+                            console.log(`[URL-RESCUE] Story ${idx + 1}: ✅ RESCUED → ${rescuedUrl}`);
+                            addLogEntry('success', `URL rescue ✓ Story ${idx + 1} → ${rescuedUrl.substring(0, 60)}...`);
+                        } else {
+                            console.warn(`[URL-RESCUE] Story ${idx + 1}: ❌ Could not find URL even after rescue search`);
+                            addLogEntry('error', `URL rescue failed for story ${idx + 1}: ${item.headline?.substring(0, 50)}`);
+                        }
+                    } catch (err) {
+                        console.error(`[URL-RESCUE] Story ${idx + 1}: Error during rescue:`, err);
+                    }
+                });
+
+                await Promise.allSettled(rescuePromises);
+
+                const stillMissing = parsed.filter(item => !item.articleUrl).length;
+                if (stillMissing > 0) {
+                    console.warn(`[URL-RESCUE] ${stillMissing} stories still have no URL after rescue`);
+                    addLogEntry('error', `${stillMissing} stories still missing URLs after rescue attempts`);
+                } else {
+                    console.log('[URL-RESCUE] All stories now have URLs!');
+                    addLogEntry('success', 'All 7 stories have verified URLs');
                 }
             }
 

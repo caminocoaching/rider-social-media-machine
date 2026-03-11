@@ -468,6 +468,7 @@ function renderStoryCards() {
             'gemini-direct': { label: '✅ Direct', color: '#2EA043', tip: 'URL provided directly by Gemini search' },
             'domain-match': { label: '🔗 Domain', color: '#00BFA5', tip: 'URL matched by domain name in source' },
             'title-match': { label: '🔍 Keywords', color: '#DAA520', tip: 'URL matched by title keywords' },
+            'url-rescue': { label: '🔎 Rescued', color: '#9B59B6', tip: 'URL found via follow-up search rescue' },
             'best-guess': { label: '🟡 Best Guess', color: '#E8912A', tip: 'Best available URL — verify before using' },
             'unverified': { label: '⚠️ No URL', color: '#E84444', tip: 'No URL could be matched from search results' }
         };
