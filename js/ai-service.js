@@ -968,15 +968,39 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
                 '"articleUrl": ""');
 
             let parsed;
-            const jsonMatch = content.match(/\[[\s\S]*\]/);
-            if (jsonMatch) {
-                parsed = JSON.parse(jsonMatch[0]);
-            } else {
-                // Attempt to repair truncated JSON array
+
+            // Approach 1: Direct parse (cleanest)
+            try { parsed = JSON.parse(content); } catch { }
+
+            // Approach 2: Find JSON array with balanced brackets (from Driver app)
+            if (!parsed) {
+                const arrStart = content.indexOf('[');
+                if (arrStart !== -1) {
+                    let depth = 0;
+                    let arrEnd = -1;
+                    for (let i = arrStart; i < content.length; i++) {
+                        if (content[i] === '[') depth++;
+                        else if (content[i] === ']') { depth--; if (depth === 0) { arrEnd = i; break; } }
+                    }
+                    if (arrEnd > arrStart) {
+                        try { parsed = JSON.parse(content.substring(arrStart, arrEnd + 1)); } catch { }
+                    }
+                }
+            }
+
+            // Approach 3: Greedy regex fallback
+            if (!parsed) {
+                const jsonMatch = content.match(/\[[\s\S]*\]/);
+                if (jsonMatch) {
+                    try { parsed = JSON.parse(jsonMatch[0]); } catch { }
+                }
+            }
+
+            // Approach 4: Repair truncated JSON array
+            if (!parsed) {
                 const arrayStart = content.indexOf('[');
                 if (arrayStart !== -1) {
                     let truncated = content.substring(arrayStart);
-                    // Find the last complete object (ends with })
                     const lastBrace = truncated.lastIndexOf('}');
                     if (lastBrace !== -1) {
                         truncated = truncated.substring(0, lastBrace + 1) + ']';
@@ -985,36 +1009,50 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
                             console.warn(`[Gemini] Repaired truncated JSON — recovered ${parsed.length} items`);
                             addLogEntry('warn', `Gemini response was truncated — recovered ${parsed.length} of 7 stories`);
                         } catch {
-                            // Try one more repair: remove the last incomplete object
                             const lastComma = truncated.lastIndexOf('},');
                             if (lastComma !== -1) {
                                 truncated = truncated.substring(0, lastComma + 1) + ']';
-                                parsed = JSON.parse(truncated);
-                                console.warn(`[Gemini] Deep-repaired truncated JSON — recovered ${parsed.length} items`);
-                                addLogEntry('warn', `Gemini response truncated — recovered ${parsed.length} of 7 stories`);
+                                try {
+                                    parsed = JSON.parse(truncated);
+                                    console.warn(`[Gemini] Deep-repaired truncated JSON — recovered ${parsed.length} items`);
+                                    addLogEntry('warn', `Gemini response truncated — recovered ${parsed.length} of 7 stories`);
+                                } catch { }
                             }
                         }
                     }
                 }
-                if (!parsed) parsed = JSON.parse(content);
+            }
+
+            if (!parsed) {
+                throw new Error('Could not extract JSON from Gemini response');
             }
 
             if (Array.isArray(parsed)) {
                 // Helper: check if a URL is still an unresolved Gemini redirect
                 const isRedirectUrl = (u) => u.includes('grounding-api-redirect') || u.includes('googleapis.com') || u.includes('vertexaisearch');
 
-                // Filter out YouTube from chunks (redirect URLs are already resolved above)
+                // Filter out YouTube only — keep redirect URLs as clickable fallbacks
+                // (matches Driver app approach: redirect URLs work when clicked even if ugly)
                 const cleanChunks = groundingChunks.filter(gc =>
-                    !gc.uri.includes('youtube.com') && !gc.uri.includes('youtu.be') && !isRedirectUrl(gc.uri)
+                    !gc.uri.includes('youtube.com') && !gc.uri.includes('youtu.be')
                 );
                 const usedChunkIdxs = new Set();
 
-                console.log(`[URL] ${cleanChunks.length} usable grounding chunks (after resolve + YouTube filter):`);
-                cleanChunks.forEach((c, i) => console.log(`  [${i}] ${c.uri} — "${c.title}"`));
+                // Sort: resolved real URLs first, redirect URLs last
+                cleanChunks.sort((a, b) => {
+                    const aIsRedirect = isRedirectUrl(a.uri) ? 1 : 0;
+                    const bIsRedirect = isRedirectUrl(b.uri) ? 1 : 0;
+                    return aIsRedirect - bIsRedirect;
+                });
+
+                const resolvedCount = cleanChunks.filter(c => !isRedirectUrl(c.uri)).length;
+                const redirectCount = cleanChunks.filter(c => isRedirectUrl(c.uri)).length;
+                console.log(`[URL] ${cleanChunks.length} grounding chunks: ${resolvedCount} resolved, ${redirectCount} redirect fallbacks`);
+                cleanChunks.forEach((c, i) => console.log(`  [${i}] ${isRedirectUrl(c.uri) ? '🔄' : '✅'} ${c.uri.substring(0, 80)} — "${c.title}"`));
 
                 if (cleanChunks.length === 0) {
-                    console.warn('[URL] ⚠️ NO real grounding chunks available — ALL stories will need URL rescue');
-                    addLogEntry('warn', 'No real URLs in grounding chunks — URL rescue will find them');
+                    console.warn('[URL] ⚠️ NO grounding chunks available');
+                    addLogEntry('warn', 'No URLs in grounding chunks — URL rescue will find them');
                 }
 
                 // Helper: compute word similarity score between two strings
