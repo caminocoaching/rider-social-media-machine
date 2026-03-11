@@ -743,7 +743,7 @@ export async function callClaude(prompt, apiKey, parseJson = true) {
             'anthropic-dangerous-direct-browser-access': 'true'
         },
         body: JSON.stringify({
-            model: 'claude-sonnet-4-6-20260217',
+            model: 'claude-sonnet-4-20250514',
             max_tokens: 4096,
             system: SYSTEM_PROMPT,
             messages: [{ role: 'user', content: prompt }],
