@@ -25,7 +25,8 @@ import {
     createManusSlideTask, checkManusTaskStatus,
     createHeyGenVideo, createHeyGenFromTemplate, checkHeyGenStatus,
     uploadVideoToGHL, getGHLSocialAccounts, scheduleGHLPost,
-    queueForReview, approveReview, rejectReview, getPendingReviews,
+    queueForReview, approveReview, rejectReview,
+    getPendingReviews as getPipelineReviews,
     runFullPipeline, runBatchPipeline,
     getRecentPipelineJobs, getRecentBatchJobs, getPipelineJob
 } from './production-pipeline.js';
