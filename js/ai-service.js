@@ -255,110 +255,161 @@ NEVER: Car racing language in the body
 - Golden Hour: First 60 minutes determine distribution.`;
 
 
-// ─── Generate Article Topics with Web Search (Weekly Wizard Step 1) ──
+// ─── Generate Article Topics: Gemini Searches → Claude Curates ──
+// Phase 1: Gemini triggers Google Search — we extract real URLs from grounding metadata
+// Phase 2: Claude picks the best 7 and writes headlines/summaries from verified articles
 export async function generateTopics(pillars, seasonalContext, apiKey) {
     const champContext = getChampionshipContext();
+    const settings = JSON.parse(localStorage.getItem('rider-social-media-settings') || '{}');
+    const claudeKey = settings.claudeApiKey;
 
     const daySlots = [
-        'Monday: Outside the Paddock — a fascinating story from tennis, rugby, cycling, Olympic sport, combat sport, neuroscience, or tech. NOT car racing. It MUST bridge back to motorcycle racing mental performance. The rider should think "that is cool" first, then "that connects to my riding."',
+        'Monday: Outside the Paddock — a fascinating story from tennis, rugby, cycling, Olympic sport, combat sport, neuroscience, or tech. NOT car racing. Bridges back to motorcycle racing mental performance.',
         'Tuesday: Client Transformation — a motorcycle racer comeback or breakthrough story. Lead with the result, not the struggle.',
-        'Wednesday: Neuroscience Teach — brain science (flow state, cortisol, dopamine, attention) applied specifically to riding a motorcycle on track. Reference corners, braking zones, lean angle, throttle control.',
-        'Thursday: Provocative Hook — ONE uncomfortable truth about racing psychology that motorcycle racers avoid admitting. Pain-forward.',
+        'Wednesday: Neuroscience Teach — brain science (flow state, cortisol, dopamine, attention) applied specifically to riding a motorcycle on track.',
+        'Thursday: Provocative Hook — ONE uncomfortable truth about racing psychology that motorcycle racers avoid admitting.',
         'Friday: Timely Race Reaction — react to REAL recent MotoGP, WorldSBK, BSB, or MotoAmerica results. Name specific riders and races.',
-        'Saturday: Achievement/Tech Spotlight — performance technology, wearable tech innovations (Garmin, WHOOP, Oura Ring, Apple Watch, GoPro), brain-training devices, biometric studies, or breakthrough results connected to motorcycle racing. Examples: how riders use WHOOP strain scores to peak for race day, Garmin HRV data in recovery protocols, Oura Ring sleep staging studies, Apple Watch heart rate zone analysis during track sessions, GoPro telemetry overlays revealing rider patterns.',
+        'Saturday: Achievement/Tech Spotlight — performance technology, wearable tech (Garmin, WHOOP, Oura Ring, Apple Watch, GoPro), brain-training devices, biometric studies, or breakthrough results.',
         'Sunday: Proof & Celebration — inspiring motorcycle racer wins, championship stats, or mental performance breakthroughs on the bike.'
     ];
 
     const liveRacing = champContext.hasLiveRacing
-        ? `LIVE RACING THIS WEEKEND — prioritise current race results and reactions from MotoGP, WorldSBK, BSB, or MotoAmerica.`
+        ? `LIVE RACING THIS WEEKEND — prioritise current race results and reactions.`
         : '';
 
     const seasonNote = seasonalContext
         ? `Season context: ${seasonalContext.season} — ${seasonalContext.context}`
         : '';
 
-    const prompt = `Search the web for 7 stories from the last 7-30 days for a motorcycle racing mental performance coach's social media. The audience is club racers, amateur racers, and aspiring professionals who race motorcycles on track.
+    // ═══════════════════════════════════════════════════════════
+    // PHASE 1: GEMINI SEARCHES — extract real articles from grounding metadata
+    // ═══════════════════════════════════════════════════════════
 
-TARGET CHAMPIONSHIPS: MotoGP, World Superbikes (WorldSBK), British Superbikes (BSB), MotoAmerica, Moto2, Moto3, ASBK.
+    addLogEntry('api', 'Phase 1: Gemini searching for articles...');
 
-PREFERRED SOURCES (search these first):
-- Motorcycle racing: MotoGP.com, WorldSBK.com, Crash.net, MCN, The Race, Motorsport.com, BSB.com, MotoAmerica.com, Autosport, MotoMatters, Paddock Magazine
-- Sports science: Frontiers in Psychology, BJSM, JSSM, Journal of Sports Sciences
-- News: BBC Sport, Sky Sports, ESPN
-- Neuroscience: Nature, Scientific American, New Scientist
-- Wearable tech: DC Rainmaker, Wareable, WHOOP blog, Oura blog, Garmin blog
-- Motorcycle-specific: Bike magazine, Visor Down, Bennetts
+    const searchPrompt = `Search the web for recent articles (last 7-30 days) about these topics. Find as many relevant articles as possible.
 
-AVOID: listicles, affiliate content, generic self-help blogs, Reddit/forums, unverified claims without data, car-only content.
+Search topics:
+1. Motorcycle racing news: MotoGP, WorldSBK, BSB, MotoAmerica race results, rider interviews, comeback stories
+2. Neuroscience of athletic performance: flow state, cortisol, dopamine, attention, brain science applied to sport
+3. Sports psychology research: mental performance, confidence, pressure, recovery, sleep studies
+4. Wearable technology in sport: Garmin, WHOOP, Oura Ring, Apple Watch, GoPro, HRV, biometrics
+5. Elite athlete mental performance: tennis, rugby, cycling, Olympic sport, combat sport breakthroughs
+6. Motorcycle racing technology and rider performance data
+7. Peak performance breakthroughs and comeback stories in any sport
 
 ${liveRacing}
 ${seasonNote}
 
-Find one story for each slot:
+PREFERRED SOURCES: MotoGP.com, WorldSBK.com, Crash.net, MCN, The Race, Motorsport.com, BBC Sport, Sky Sports, Frontiers in Psychology, Scientific American, New Scientist, DC Rainmaker, Wareable
+
+For each article you find, provide the title, source, and a one-sentence summary. List all articles. Aim for 15-20.`;
+
+    const geminiResponse = await callGeminiSearchOnly(searchPrompt, apiKey);
+    const verifiedArticles = geminiResponse.articles;
+    const geminiSummary = geminiResponse.textSummary;
+
+    console.log(`[Phase 1] Gemini found ${verifiedArticles.length} verified articles from grounding metadata`);
+    addLogEntry('success', `Phase 1 complete: ${verifiedArticles.length} verified articles from Google Search`);
+
+    if (verifiedArticles.length === 0) {
+        throw new Error('Gemini search returned no grounding results. Check your API key and try again.');
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // PHASE 2: CLAUDE CURATES — pick the best 7 from verified articles
+    // ═══════════════════════════════════════════════════════════
+
+    if (!claudeKey) {
+        addLogEntry('warn', 'No Claude API key — using Gemini results directly');
+        return formatGroundingArticlesFallback(verifiedArticles, pillars, geminiSummary);
+    }
+
+    addLogEntry('api', 'Phase 2: Claude curating best 7 articles...');
+
+    const articleList = verifiedArticles.map((a, i) =>
+        `[${i + 1}] TITLE: "${a.title}"\n    URL: ${a.url}\n    SOURCE: ${a.source || 'Unknown'}`
+    ).join('\n\n');
+
+    const curatePrompt = `You are curating this week's 7 social media stories for a motorcycle racing mental performance coach. Below are VERIFIED articles found by Google Search — every title and URL is real and confirmed.
+
+=== VERIFIED ARTICLES FROM GOOGLE SEARCH ===
+${articleList}
+
+=== ADDITIONAL CONTEXT FROM SEARCH ===
+${geminiSummary.substring(0, 2000)}
+
+=== YOUR TASK ===
+Pick the BEST 7 articles from the verified list above and assign one to each day slot:
+
 ${daySlots.map((d, i) => `${i + 1}. ${d}`).join('\n')}
 
-ARTICLE QUALITY STANDARD — what makes a 10/10 article:
-- Has a SPECIFIC data point (a percentage, a measurement, a time, a direct quote from a researcher or rider)
-- From a credible, citable source
-- Directly connects to something a motorcycle racer experiences on track
-- Makes a rider think: "That explains what happens to me" or "I never thought about it that way"
-- Current (last 7 days ideal, up to 30 days acceptable)
-
-═══ CRITICAL ACCURACY RULE (NON-NEGOTIABLE) ═══
-
-You have Google Search access. You MUST only reference articles that ACTUALLY appeared in your search results.
-
-DO NOT:
-- Invent article titles that sound plausible but do not exist
-- Fabricate publication names or dates
-- Create hypothetical articles about topics you expect to exist
-- Guess at URLs
-
-DO:
-- Use the EXACT title from the search result snippet
-- Use the EXACT URL from the search result
-- If you cannot find a real article for a slot, use a DIFFERENT real article that fits
-- If a slot has no good match, adapt a real article you DID find to fit that slot's theme
-
-The system will cross-check your article titles and URLs against the Google Search grounding metadata. Fabricated articles will be flagged. It is far better to adapt a real article to a different slot than to invent a fake one.
-
-If you genuinely cannot find 7 distinct articles, return fewer items. 5 real articles is better than 7 where 2 are fabricated.
-
-═══ END ACCURACY RULE ═══
-
 RULES:
-- Every headline must connect to the MENTAL PERFORMANCE side of motorcycle racing
-- Use MOTORCYCLE language: rider, corner, apex, lean angle, braking zone, turn-in, body position, throttle control, the bike, leathers, lid, paddock, grid, qualifying
-- NO CAR RACING — do NOT use F1, NASCAR, IndyCar, or any car racing stories. This is a motorcycle-only audience.
-- Related topics are welcome: neuroscience, peak performance, wearable tech (Garmin, WHOOP, Oura Ring, Apple Watch, GoPro), biometrics (HRV, EEG, heart rate variability, sleep tracking, strain scores, readiness scores), other sports (tennis, rugby, cycling, combat sports), technology, brain science
-- WEARABLE TECH STORIES ARE HIGHLY VALUED: any study, innovation, or use case involving Garmin, GoPro, WHOOP, Oura Ring, or Apple Watch in peak performance, athletic recovery, sleep optimisation, or race-day preparation is excellent content.
-- At least 2 stories should reference SPECIFIC real motorcycle riders or real race results
-- "Outside the paddock" stories must still bridge back to what a motorcycle racer experiences on track
-- NO YOUTUBE — only written articles from news sites, blogs, and publications
-- BANNED HEADLINE WORDS: Never use "unlock", "unleash", "inner genius", "secrets", "transform", "level up", "game-changer", "supercharge", "master your mindset", "hidden power"
+- You MUST use articles from the verified list above. Use their EXACT titles and EXACT URLs.
+- If no verified article fits a slot perfectly, pick the closest match and adapt your headline angle.
+- Every headline must connect to motorcycle racing mental performance.
+- Use MOTORCYCLE language: rider, corner, apex, lean angle, braking zone, turn-in, body position, throttle control, the bike, leathers, lid, paddock.
+- NO CAR RACING content (F1, NASCAR, IndyCar). Motorcycle-only audience.
+- Outside-the-paddock topics (neuroscience, other sports, tech) are welcome for Monday and Saturday.
+- BANNED HEADLINE WORDS: "unlock", "unleash", "inner genius", "secrets", "transform", "level up", "game-changer", "supercharge", "master your mindset", "hidden power"
 - No em dashes or en dashes in headlines. Use commas or colons instead.
 
-Return a JSON array with 7 objects:
+Return a JSON array with exactly 7 objects:
 [
   {
-    "pillarId": "${pillars[0]?.id || 'outside-the-paddock'}",
+    "pillarId": "outside-the-paddock",
     "headline": "Your compelling headline connecting the story to rider mental performance",
-    "sourceArticle": "Copy the EXACT article title from the search result. Do not rewrite it.",
-    "articleUrl": "Copy the EXACT URL from your search results. Leave empty string if unavailable.",
-    "source": "Publication name | Date published",
-    "summary": "3 sentences describing the key finding of the article",
+    "sourceArticle": "EXACT title from the verified article list — copy it precisely",
+    "articleUrl": "EXACT URL from the verified article list — copy it precisely",
+    "source": "Publication name | Date",
+    "summary": "3 sentences: what the article found, why it matters, how it connects to riding",
     "talkingPoints": ["Point 1", "Point 2", "Point 3"],
-    "killerDataPoint": "The specific number, percentage, measurement, or direct quote that makes this article valuable. Must be concrete and from the actual article.",
+    "killerDataPoint": "A specific number, percentage, or quote from the article",
     "emotionalHook": "What should the motorcycle racer feel?",
-    "mechanism": "Neuroscience mechanism referenced",
-    "racingRelevance": "One sentence connecting to motorcycle racing on track, using motorcycle language (corner, apex, braking zone, throttle, lean angle, the bike, lid, leathers, paddock)",
+    "mechanism": "Neuroscience mechanism (dopamine, cortisol, flow state, etc.)",
+    "racingRelevance": "One sentence connecting to motorcycle racing using motorcycle language",
     "contentBrief": "Type of post"
   }
 ]
 
-Return ONLY the JSON array with exactly 7 items.`;
+PILLAR IDS TO USE: ${pillars.map(p => p.id).join(', ')}
 
-    return await callGeminiWithSearch(prompt, apiKey, true);
+Return ONLY the JSON array.`;
+
+    const claudeResult = await callClaude(curatePrompt, claudeKey, true);
+
+    // Verify URLs in Claude's response match the verified list
+    if (Array.isArray(claudeResult)) {
+        const verifiedUrls = new Set(verifiedArticles.map(a => a.url));
+
+        for (const item of claudeResult) {
+            if (item.articleUrl && !verifiedUrls.has(item.articleUrl)) {
+                console.warn(`[Phase 2] Claude used unverified URL: ${item.articleUrl} — correcting...`);
+                const titleWords = (item.sourceArticle || item.headline || '').toLowerCase().split(/\s+/).filter(w => w.length > 3);
+                let bestMatch = null;
+                let bestScore = 0;
+
+                for (const va of verifiedArticles) {
+                    const vaWords = va.title.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+                    const overlap = titleWords.filter(w => vaWords.some(vw => vw.includes(w) || w.includes(vw))).length;
+                    if (overlap > bestScore) {
+                        bestScore = overlap;
+                        bestMatch = va;
+                    }
+                }
+
+                if (bestMatch) {
+                    item.articleUrl = bestMatch.url;
+                    item.sourceArticle = bestMatch.title;
+                    console.log(`[Phase 2] Corrected to verified: "${bestMatch.title}"`);
+                }
+            }
+            item.urlMatchMethod = 'gemini-grounding-verified';
+        }
+    }
+
+    addLogEntry('success', 'Phase 2 complete: Claude curated 7 stories from verified articles');
+    return claudeResult;
 }
 
 
@@ -892,6 +943,126 @@ async function resolveAllRedirectUrls(chunks) {
     console.log(`[URL Resolve] Done: ${successCount} resolved, ${resolved.length - successCount} still redirect URLs`);
     return resolved;
 }
+
+
+
+// ─── Gemini Search-Only Call (Phase 1 helper) ─────────────────────
+// Calls Gemini with Google Search grounding and extracts ONLY the
+// grounding metadata (real URLs + titles). Text response is kept
+// as context but NOT used for URLs or article titles.
+async function callGeminiSearchOnly(prompt, apiKey) {
+    const dedupContext = buildDeduplicationContext();
+
+    const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt + dedupContext }] }],
+                tools: [{ google_search: {} }],
+                generationConfig: {
+                    temperature: 0.5,
+                    maxOutputTokens: 8192
+                }
+            })
+        }
+    );
+
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.error?.message || `Gemini API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Extract text summary (for context only, not for URLs)
+    let textSummary = '';
+    if (data.candidates?.[0]?.content?.parts) {
+        for (const part of data.candidates[0].content.parts) {
+            if (part.text) textSummary += part.text;
+        }
+    }
+
+    // Extract VERIFIED articles from grounding metadata — these are REAL
+    const articles = [];
+    const gm = data.candidates?.[0]?.groundingMetadata;
+    if (gm?.groundingChunks) {
+        for (const chunk of gm.groundingChunks) {
+            if (chunk.web?.uri) {
+                let uri = chunk.web.uri;
+                const title = chunk.web.title || '';
+
+                // Skip YouTube
+                if (uri.includes('youtube.com') || uri.includes('youtu.be')) continue;
+
+                // Resolve redirect URLs
+                if (uri.includes('grounding-api-redirect')) {
+                    uri = await resolveRedirectUrl(uri);
+                }
+
+                // Extract domain as source name
+                let source = '';
+                try {
+                    const hostname = new URL(uri).hostname.replace('www.', '');
+                    source = hostname.split('.')[0];
+                    source = source.charAt(0).toUpperCase() + source.slice(1);
+                } catch { }
+
+                articles.push({
+                    title: title || 'Untitled',
+                    url: uri,
+                    source,
+                    isRedirect: uri.includes('grounding-api-redirect') || uri.includes('googleapis.com')
+                });
+            }
+        }
+    }
+
+    // Log what we found
+    console.log(`[Gemini Search] ${articles.length} articles from grounding metadata:`);
+    articles.forEach((a, i) => {
+        const icon = a.isRedirect ? '🔄' : '✅';
+        console.log(`  [${i}] ${icon} "${a.title}" → ${a.url.substring(0, 80)}`);
+    });
+
+    // Filter out unresolved redirects, but keep as fallback if needed
+    const cleanArticles = articles.filter(a => !a.isRedirect);
+    const redirectCount = articles.length - cleanArticles.length;
+    if (redirectCount > 0) {
+        console.warn(`[Gemini Search] ${redirectCount} articles have unresolved redirect URLs`);
+        if (cleanArticles.length < 7) {
+            const needed = 7 - cleanArticles.length;
+            const fallbacks = articles.filter(a => a.isRedirect).slice(0, needed);
+            cleanArticles.push(...fallbacks);
+            console.log(`[Gemini Search] Added ${fallbacks.length} redirect URLs as fallback`);
+        }
+    }
+
+    addLogEntry('success', `Gemini Search: ${cleanArticles.length} verified articles (${redirectCount} redirects)`);
+    return { articles: cleanArticles, textSummary };
+}
+
+
+// ─── Fallback: format grounding articles when no Claude key ────────
+function formatGroundingArticlesFallback(articles, pillars, geminiSummary) {
+    return articles.slice(0, 7).map((article, i) => ({
+        pillarId: pillars[i]?.id || 'outside-the-paddock',
+        headline: article.title,
+        sourceArticle: article.title,
+        articleUrl: article.url,
+        source: article.source || 'Web',
+        summary: `Article from ${article.source || 'the web'}. See full article for details.`,
+        talkingPoints: ['See article for key points'],
+        killerDataPoint: '',
+        emotionalHook: '',
+        mechanism: '',
+        racingRelevance: '',
+        contentBrief: 'Article',
+        urlMatchMethod: 'gemini-grounding-verified'
+    }));
+}
+
 
 // ─── Gemini API Call with Google Search Grounding — Research ────
 export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
