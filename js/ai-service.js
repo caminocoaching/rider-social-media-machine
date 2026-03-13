@@ -304,6 +304,28 @@ ARTICLE QUALITY STANDARD — what makes a 10/10 article:
 - Makes a rider think: "That explains what happens to me" or "I never thought about it that way"
 - Current (last 7 days ideal, up to 30 days acceptable)
 
+═══ CRITICAL ACCURACY RULE (NON-NEGOTIABLE) ═══
+
+You have Google Search access. You MUST only reference articles that ACTUALLY appeared in your search results.
+
+DO NOT:
+- Invent article titles that sound plausible but do not exist
+- Fabricate publication names or dates
+- Create hypothetical articles about topics you expect to exist
+- Guess at URLs
+
+DO:
+- Use the EXACT title from the search result snippet
+- Use the EXACT URL from the search result
+- If you cannot find a real article for a slot, use a DIFFERENT real article that fits
+- If a slot has no good match, adapt a real article you DID find to fit that slot's theme
+
+The system will cross-check your article titles and URLs against the Google Search grounding metadata. Fabricated articles will be flagged. It is far better to adapt a real article to a different slot than to invent a fake one.
+
+If you genuinely cannot find 7 distinct articles, return fewer items. 5 real articles is better than 7 where 2 are fabricated.
+
+═══ END ACCURACY RULE ═══
+
 RULES:
 - Every headline must connect to the MENTAL PERFORMANCE side of motorcycle racing
 - Use MOTORCYCLE language: rider, corner, apex, lean angle, braking zone, turn-in, body position, throttle control, the bike, leathers, lid, paddock, grid, qualifying
@@ -316,23 +338,17 @@ RULES:
 - BANNED HEADLINE WORDS: Never use "unlock", "unleash", "inner genius", "secrets", "transform", "level up", "game-changer", "supercharge", "master your mindset", "hidden power"
 - No em dashes or en dashes in headlines. Use commas or colons instead.
 
-=== URL AND TITLE ACCURACY ===
-
-- Use the accurate article title from the source. Do not invent or heavily paraphrase titles.
-- Provide the real URL from your search results. Do not fabricate or simulate URLs.
-- If no URL is available for a story, use an empty string "" for articleUrl.
-
 Return a JSON array with 7 objects:
 [
   {
     "pillarId": "${pillars[0]?.id || 'outside-the-paddock'}",
     "headline": "Your compelling headline connecting the story to rider mental performance",
-    "sourceArticle": "EXACT article title word-for-word from the website",
-    "articleUrl": "REAL URL copied from your search results (never fabricated)",
+    "sourceArticle": "Copy the EXACT article title from the search result. Do not rewrite it.",
+    "articleUrl": "Copy the EXACT URL from your search results. Leave empty string if unavailable.",
     "source": "Publication name | Date published",
     "summary": "3 sentences describing the key finding of the article",
     "talkingPoints": ["Point 1", "Point 2", "Point 3"],
-    "killerDataPoint": "The specific number, percentage, measurement, or direct quote that makes this article valuable. Must be concrete.",
+    "killerDataPoint": "The specific number, percentage, measurement, or direct quote that makes this article valuable. Must be concrete and from the actual article.",
     "emotionalHook": "What should the motorcycle racer feel?",
     "mechanism": "Neuroscience mechanism referenced",
     "racingRelevance": "One sentence connecting to motorcycle racing on track, using motorcycle language (corner, apex, braking zone, throttle, lean angle, the bike, lid, leathers, paddock)",
