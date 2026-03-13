@@ -1289,6 +1289,7 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
 
             // ─── URL RESCUE PASS ─────────────────────────────────────
             // Any story that STILL has no URL gets a targeted follow-up search
+            // KEY FIX: Search by TOPIC KEYWORDS, not by fabricated article titles
             const missingUrlStories = parsed
                 .map((item, idx) => ({ item, idx }))
                 .filter(({ item }) => !item.articleUrl || item.urlMatchMethod === 'unverified');
@@ -1299,18 +1300,33 @@ export async function callGeminiWithSearch(prompt, apiKey, parseJson = true) {
 
                 const rescuePromises = missingUrlStories.map(async ({ item, idx }) => {
                     try {
-                        const searchQuery = `${item.sourceArticle || item.headline || ''}`;
-                        console.log(`[URL-RESCUE] Story ${idx + 1}: searching for "${searchQuery}"`);
+                        // Build a TOPIC-BASED search query from keywords, NOT the fabricated title
+                        const topicKeywords = [];
+                        if (item.headline) topicKeywords.push(...item.headline.split(/[\s:,]+/).filter(w => w.length > 3));
+                        if (item.talkingPoints?.length) topicKeywords.push(...item.talkingPoints.slice(0, 2));
+                        if (item.mechanism) topicKeywords.push(item.mechanism);
 
-                        const rescuePrompt = `Find the exact URL for this article. Search the web and return ONLY the URL.
+                        // Extract the source publication name (before the pipe/date)
+                        const pubName = (item.source || '').split('|')[0].trim();
 
-ARTICLE TO FIND: "${searchQuery}"
-${item.source ? `PUBLICATION: ${item.source}` : ''}
+                        // Build a search string from unique keywords (max 12 to keep it focused)
+                        const uniqueKeywords = [...new Set(topicKeywords.map(k => k.toLowerCase().trim()).filter(k => k.length > 3))].slice(0, 12);
+                        const searchQuery = uniqueKeywords.join(' ') + (pubName ? ` site:${pubName.toLowerCase().replace(/\s+/g, '')}` : '');
 
-Return a JSON object with ONE field:
-{"url": "the real article URL from your search results"}
+                        console.log(`[URL-RESCUE] Story ${idx + 1}: topic search → "${searchQuery}"`);
 
-If you absolutely cannot find this specific article, find the closest matching article on the same topic from a reputable source and return that URL instead.
+                        const rescuePrompt = `Find a real, published article about this topic. Search the web and return the URL.
+
+TOPIC KEYWORDS: ${uniqueKeywords.join(', ')}
+${pubName ? `PREFERRED SOURCE: ${pubName}` : ''}
+CONTEXT: This is for a motorcycle racing mental performance coach's social media. The article should relate to: ${item.headline || item.sourceArticle || ''}
+
+IMPORTANT: Do NOT invent a URL. Return a URL that appears in your actual search results.
+
+Return a JSON object:
+{"url": "the real article URL from your search results", "title": "the exact title of the article you found"}
+
+If you cannot find an article on this exact topic, find the closest related article from a reputable source. Any real article is better than no article.
 
 Return ONLY the JSON object, nothing else.`;
 
@@ -1322,7 +1338,7 @@ Return ONLY the JSON object, nothing else.`;
                                 body: JSON.stringify({
                                     contents: [{ parts: [{ text: rescuePrompt }] }],
                                     tools: [{ google_search: {} }],
-                                    generationConfig: { temperature: 0.2, maxOutputTokens: 512 }
+                                    generationConfig: { temperature: 0.1, maxOutputTokens: 512 }
                                 })
                             }
                         );
@@ -1334,49 +1350,76 @@ Return ONLY the JSON object, nothing else.`;
 
                         const rescueData = await rescueResponse.json();
 
-                        // First try: extract URL from grounding metadata and resolve redirects
-                        let rescuedUrl = '';
+                        // Collect ALL candidate URLs from grounding metadata
+                        let candidateUrls = [];
                         const rescueGM = rescueData.candidates?.[0]?.groundingMetadata;
                         if (rescueGM?.groundingChunks) {
                             for (const chunk of rescueGM.groundingChunks) {
                                 let uri = chunk.web?.uri || '';
+                                const title = chunk.web?.title || '';
                                 if (!uri || uri.includes('youtube.com') || uri.includes('youtu.be')) continue;
                                 // Resolve redirect if needed
                                 if (uri.includes('grounding-api-redirect')) {
                                     uri = await resolveRedirectUrl(uri);
                                 }
                                 if (uri && !uri.includes('grounding-api-redirect') && !uri.includes('googleapis.com')) {
-                                    rescuedUrl = uri;
-                                    break;
+                                    candidateUrls.push({ uri, title });
                                 }
                             }
                         }
 
-                        // Second try: parse from response text
-                        if (!rescuedUrl) {
-                            let rescueText = '';
-                            for (const part of (rescueData.candidates?.[0]?.content?.parts || [])) {
-                                if (part.text) rescueText += part.text;
+                        // Also try to parse from response text
+                        let rescueText = '';
+                        for (const part of (rescueData.candidates?.[0]?.content?.parts || [])) {
+                            if (part.text) rescueText += part.text;
+                        }
+                        rescueText = rescueText.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+                        try {
+                            const rescueParsed = JSON.parse(rescueText.match(/\{[\s\S]*\}/)?.[0] || '{}');
+                            if (rescueParsed.url && rescueParsed.url.startsWith('http') &&
+                                !rescueParsed.url.includes('youtube.com') &&
+                                !rescueParsed.url.includes('grounding-api-redirect') &&
+                                !rescueParsed.url.includes('googleapis.com')) {
+                                candidateUrls.unshift({ uri: rescueParsed.url, title: rescueParsed.title || '' });
                             }
-                            rescueText = rescueText.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
-                            try {
-                                const parsed = JSON.parse(rescueText.match(/\{[\s\S]*\}/)?.[0] || '{}');
-                                if (parsed.url && parsed.url.startsWith('http') &&
-                                    !parsed.url.includes('youtube.com') &&
-                                    !parsed.url.includes('grounding-api-redirect') &&
-                                    !parsed.url.includes('googleapis.com')) {
-                                    rescuedUrl = parsed.url;
+                        } catch { }
+
+                        // Pick the best candidate URL (prefer ones with keyword overlap in URL path)
+                        let rescuedUrl = '';
+                        let rescuedTitle = '';
+                        if (candidateUrls.length > 0) {
+                            // Score candidates by keyword overlap with the story topic
+                            const storyWords = (item.headline || '').toLowerCase().split(/\s+/).filter(w => w.length > 3);
+                            let bestCandidate = candidateUrls[0];
+                            let bestScore = 0;
+
+                            for (const candidate of candidateUrls) {
+                                const urlWords = candidate.uri.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/);
+                                const titleWords = (candidate.title || '').toLowerCase().split(/\s+/);
+                                const allWords = [...urlWords, ...titleWords];
+                                const overlap = storyWords.filter(w => allWords.some(uw => uw.includes(w) || w.includes(uw))).length;
+                                if (overlap > bestScore) {
+                                    bestScore = overlap;
+                                    bestCandidate = candidate;
                                 }
-                            } catch { }
+                            }
+
+                            rescuedUrl = bestCandidate.uri;
+                            rescuedTitle = bestCandidate.title;
                         }
 
                         if (rescuedUrl) {
                             item.articleUrl = rescuedUrl;
                             item.urlMatchMethod = 'url-rescue';
+                            // If we found a real title, correct the potentially fabricated sourceArticle
+                            if (rescuedTitle && rescuedTitle.length > 10) {
+                                console.log(`[URL-RESCUE] Story ${idx + 1}: correcting sourceArticle from "${item.sourceArticle}" → "${rescuedTitle}"`);
+                                item.sourceArticle = rescuedTitle;
+                            }
                             console.log(`[URL-RESCUE] Story ${idx + 1}: ✅ RESCUED → ${rescuedUrl}`);
                             addLogEntry('success', `URL rescue ✓ Story ${idx + 1} → ${rescuedUrl.substring(0, 60)}...`);
                         } else {
-                            console.warn(`[URL-RESCUE] Story ${idx + 1}: ❌ Could not find URL even after rescue search`);
+                            console.warn(`[URL-RESCUE] Story ${idx + 1}: ❌ Could not find URL even after topic rescue`);
                             addLogEntry('error', `URL rescue failed for story ${idx + 1}: ${item.headline?.substring(0, 50)}`);
                         }
                     } catch (err) {
@@ -1393,6 +1436,21 @@ Return ONLY the JSON object, nothing else.`;
                 } else {
                     console.log('[URL-RESCUE] All stories now have URLs!');
                     addLogEntry('success', 'All 7 stories have verified URLs');
+                }
+            }
+
+            // ─── TITLE CORRECTION PASS ──────────────────────────────────
+            // If a story got its URL from grounding metadata, check if its
+            // sourceArticle matches the grounding title. If not, Gemini
+            // likely fabricated the title — replace with the real one.
+            for (const item of parsed) {
+                if (item.groundingTitle && item.groundingTitle.length > 10 && item.sourceArticle) {
+                    const titleSim = wordSimilarity(item.sourceArticle, item.groundingTitle);
+                    if (titleSim < 0.3) {
+                        console.log(`[TITLE-FIX] Replacing fabricated title "${item.sourceArticle}" with grounding title "${item.groundingTitle}" (similarity: ${titleSim.toFixed(2)})`);
+                        item.originalSourceArticle = item.sourceArticle;
+                        item.sourceArticle = item.groundingTitle;
+                    }
                 }
             }
 
