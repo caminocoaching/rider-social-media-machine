@@ -23,8 +23,11 @@ import {
 
 import {
     createManusSlideTask, checkManusTaskStatus,
-    createHeyGenVideo, checkHeyGenStatus,
-    createCanvaPostImage, runFullPipeline, getRecentPipelineJobs
+    createHeyGenVideo, createHeyGenFromTemplate, checkHeyGenStatus,
+    uploadVideoToGHL, getGHLSocialAccounts, scheduleGHLPost,
+    queueForReview, approveReview, rejectReview, getPendingReviews,
+    runFullPipeline, runBatchPipeline,
+    getRecentPipelineJobs, getRecentBatchJobs, getPipelineJob
 } from './production-pipeline.js';
 
 import { dispatchEmail } from './ghl-email.js';
@@ -344,6 +347,10 @@ function initWeeklyMode() {
     document.getElementById('copy-csv-btn')?.addEventListener('click', handleCopyCSV);
     document.getElementById('generate-emails-btn')?.addEventListener('click', handleGenerateAllEmails);
     document.getElementById('clear-session-btn')?.addEventListener('click', clearSession);
+    document.getElementById('automate-all-btn')?.addEventListener('click', handleAutomateAll);
+
+    // Pipeline event listeners
+    initPipelineUI();
 
     // Delegated click handler for article preview popups
     document.body.addEventListener('click', (e) => {
@@ -2125,4 +2132,303 @@ function handleCopyCSV() {
     const csvString = buildCSVString(state.posts, dates);
     copyToClipboard(csvString);
     showToast(`CSV for ${state.posts.length} posts copied!`, 'success');
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// 🚀 PIPELINE UI — Review Modal + Batch Progress + Automate All 7
+// ═══════════════════════════════════════════════════════════════
+
+let activePipelineReviewId = null;
+let batchPanelCollapsed = false;
+
+function initPipelineUI() {
+    // Review modal controls
+    document.getElementById('review-approve-btn')?.addEventListener('click', () => {
+        if (activePipelineReviewId) {
+            approveReview(activePipelineReviewId);
+            hideReviewModal();
+            showToast('✅ Slides approved — sending to HeyGen...', 'success');
+        }
+    });
+
+    document.getElementById('review-reject-btn')?.addEventListener('click', () => {
+        if (activePipelineReviewId) {
+            const reason = prompt('Why are you rejecting? (optional)');
+            rejectReview(activePipelineReviewId, reason || 'Rejected by user');
+            hideReviewModal();
+            showToast('❌ Slides rejected — rebuild manually.', 'info');
+        }
+    });
+
+    document.getElementById('review-modal-close')?.addEventListener('click', hideReviewModal);
+
+    // Close modal on overlay click
+    document.getElementById('pipeline-review-modal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'pipeline-review-modal') hideReviewModal();
+    });
+
+    // Batch panel toggle
+    document.getElementById('batch-panel-close')?.addEventListener('click', toggleBatchPanel);
+    document.getElementById('pipeline-batch-header')?.addEventListener('click', toggleBatchPanel);
+
+    // Listen for pipeline review events
+    document.addEventListener('pipeline-review-needed', (e) => {
+        showReviewModal(e.detail);
+    });
+}
+
+
+// ─── "Automate All 7" Handler ─────────────────────────────────
+async function handleAutomateAll() {
+    const settings = loadSettings();
+
+    // Pre-flight checks
+    if (state.posts.length === 0) {
+        showToast('Generate your 7 posts first, then automate!', 'error');
+        return;
+    }
+
+    const missingKeys = [];
+    if (!settings.manusApiKey) missingKeys.push('Manus');
+    if (!settings.heygenApiKey) missingKeys.push('HeyGen');
+    if (!settings.ghlToken || !settings.ghlLocationId) missingKeys.push('GHL');
+
+    if (missingKeys.length === 3) {
+        showToast(`Configure at least one API key in Settings: ${missingKeys.join(', ')}`, 'error');
+        return;
+    }
+
+    if (missingKeys.length > 0) {
+        const proceed = confirm(
+            `⚠️ Missing API keys: ${missingKeys.join(', ')}\n\n` +
+            `The pipeline will skip those steps. Continue with available services?`
+        );
+        if (!proceed) return;
+    }
+
+    if (!confirm('🚀 Launch the full automation pipeline for all 7 posts?\n\n' +
+                 'This will:\n' +
+                 '1. Send slide briefs to Manus\n' +
+                 '2. Wait for slides (up to 15 min each)\n' +
+                 '3. Ask you to approve each set of slides\n' +
+                 '4. Send approved slides to HeyGen for video\n' +
+                 '5. Upload videos and schedule to GHL\n\n' +
+                 'You can continue using the app during processing.')) {
+        return;
+    }
+
+    const btn = document.getElementById('automate-all-btn');
+    btn.classList.add('loading');
+    btn.disabled = true;
+    setStatus('🚀 Pipeline running — automating all 7...', true);
+
+    // Build pipeline items from posts + doneData
+    const items = state.posts.map((post, i) => {
+        const story = state.stories[i] || {};
+        const doneData = state.doneData?.[i] || {};
+
+        // Use confirmed video script if available, otherwise generate inline
+        const script = doneData.videoScript || post.content || '';
+
+        // Parse caption from the post
+        let caption = post.content || '';
+        if (caption.includes('=== FACEBOOK POST ===')) {
+            const fbMatch = caption.match(/=== FACEBOOK POST ===([\s\S]*?)(?:=== INSTAGRAM CAPTION ===|$)/);
+            caption = (fbMatch?.[1] || caption).trim();
+        }
+
+        return {
+            script,
+            caption,
+            topic: story.headline || story.topic || post.pillar?.name || `Post ${i + 1}`,
+            sourceUrl: story.articleUrl || story.sourceUrl || ''
+        };
+    });
+
+    // Get GHL account IDs from settings or auto-discover
+    const ghlAccountIds = settings.ghlSocialAccountIds
+        ? settings.ghlSocialAccountIds.split(',').map(id => id.trim()).filter(Boolean)
+        : [];
+
+    // Show batch progress panel
+    showBatchPanel(items);
+
+    try {
+        const result = await runBatchPipeline(items, {
+            skipReview: false,
+            ghlAccountIds,
+            onBatchProgress: (progress) => {
+                updateBatchPanel(progress);
+            }
+        });
+
+        showToast(
+            `🏁 Pipeline complete: ${result.successCount}/${result.totalCount} videos processed!`,
+            result.successCount === result.totalCount ? 'success' : 'info'
+        );
+    } catch (err) {
+        showToast(`Pipeline error: ${err.message}`, 'error');
+        console.error('Pipeline error:', err);
+    } finally {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+        setStatus('Ready');
+    }
+}
+
+
+// ─── Review Modal ─────────────────────────────────────────────
+function showReviewModal(review) {
+    const modal = document.getElementById('pipeline-review-modal');
+    const title = document.getElementById('review-modal-title');
+    const topic = document.getElementById('review-modal-topic');
+    const grid = document.getElementById('review-slide-grid');
+    if (!modal || !grid) return;
+
+    activePipelineReviewId = review.pipelineId;
+
+    title.textContent = `⏸️ Review Slides: ${review.topic || 'Untitled'}`;
+    topic.textContent = `${review.slideFiles?.length || 0} slides generated by Manus. Approve to send to HeyGen for video rendering, or reject to rebuild manually.`;
+
+    // Render slide thumbnails
+    const files = review.slideFiles || [];
+    grid.innerHTML = files.map((file, i) => {
+        const isImage = file.url && (file.name?.match(/\.(png|jpg|jpeg|webp)$/i) || file.type?.startsWith('image/'));
+        return `
+            <div class="pipeline-slide-thumb" ${isImage ? `onclick="window.open('${escapeHtml(file.url)}', '_blank')"` : ''}>
+                <span class="slide-number">${i + 1}</span>
+                ${isImage
+                    ? `<img src="${escapeHtml(file.url)}" alt="Slide ${i + 1}" loading="lazy" />`
+                    : `<div class="pipeline-slide-placeholder">
+                        <span class="slide-icon">📄</span>
+                        <span>${escapeHtml(file.name || `Slide ${i + 1}`)}</span>
+                       </div>`
+                }
+            </div>
+        `;
+    }).join('');
+
+    if (files.length === 0) {
+        grid.innerHTML = `
+            <div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--text-muted);">
+                <p style="font-size:1.5rem;margin-bottom:0.5rem;">📂</p>
+                <p>No slide files returned from Manus.</p>
+                <p style="font-size:0.75rem;margin-top:0.5rem;">The slides may still be processing. Check the Manus dashboard for files.</p>
+            </div>
+        `;
+    }
+
+    modal.style.display = 'flex';
+}
+
+function hideReviewModal() {
+    const modal = document.getElementById('pipeline-review-modal');
+    if (modal) modal.style.display = 'none';
+    activePipelineReviewId = null;
+}
+
+
+// ─── Batch Progress Panel ─────────────────────────────────────
+function showBatchPanel(items) {
+    const panel = document.getElementById('pipeline-batch-panel');
+    const body = document.getElementById('pipeline-batch-body');
+    const summary = document.getElementById('batch-progress-summary');
+    if (!panel || !body) return;
+
+    summary.textContent = `0/${items.length} complete`;
+    batchPanelCollapsed = false;
+    body.classList.remove('collapsed');
+
+    body.innerHTML = items.map((item, i) => `
+        <div class="pipeline-item" id="pipeline-item-${i}">
+            <div class="pipeline-item-number queued" id="pipeline-num-${i}">${i + 1}</div>
+            <div class="pipeline-item-info">
+                <div class="pipeline-item-topic">${escapeHtml(item.topic || `Post ${i + 1}`)}</div>
+                <div class="pipeline-item-status" id="pipeline-status-${i}">⏳ Queued</div>
+                <div class="pipeline-progress-bar">
+                    <div class="pipeline-progress-fill" id="pipeline-progress-${i}" style="width:0%;"></div>
+                </div>
+            </div>
+            <div class="pipeline-item-step" id="pipeline-step-${i}">—</div>
+        </div>
+    `).join('');
+
+    panel.style.display = 'flex';
+}
+
+function updateBatchPanel(progress) {
+    const summary = document.getElementById('batch-progress-summary');
+    if (summary) {
+        summary.textContent = `${progress.completed}/${progress.total} complete`;
+    }
+
+    if (progress.items) {
+        progress.items.forEach((item, i) => {
+            const numEl = document.getElementById(`pipeline-num-${i}`);
+            const statusEl = document.getElementById(`pipeline-status-${i}`);
+            const stepEl = document.getElementById(`pipeline-step-${i}`);
+            const progressEl = document.getElementById(`pipeline-progress-${i}`);
+
+            if (!numEl) return;
+
+            // Update number badge class
+            numEl.className = 'pipeline-item-number';
+            if (item.status === 'running' || item.status === 'warning') {
+                numEl.classList.add('running');
+            } else if (item.status === 'completed' || item.status === 'video-ready') {
+                numEl.classList.add('completed');
+                numEl.textContent = '✓';
+            } else if (item.status === 'error') {
+                numEl.classList.add('error');
+                numEl.textContent = '✗';
+            }
+
+            // Update status text
+            if (statusEl && item.message) {
+                statusEl.textContent = item.message;
+            } else if (statusEl && item.status) {
+                const statusLabels = {
+                    'queued': '⏳ Queued',
+                    'running': '🔄 Processing...',
+                    'completed': '✅ Done',
+                    'video-ready': '🎬 Video ready',
+                    'partial': '⚠️ Partial',
+                    'error': '❌ Failed',
+                    'rejected': '❌ Rejected'
+                };
+                statusEl.textContent = statusLabels[item.status] || item.status;
+            }
+
+            // Update step indicator
+            if (stepEl && item.currentStep) {
+                stepEl.textContent = `${item.currentStep}/5`;
+            }
+
+            // Update progress bar
+            if (progressEl && item.currentStep) {
+                const pct = Math.round((item.currentStep / 5) * 100);
+                progressEl.style.width = `${pct}%`;
+            }
+            if (progressEl && (item.status === 'completed' || item.status === 'video-ready')) {
+                progressEl.style.width = '100%';
+            }
+        });
+    }
+
+    // If finished, update header
+    if (progress.finished) {
+        const header = document.querySelector('.pipeline-batch-header h3');
+        if (header) header.textContent = '✅ Pipeline Complete';
+    }
+}
+
+function toggleBatchPanel() {
+    const body = document.getElementById('pipeline-batch-body');
+    const closeBtn = document.getElementById('batch-panel-close');
+    if (!body) return;
+
+    batchPanelCollapsed = !batchPanelCollapsed;
+    body.classList.toggle('collapsed', batchPanelCollapsed);
+    if (closeBtn) closeBtn.textContent = batchPanelCollapsed ? '▲' : '▼';
 }

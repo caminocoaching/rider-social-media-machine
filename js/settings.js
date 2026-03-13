@@ -117,12 +117,14 @@ const DEFAULT_SETTINGS = {
   heygenApiKey: '',
   heygenAvatarId: '',
   heygenVoiceId: '',
+  heygenTemplateId: '',
   manusApiKey: '',
   canvaApiToken: '',
   canvaPostTemplateId: '',
   ghlToken: '',
   ghlLocationId: '',
   ghlEmailFrom: '',
+  ghlSocialAccountIds: '',
   publishMethod: 'csv',
   facebookGroups: [
     { name: 'Motorcycle Racers & Track Day Riders', url: '', enabled: true },
@@ -252,6 +254,12 @@ export function renderSettingsPage() {
               <span class="form-hint">Your voice clone or selected voice ID</span>
             </div>
           </div>
+          <div class="form-group">
+            <label for="heygen-template">🎯 HeyGen Template ID <span style="font-size:0.7rem;color:var(--neuro-teal);">(Recommended — more reliable than raw generation)</span></label>
+            <input type="text" id="heygen-template" class="form-input"
+                   value="${settings.heygenTemplateId || ''}" placeholder="e.g. abc123def456" />
+            <span class="form-hint">Create a master template in HeyGen with locked avatar position, voice, and resolution. The API swaps in new slides + script each time. Get your template ID from HeyGen dashboard → Templates.</span>
+          </div>
 
           <div class="form-group">
             <label for="manus-key">🎨 Manus API Key <span style="font-size:0.7rem;color:var(--purple);">(Slide Deck Generation)</span></label>
@@ -374,6 +382,14 @@ export function renderSettingsPage() {
                      placeholder="e.g. craig@caminocoaching.co.uk" />
               <span class="form-hint">Must be from your LC Email dedicated domain</span>
             </div>
+          </div>
+
+          <div class="form-group">
+            <label for="ghl-accounts">📱 Social Media Account IDs <span style="font-size:0.7rem;color:var(--neuro-teal);">(Auto-posting targets)</span></label>
+            <input type="text" id="ghl-accounts" class="form-input"
+                   value="${settings.ghlSocialAccountIds || ''}"
+                   placeholder="Comma-separated account IDs (e.g. acc_fb123,acc_ig456,acc_yt789)" />
+            <span class="form-hint">Connected social account IDs for Facebook, Instagram, and YouTube. Leave blank to auto-discover. Find these via GHL → Social Planner → Accounts.</span>
           </div>
 
           <div class="form-group">
@@ -658,12 +674,14 @@ function gatherSettingsFromForm() {
     heygenApiKey: document.getElementById('heygen-key')?.value || '',
     heygenAvatarId: document.getElementById('heygen-avatar')?.value || '',
     heygenVoiceId: document.getElementById('heygen-voice')?.value || '',
+    heygenTemplateId: document.getElementById('heygen-template')?.value || '',
     manusApiKey: document.getElementById('manus-key')?.value || '',
     canvaApiToken: document.getElementById('canva-token')?.value || '',
     canvaPostTemplateId: document.getElementById('canva-template')?.value || '',
     ghlToken: document.getElementById('ghl-token')?.value || '',
     ghlLocationId: document.getElementById('ghl-location')?.value || '',
     ghlEmailFrom: document.getElementById('ghl-email-from')?.value || '',
+    ghlSocialAccountIds: document.getElementById('ghl-accounts')?.value || '',
     publishMethod: document.querySelector('input[name="publish-method"]:checked')?.value || 'csv',
     facebookGroups: groups,
     brandName: document.getElementById('brand-name')?.value || 'Camino Coaching',

@@ -21,6 +21,44 @@
   <!-- ─── Toast Container ──────────────────────────────────── -->
   <div id="toast-container"></div>
 
+  <!-- ─── Pipeline Review Modal Overlay ────────────────────── -->
+  <div class="pipeline-modal-overlay" id="pipeline-review-modal" style="display:none;">
+    <div class="pipeline-modal">
+      <div class="pipeline-modal-header">
+        <h2 id="review-modal-title">⏸️ Review Slides Before Video</h2>
+        <button class="pipeline-modal-close" id="review-modal-close" title="Close">&times;</button>
+      </div>
+      <div class="pipeline-modal-body">
+        <p id="review-modal-topic" style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:1rem;"></p>
+        <div class="pipeline-slide-grid" id="review-slide-grid">
+          <!-- Slide thumbnails rendered by JS -->
+        </div>
+      </div>
+      <div class="pipeline-modal-footer">
+        <button class="btn btn-secondary" id="review-reject-btn" style="border-color:rgba(255,107,107,0.4);color:#FF6B6B;">
+          ❌ Reject — Rebuild
+        </button>
+        <button class="btn btn-primary" id="review-approve-btn" style="background:var(--neuro-teal);color:#0A1628;font-weight:700;">
+          ✅ Approve — Send to HeyGen
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Batch Pipeline Progress Panel ──────────────────────── -->
+  <div class="pipeline-batch-panel" id="pipeline-batch-panel" style="display:none;">
+    <div class="pipeline-batch-header">
+      <div>
+        <h3 style="margin:0;font-size:1rem;color:var(--text-primary);">🚀 Pipeline Running</h3>
+        <p id="batch-progress-summary" style="margin:0.25rem 0 0;font-size:0.78rem;color:var(--text-secondary);">0/7 complete</p>
+      </div>
+      <button class="pipeline-batch-close" id="batch-panel-close" title="Minimise">▼</button>
+    </div>
+    <div class="pipeline-batch-body" id="pipeline-batch-body">
+      <!-- Per-video status cards rendered by JS -->
+    </div>
+  </div>
+
   <!-- ─── Clean Minimal Nav ─────────────────────────────────── -->
   <nav class="nav" id="main-nav">
     <div class="nav-inner">
@@ -117,9 +155,16 @@
               style="border-color:rgba(218,165,32,0.3);color:var(--gold);">
               <span class="btn-icon-left">📧</span> Emails
             </button>
+            <button class="btn btn-pipeline" id="automate-all-btn"
+              style="background:linear-gradient(135deg,#00BFA5,#4488FF);color:#0A1628;font-weight:700;border:none;">
+              <span class="btn-icon-left">🚀</span> Automate All 7
+              <span class="btn-loading" style="display:none;">
+                <span class="spinner"></span>
+              </span>
+            </button>
             <a href="https://app.gohighlevel.com/v2/location/vdgR8teGuIgHPMPzbQkK/marketing/social-planner/csv"
               target="_blank" class="btn btn-secondary" id="open-ghl-btn" style="text-decoration:none;">
-              <span class="btn-icon-left">🚀</span> Open GHL
+              <span class="btn-icon-left">📡</span> Open GHL
             </a>
             <button class="btn btn-secondary" id="clear-session-btn"
               style="color: var(--accent); border-color: rgba(255,68,68,0.3); margin-left:auto;">

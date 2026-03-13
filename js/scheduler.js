@@ -190,8 +190,10 @@ export async function copyToClipboard(text) {
     }
 }
 
-// ─── GHL API Scheduling (placeholder) ─────────────────────────
-export async function scheduleToGHL(posts, dates, ghlToken, locationId) {
+// ─── GHL API Scheduling ───────────────────────────────────────
+// Verified endpoint: POST /social-media-posting/:locationId/posts
+// Supports text posts, image posts, video reels, and stories
+export async function scheduleToGHL(posts, dates, ghlToken, locationId, accountIds = []) {
     if (!ghlToken) {
         throw new Error('GHL Private Integration token not configured. Go to Settings.');
     }
@@ -199,31 +201,73 @@ export async function scheduleToGHL(posts, dates, ghlToken, locationId) {
         throw new Error('GHL Location ID not configured. Go to Settings.');
     }
 
+    // Auto-discover account IDs if not provided
+    if (accountIds.length === 0) {
+        try {
+            const accountsResp = await fetch(
+                `https://services.leadconnectorhq.com/social-media-posting/${locationId}/accounts`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${ghlToken}`,
+                        'Version': '2021-07-28'
+                    }
+                }
+            );
+            if (accountsResp.ok) {
+                const accountsData = await accountsResp.json();
+                const accounts = accountsData.accounts || accountsData.data?.accounts || [];
+                accountIds = accounts
+                    .filter(a => ['facebook', 'instagram', 'youtube'].includes(a.platform?.toLowerCase()))
+                    .map(a => a.id || a.accountId);
+            }
+        } catch (e) {
+            console.warn('Could not auto-discover GHL accounts:', e.message);
+        }
+    }
+
     const results = [];
 
     for (let i = 0; i < posts.length; i++) {
         try {
-            const response = await fetch(`https://services.leadconnectorhq.com/social-media-posting/post`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${ghlToken}`,
-                    'Content-Type': 'application/json',
-                    'Version': '2021-07-28'
-                },
-                body: JSON.stringify({
-                    locationId: locationId,
-                    type: 'post',
-                    status: 'scheduled',
-                    scheduledAt: formatGHLDate(dates[i].date),
-                    accounts: ['facebook', 'instagram'],
-                    summary: posts[i].content,
-                    media: posts[i].imageUrl ? [{ url: posts[i].imageUrl, type: 'image' }] : []
-                })
-            });
+            // Extract Facebook content from dual-platform posts
+            let content = posts[i].content || '';
+            if (content.includes('=== FACEBOOK POST ===')) {
+                const fbMatch = content.match(/=== FACEBOOK POST ===([\s\S]*?)(?:=== INSTAGRAM CAPTION ===|$)/);
+                content = (fbMatch?.[1] || content).trim();
+            }
+
+            const body = {
+                accountIds: accountIds.length > 0 ? accountIds : undefined,
+                summary: content,
+                status: 'scheduled',
+                scheduleDate: dates[i]?.date ? dates[i].date.toISOString() : new Date().toISOString()
+            };
+
+            // Include media if available (video or image)
+            if (posts[i].videoUrl) {
+                body.mediaUrls = [posts[i].videoUrl];
+                body.instagramPostDetails = { type: 'reel' };
+                body.facebookPostDetails = { type: 'reel' };
+            } else if (posts[i].imageUrl) {
+                body.mediaUrls = [posts[i].imageUrl];
+            }
+
+            const response = await fetch(
+                `https://services.leadconnectorhq.com/social-media-posting/${locationId}/posts`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${ghlToken}`,
+                        'Content-Type': 'application/json',
+                        'Version': '2021-07-28'
+                    },
+                    body: JSON.stringify(body)
+                }
+            );
 
             if (!response.ok) {
                 const error = await response.json().catch(() => ({}));
-                throw new Error(error.message || `GHL API error: ${response.status}`);
+                throw new Error(error.message || error.error?.message || `GHL API error: ${response.status}`);
             }
 
             results.push({ index: i, success: true });

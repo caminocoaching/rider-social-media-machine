@@ -2633,3 +2633,431 @@ a:hover {
 .single-result-container:not(.hidden) {
   animation: slideUp 0.4s ease;
 }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   🚀 PIPELINE UI — Review Modal + Batch Progress + Status
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Review Modal Overlay ──────────────────────────────────── */
+.pipeline-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.pipeline-modal {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-hover);
+  border-radius: var(--r-lg);
+  width: 100%;
+  max-width: 720px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(0, 191, 165, 0.08);
+  animation: slideUp 0.3s ease;
+}
+
+.pipeline-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.pipeline-modal-header h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.pipeline-modal-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pipeline-modal-close:hover {
+  background: rgba(255, 107, 107, 0.15);
+  color: #FF6B6B;
+  border-color: rgba(255, 107, 107, 0.3);
+}
+
+.pipeline-modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.pipeline-modal-footer {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+/* ─── Slide Thumbnail Grid ──────────────────────────────────── */
+.pipeline-slide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.pipeline-slide-thumb {
+  aspect-ratio: 9/16;
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.pipeline-slide-thumb:hover {
+  border-color: var(--neuro-teal, #00BFA5);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 191, 165, 0.15);
+}
+
+.pipeline-slide-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pipeline-slide-thumb .slide-number {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 50%;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.pipeline-slide-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+}
+
+.pipeline-slide-placeholder .slide-icon {
+  font-size: 1.5rem;
+  opacity: 0.5;
+}
+
+
+/* ─── Batch Pipeline Progress Panel ─────────────────────────── */
+.pipeline-batch-panel {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 380px;
+  max-height: 500px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-hover);
+  border-radius: var(--r-lg);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(0, 191, 165, 0.06);
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.4s ease;
+  overflow: hidden;
+}
+
+.pipeline-batch-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  background: linear-gradient(135deg, rgba(0, 191, 165, 0.08), rgba(68, 136, 255, 0.06));
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.pipeline-batch-close {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pipeline-batch-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.pipeline-batch-body {
+  padding: 0.5rem;
+  overflow-y: auto;
+  max-height: 380px;
+}
+
+.pipeline-batch-body.collapsed {
+  display: none;
+}
+
+
+/* ─── Individual Pipeline Item in Batch Panel ───────────────── */
+.pipeline-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: var(--r-sm);
+  margin-bottom: 0.3rem;
+  transition: background var(--transition-fast);
+}
+
+.pipeline-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.pipeline-item-number {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.pipeline-item-number.running {
+  background: rgba(0, 191, 165, 0.15);
+  border-color: rgba(0, 191, 165, 0.4);
+  color: #00BFA5;
+  animation: pulse-teal 1.5s ease infinite;
+}
+
+.pipeline-item-number.completed {
+  background: rgba(46, 160, 67, 0.15);
+  border-color: rgba(46, 160, 67, 0.4);
+  color: #2EA043;
+}
+
+.pipeline-item-number.error {
+  background: rgba(255, 107, 107, 0.15);
+  border-color: rgba(255, 107, 107, 0.4);
+  color: #FF6B6B;
+}
+
+@keyframes pulse-teal {
+  0%, 100% { opacity: 1; box-shadow: 0 0 4px rgba(0, 191, 165, 0.3); }
+  50% { opacity: 0.7; box-shadow: 0 0 10px rgba(0, 191, 165, 0.5); }
+}
+
+.pipeline-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.pipeline-item-topic {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pipeline-item-status {
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  margin-top: 0.1rem;
+}
+
+.pipeline-item-step {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  text-align: right;
+}
+
+/* ─── Pipeline Progress Bar ─────────────────────────────────── */
+.pipeline-progress-bar {
+  width: 100%;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  margin-top: 0.3rem;
+  overflow: hidden;
+}
+
+.pipeline-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #00BFA5, #4488FF);
+  transition: width 0.5s ease;
+}
+
+
+/* ─── "Automate All 7" Button ───────────────────────────────── */
+.btn-pipeline {
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition);
+}
+
+.btn-pipeline:hover {
+  box-shadow: 0 4px 20px rgba(0, 191, 165, 0.3), 0 0 40px rgba(68, 136, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.btn-pipeline:active {
+  transform: translateY(0);
+}
+
+.btn-pipeline::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 60%
+  );
+  animation: shimmer 3s ease infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) rotate(45deg); }
+}
+
+.btn-pipeline.loading::after {
+  display: none;
+}
+
+
+/* ─── Pipeline Status Badge on Post Cards ───────────────────── */
+.pipeline-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--r-full);
+  font-size: 0.6rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pipeline-status-badge.queued {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.pipeline-status-badge.slides {
+  background: rgba(139, 92, 246, 0.1);
+  color: #8B5CF6;
+  border: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+.pipeline-status-badge.review {
+  background: rgba(218, 165, 32, 0.1);
+  color: var(--gold);
+  border: 1px solid rgba(218, 165, 32, 0.25);
+  animation: pulse-gold 1.5s ease infinite;
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: none; }
+  50% { box-shadow: 0 0 8px rgba(218, 165, 32, 0.3); }
+}
+
+.pipeline-status-badge.rendering {
+  background: rgba(0, 191, 165, 0.1);
+  color: #00BFA5;
+  border: 1px solid rgba(0, 191, 165, 0.25);
+}
+
+.pipeline-status-badge.scheduling {
+  background: rgba(46, 160, 67, 0.1);
+  color: #2EA043;
+  border: 1px solid rgba(46, 160, 67, 0.25);
+}
+
+.pipeline-status-badge.completed {
+  background: rgba(46, 160, 67, 0.1);
+  color: #2EA043;
+  border: 1px solid rgba(46, 160, 67, 0.25);
+}
+
+.pipeline-status-badge.error {
+  background: rgba(255, 107, 107, 0.1);
+  color: #FF6B6B;
+  border: 1px solid rgba(255, 107, 107, 0.25);
+}
+
+
+/* ─── Batch Panel Responsive ────────────────────────────────── */
+@media (max-width: 480px) {
+  .pipeline-batch-panel {
+    left: 0.75rem;
+    right: 0.75rem;
+    width: auto;
+    bottom: 0.75rem;
+  }
+
+  .pipeline-modal {
+    max-width: 100%;
+    margin: 0.5rem;
+  }
+
+  .pipeline-slide-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+}
